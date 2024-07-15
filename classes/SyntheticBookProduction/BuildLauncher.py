@@ -1,13 +1,15 @@
-import os
 import argparse
+from PartsBuilder import PartsBuilder
+from CodexBuilder import CodexBuilder
+from PromptPlan import PromptPlan
+import os
 import json
 import logging
 from typing import List, Dict
 import google.generativeai as genai
-from PartsBuilder import PartsBuilder
-from CodexBuilder import CodexBuilder
-from classes.SyntheticBookProduction.PromptPlan import PromptPlan
+from app.utilities.utilities import configure_logger
 import uuid
+import streamlit as st
 
 class BuildLauncher:
     def __init__(self):
@@ -34,16 +36,12 @@ class BuildLauncher:
         parser.add_argument('--plans_json', type=str, help='Path to JSON file containing multiple plans')
         return parser.parse_args()
 
-    def load_config(self, config_path: str) -> Dict:
-        with open(config_path, 'r') as f:
-            return json.load(f)
-
     def create_prompt_plan(self, config: Dict) -> PromptPlan:
         prompt_plan_params = {
             'context': config.get('context', ''),
             'context_file_paths': config.get('context_file_paths'),
             'user_keys': config.get('user_keys', []),
-            'thisdoc_dir': config.get('thisdoc_dir', ''),
+            'thisdoc_dir': config.get('thisdoc_dir') or os.path.join(os.getcwd(), 'output'),
             'json_required': config.get('json_required', False),
             'generation_config': config.get('generation_config'),
             'system_instructions_dict_file_path': config.get('system_instructions_dict_file_path'),
@@ -57,7 +55,7 @@ class BuildLauncher:
             'log_level': config.get('log_level', 'INFO'),
             'number_to_run': config.get('number_to_run', 1),
             'desired_output_length': config.get('desired_output_length'),
-            'model_name': config.get('model'),
+            'model_name': config.get('model_name'),
             'mode': config.get('mode'),
             'use_all_user_keys': config.get('use_all_user_keys', False)
         }
@@ -65,24 +63,53 @@ class BuildLauncher:
         prompt_plan_params = {k: v for k, v in prompt_plan_params.items() if v is not None}
         return PromptPlan(**prompt_plan_params)
 
-    def load_plans_from_json(self, json_file_path):
-        with open(json_file_path, 'r') as f:
-            data = json.load(f)
+    def load_plans_from_json(self, json_data):
+        if isinstance(json_data, dict):
+            # If json_data is already a dictionary, use it directly
+            data = json_data
+        elif isinstance(json_data, str):
+            # If json_data is a file path
+            with open(json_data, 'r') as f:
+                data = json.load(f)
+        elif hasattr(json_data, 'read'):
+            # If json_data is a file-like object (e.g., StringIO or file object)
+            data = json.load(json_data)
+        else:
+            raise TypeError("Expected a dict, str (file path), or file-like object")
+
         return [self.create_prompt_plan(plan_config) for plan_config in data['plans']]
 
-    def main(self):
-        args = self.parse_arguments()
+    def main(self, args=None):
+        if args is None:
+            args = self.parse_arguments()
+        elif isinstance(args, dict):
+            # If args is a dictionary, we'll use it as is
+            pass
+        elif not isinstance(args, argparse.Namespace):
+            raise TypeError("args must be either a dictionary or an argparse.Namespace object")
 
-        if args.plans_json:
-            plans = self.load_plans_from_json(args.plans_json)
+        # Set up logging based on the provided log level
+        log_level = args.get('log_level', 'INFO') if isinstance(args, dict) else args.log_level
+        logger = configure_logger(log_level)
+
+        if isinstance(args, dict) and 'plans_json' in args:
+            plans_data = args['plans_json']
+            plans = [self.create_prompt_plan(plan_config) for plan_config in plans_data['plans']]
+        elif hasattr(args, 'plans_json') and args.plans_json:
+            with open(args.plans_json, 'r') as f:
+                plans_data = json.load(f)
+            plans = [self.create_prompt_plan(plan_config) for plan_config in plans_data['plans']]
         else:
-            # Use single plan as before
-            config = self.load_config(args.config) if args.config else vars(args)
+            # Use single plan
+            config = args if isinstance(args, dict) else vars(args)
             plans = [self.create_prompt_plan(config)]
+
+        for i, plan in enumerate(plans):
+            self.logger.debug(f"Plan {i + 1}: {plan}")
 
         for plan in plans:
             if not plan.context_file_paths and not plan.context:
-                self.logger.warning(f"Plan {plan.mode} has no context. This may affect the output quality.")
+                logger.warning(f"Plan {plan.mode} has no context. This may affect the output quality.")
 
         results = []
         for plan in plans:
@@ -96,7 +123,7 @@ class BuildLauncher:
                 result = self.codex_builder.build_codex_from_multiple_plans(plans)
                 break  # Only need to run once for full_codex mode
             else:
-                self.logger.error(f"Invalid mode specified for plan: {plan.mode}")
+                logger.error(f"Invalid mode specified for plan: {plan.mode}")
                 continue
 
             result = self.parts_builder.ensure_output_limit(result, plan.desired_output_length)
@@ -104,9 +131,13 @@ class BuildLauncher:
 
             # Generate a unique filename for each plan
             unique_filename = f"{plan.output_file_path}_{str(uuid.uuid4())[:6]}"
-            with open(unique_filename, 'w') as f:
+            with open(unique_filename + ".md", 'w') as f:
                 f.write(result)
-            self.logger.info(f"Output written to {unique_filename}")
+                logger.info(f"Output written to {unique_filename}.md")
+            with open(unique_filename + '.json', 'w') as f:
+                f.write(json.dumps(result, indent=4))
+                logger.info(f"Output written to {unique_filename}.json")
+            logger.info(f"Output length {len(result)}")
 
         return results
 

@@ -101,13 +101,13 @@ class PromptPlan:
 
     def prepare_final_prompts(self) -> List[str]:
         """Prepare the final list of prompts to be used."""
-        if self.user_prompt_override:
+        if self.user_prompt_override and self.user_prompt:
             return [self.user_prompt]
 
         final_prompts = []
-        if self.use_all_user_keys:
+        if self.use_all_user_keys and self.user_prompts_dict:
             final_prompts = list(self.user_prompts_dict.values())
-        elif self.list_of_user_keys_to_use:
+        elif self.list_of_user_keys_to_use and self.user_prompts_dict:
             keys_to_use = [key.strip() for key in self.list_of_user_keys_to_use.split(',')]
             for key in keys_to_use:
                 if key in self.user_prompts_dict:
@@ -116,7 +116,11 @@ class PromptPlan:
         if self.user_prompt:
             final_prompts.append(self.user_prompt)
 
-        return final_prompts if final_prompts else [self.user_prompt]
+        if not final_prompts:
+            self.logger.warning("No prompts available. Using default prompt.")
+            final_prompts = ["Please provide output based on the given context."]
+
+        return final_prompts
 
     def get_prompts(self) -> List[str]:
         """Return the final list of prompts."""

@@ -112,7 +112,7 @@ class Codexes2Parts:
         return "\n\n".join(satisfactory_results)  # Return only satisfactory results joined together
 
     def read_and_prepare_context(self, plan):
-        context_content = ""
+        context_content = plan.context or ""
         if plan.context_file_paths:
             for file_path in plan.context_file_paths:
                 if not file_path.strip():  # Skip empty file paths
@@ -123,10 +123,6 @@ class Codexes2Parts:
                         context_content += f.read() + "\n\n"
                 except Exception as e:
                     self.logger.error(f"Error reading context file {file_path}: {e}")
-        elif plan.context:
-            context_content = plan.context
-        else:
-            self.logger.warning("No context files or context string provided. Context will be empty.")
 
         context_msg = f"Context is type {type(context_content)}, length {len(context_content)}"
         self.logger.debug(context_msg)
@@ -176,6 +172,9 @@ class Codexes2Parts:
                     exit()
 
     def make_thisdoc_dir(self, plan):
+        if not plan.thisdoc_dir:
+            plan.thisdoc_dir = os.path.join(os.getcwd(), 'output')
+
         if not os.path.exists(plan.thisdoc_dir):
             os.makedirs(plan.thisdoc_dir)
         print(f"thisdoc_dir is {plan.thisdoc_dir}")

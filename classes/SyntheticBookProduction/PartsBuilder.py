@@ -3,8 +3,9 @@ from typing import List, Dict
 from Codexes2PartsOfTheBook import Codexes2Parts
 from classes.SyntheticBookProduction.PromptPlan import PromptPlan
 import google.generativeai as genai
+
 class PartsBuilder:
-    import google.generativeai as genai
+
 
     def __init__(self):
         self.c2p = Codexes2Parts()
