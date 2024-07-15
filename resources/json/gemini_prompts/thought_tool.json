@@ -1,0 +1,38 @@
+{
+    "squaddie new parts": {
+        "mode": "Codex2Parts",
+        "context": "",
+        "user message": "",
+        "system message": ""
+    },
+    "jpcross edit": {
+        "mode": "Codex2Codex",
+        "context": "",
+        "user message": "",
+        "system message": ""
+    },
+    "jpcross reader eval": {
+        "context": "",
+        "mode": "Codex2Parts",
+        "user message": "",
+        "system message": ""
+    },
+    "darkbaron new parts of book": {
+        "mode": "Codex2Parts",
+        "context": "",
+        "user message": "",
+        "system message": ""
+    },
+    "slaizer edit": {
+        "mode": "Codex2Codex",
+        "context": "",
+        "user message": "",
+        "system message": ""
+    },
+    "CodexSpecs2Codex": {
+        "mode": "CodexSpec2Codex",
+        "context": "",
+        "user message": "",
+        "system message": ""
+    }
+}

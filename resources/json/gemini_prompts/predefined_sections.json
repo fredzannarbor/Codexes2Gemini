@@ -1,0 +1,66 @@
+[
+  {
+    "title_page": {
+      "title": "{gemini_title}",
+      "pre_content": [
+        "### {gemini_author}\n\n",
+        "### Nimble Books LLC: The AI Lab for Book-Lovers\n\n",
+        "#### Fred Zimmerman, Editor\n\n",
+        "##### _Humans and AI making books richer, more diverse, and more surprising_"
+      ],
+      "gemini_result": [],
+      "post_content": [
+        "\\newpage"
+      ]
+    },
+    "publishing_info": {
+      "title": "Publishing Information",
+      "pre_content": [
+        "- (c) {year} {publisher}",
+        "- ISBN: {ISBN}\n\n",
+        "Nimble Books LLC ~ NimbleBooks.com\n\n"
+      ],
+      "gemini_result": [
+        "ADEPT2-publishing-information"
+      ],
+      "post_content": [
+        "{description_of_annotations}"
+      ]
+    },
+    "abstracts": {
+      "title": "Abstracts",
+      "pre_content": "",
+      "gemini_result": [
+        "ADEPT2-abstracts"
+      ],
+      "post_content": ""
+    },
+    "mnemonics": {
+      "title": "Learning Aids",
+      "pre_content": "",
+      "gemini_result": [
+        "mnemonics"
+      ],
+      "post_content": ""
+    },
+    "excerpts": {
+      "title": "Excerpts",
+      "pre_content": "",
+      "gemini_result": [
+        "most_important_passages"
+      ],
+      "post_content": ""
+    },
+    "references": {
+      "title": "References",
+      "pre_content": "",
+      "gemini_result": [
+        "glossary-lay-reader",
+        "timeline-major",
+        "index-of-persons",
+        "index-of-places"
+      ],
+      "post_content": ""
+    }
+  }
+]

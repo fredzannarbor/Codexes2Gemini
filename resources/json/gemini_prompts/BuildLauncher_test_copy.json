@@ -1,0 +1,28 @@
+{
+    "context_file_paths": ["/Users/fred/bin/SyntheticBookPublisher/output/editing/darkbaron/results_0906fa.md"
+    ],
+    "user_keys": ["chapter 1",
+        "chapter 2"
+    ],
+    "json_required": false,
+    "user_prompt_override": false,
+    "continuation_prompts": false,
+    "generation_config": {
+        "temperature": 1,
+        "top_p": 0.95,
+        "top_k": 0,
+        "max_output_tokens": 8192
+    },
+    "desired_output_length": 8000,
+    "number_to_run": 3,
+    "user_prompt": "",
+    "list_of_system_keys": "darkbaron",
+    "model_name": "gemini-1.5-flash-001",
+    "list_of_user_keys_to_use": "executive_summary, glossary",
+    "log_level": "INFO",
+    "use_all_user_keys": false,
+    "output_file_path": "output.md",
+    "thisdoc_dir": "output/editing/test",
+    "system_instructions_dict_file_path": "resources/json/gemini_prompts/gemini_system_instructions.json",
+    "user_prompts_dict_file_path": "resources/json/gemini_prompts/parts_prompts_test.json"
+}

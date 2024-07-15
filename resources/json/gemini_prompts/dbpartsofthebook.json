@@ -1,0 +1,5 @@
+{
+  "Table of Triggers": "Your task is to review the entire context and create a Table of Lib-Triggering Genius Ideas. Output should begin: # Table of Lib-Triggering Genius Ideas.",
+  "Who's Who of Villains": "Your task is to review the entire context and create a Who's Who of Villains. Villains are people who Project 2025 regards *negatively* or criticizes.  Do not include people who support Project 2025.  Output should begin: # Who's Who of Villains.  Markdown table.",
+  "Table of New And Better Stuff": "Create a table of physical objects and artifacts that will be created improved by Project 2025's initiatives. Output begins: # Table of New and Better Stuff. Markdown table."
+  }

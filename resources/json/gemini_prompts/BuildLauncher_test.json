@@ -1,0 +1,29 @@
+{
+    "context_file_paths": ["/Users/fred/Downloads/a2025_MandateForLeadership_FULL.txt"
+    ],
+    "continuation_prompts": false,
+    "desired_output_length": 1000,
+    "generation_config": {
+        "temperature": 1,
+        "top_p": 0.95,
+        "top_k": 0,
+        "max_output_tokens": 8192
+    },
+    "json_required": false,
+    "list_of_system_keys": "darkbaron",
+    "list_of_user_keys_to_use": "chapter 1,chapter 2",
+    "log_level": "INFO",
+    "model_name": "gemini-1.5-flash-001",
+    "number_to_run": 3,
+    "output_file_path": "output.md",
+    "system_instructions_dict_file_path": "resources/json/gemini_prompts/gemini_system_instructions.json",
+    "thisdoc_dir": "output/editing/test",
+    "use_all_user_keys": true,
+    "user_keys": [
+        "chapter 1",
+        "chapter 2"
+    ],
+    "user_prompt": "",
+    "user_prompt_override": false,
+    "user_prompts_dict_file_path": "resources/json/gemini_prompts/dbpartsofthebook.json"
+}

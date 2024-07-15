@@ -1,0 +1,16 @@
+[
+  {
+    "tasks": [
+      {
+        "task name": "ADEPT2",
+        "system instructions": "nimble_boks_editor, energetic_behavior",
+        "user_instructions": "scientific_abstract, semantic_analysis, tldr3, ELI5, most_important_passages"
+      },
+      {
+        "task name": "synthetic_reader",
+        "system instructions": "nimble_boks_editor, energetic_behavior",
+        "user_instructions": "scientific_abstract, semantic_analysis, tldr3, ELI5, most_important_passages"
+      }
+    ]
+  }
+]

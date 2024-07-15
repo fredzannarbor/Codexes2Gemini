@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>context_file_paths</key>
+	<array>
+		<string>/Users/fred/Downloads/a2025_MandateForLeadership_FULL.txt</string>
+	</array>
+	<key>user_keys</key>
+	<array>
+		<string>chapter 1</string>
+		<string>chapter 2</string>
+	</array>
+	<key>json_required</key>
+	<false/>
+	<key>user_prompt_override</key>
+	<false/>
+	<key>continuation_prompts</key>
+	<false/>
+	<key>generation_config</key>
+	<dict>
+		<key>temperature</key>
+		<integer>1</integer>
+		<key>top_p</key>
+		<real>0.95</real>
+		<key>top_k</key>
+		<integer>0</integer>
+		<key>max_output_tokens</key>
+		<integer>8192</integer>
+	</dict>
+	<key>desired_output_length</key>
+	<integer>8000</integer>
+	<key>number_to_run</key>
+	<integer>3</integer>
+	<key>user_prompt</key>
+	<string></string>
+	<key>list_of_system_keys</key>
+	<string>darkbaron</string>
+	<key>model_name</key>
+	<string>gemini-1.5-flash-001</string>
+	<key>list_of_user_keys_to_use</key>
+	<string>executive_summary, glossary</string>
+	<key>log_level</key>
+	<string>INFO</string>
+	<key>use_all_user_keys</key>
+	<false/>
+	<key>output_file_path</key>
+	<string>output.md</string>
+	<key>thisdoc_dir</key>
+	<string>output/editing/test</string>
+	<key>system_instructions_dict_file_path</key>
+	<string>resources/json/gemini_prompts/gemini_system_instructions.json</string>
+	<key>user_prompts_dict_file_path</key>
+	<string>resources/json/gemini_prompts/parts_prompts_test.json</string>
+</dict>
+</plist>

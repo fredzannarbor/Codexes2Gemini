@@ -1,0 +1,17 @@
+{
+  "table_of_abbreviations": "Your task is to review the entire context and create a Table of Abbreviations. Output should begin: # Abbreviations. Use Markdown table format.",
+
+  "table_of_contents": "Based on the entire context, create a comprehensive Table of Contents for the book. Use appropriate Markdown headers and indentation to show the structure.",
+
+  "executive_summary": "Provide an executive summary of the entire book based on the context. This should be a concise overview of the main points and key takeaways. Begin with the header '# Executive Summary'.",
+
+  "introduction": "Write an engaging introduction for the book based on the context provided. This should set the stage for the reader and outline what they can expect from the book. Begin with '# Introduction'.",
+
+  "glossary": "Create a glossary of important terms used throughout the book. Each term should be briefly defined. Use Markdown list format and begin with '# Glossary'.",
+
+  "bibliography": "Compile a list of all sources referenced in the context. Format this as a bibliography using a consistent citation style. Begin with '# Bibliography'.",
+
+  "author_biography": "Based on any relevant information in the context, write a brief author biography. If no specific author information is available, create a generic biography that would be suitable for an expert in the field. Begin with '# About the Author'.",
+
+  "index": "Create an alphabetical index of key terms, concepts, and names mentioned in the book. Use Markdown list format and begin with '# Index'."
+}

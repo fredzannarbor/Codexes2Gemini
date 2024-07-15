@@ -1,0 +1,25 @@
+[
+  {
+    "preset_name": "Turbo Recursive Summarizer",
+    "preset_author": "Fred Zimmerman",
+    "preset_active": "True",
+    "preset_instructions": "",
+    "preset_description": "Generate biographical profiles Readers",
+    "pre_user_input": "For a synthetic reading persona with the following attributes, create a bio that sheds light on the person's life and reading habits.\n\n ",
+    "prompt": "",
+    "engine": "gpt-3.5-turbo",
+    "post_user_input": "Use the third person. Bio:\n",
+    "temperature": 1,
+    "max_tokens": 100,
+    "top_p": 1,
+    "fp": 1,
+    "pp": 1,
+    "suffix": "",
+    "stop_sequence": "<<|endoftext|>>",
+    "echo_on": false,
+    "completion_heading": "",
+    "preset_placeholder": "",
+    "user": "6",
+    "organization": ""
+  }
+]
