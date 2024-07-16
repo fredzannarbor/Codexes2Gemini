@@ -1,7 +1,6 @@
 import logging
-from typing import List, Dict
-from Codexes2PartsOfTheBook import Codexes2Parts
-from classes.SyntheticBookProduction.PromptPlan import PromptPlan
+from classes.Codexes.Builders.Codexes2PartsOfTheBook import Codexes2Parts
+from classes.Codexes.Builders.PromptPlan import PromptPlan
 import google.generativeai as genai
 
 class PartsBuilder:
@@ -46,11 +45,8 @@ class PartsBuilder:
         """Build a single part based on the given PromptPlan."""
         return self.c2p.process_codex_to_book_part(plan)
 
-    import logging
-    from typing import List, Dict
-    from Codexes2PartsOfTheBook import Codexes2Parts
-    from classes.SyntheticBookProduction.PromptPlan import PromptPlan
-    import google.generativeai as genai
+    from typing import List
+    from classes.Codexes.Builders.PromptPlan import PromptPlan
 
     def build_multi_part(self, plan: PromptPlan) -> str:
         """Build multiple parts within a single PromptPlan."""

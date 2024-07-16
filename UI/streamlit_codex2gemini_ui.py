@@ -1,50 +1,25 @@
 import streamlit as st
 import json
 import os
-import sys
-from pathlib import Path
-from importlib import import_module
-from types import ModuleType
-
-# Get the project root directory
-project_root = Path(__file__).parents[1].resolve()
-classes_dir = project_root / "classes"
-
-# Add project root and classes directory to sys.path
-sys.path.insert(0, str(project_root))
-sys.path.insert(0, str(classes_dir))
-
-
-# Custom importer
-class CustomImporter:
-    @staticmethod
-    def find_spec(fullname, path, target=None):
-        if fullname in ["PartsBuilder", "CodexBuilder", "PromptPlan", "Codexes2PartsOfTheBook"]:
-            return import_module(f"classes.SyntheticBookProduction.{fullname}").__spec__
-        return None
-
-
-# Add the custom importer to sys.meta_path
-sys.meta_path.insert(0, CustomImporter)
-
-# Now import BuildLauncher
-from classes.SyntheticBookProduction.BuildLauncher import BuildLauncher
-from classes.SyntheticBookProduction.PromptPlan import PromptPlan
+from classes.Codexes.Builders.BuildLauncher import BuildLauncher
 
 
 def main():
-    st.title("Book Part and Codex Generator Launcher")
+    st.title("Build Launcher")
 
-    # File upload for configuration
-    config_file = st.file_uploader("Upload JSON configuration file", type="json")
+    # User prompt
+    user_prompt = st.text_area("User prompt")
 
-    # Mode selection
-    mode = st.selectbox("Mode of operation", ['part', 'multi_part', 'codex', 'full_codex'])
 
     # Context file paths
     context_files = st.file_uploader("Upload context files (txt, pdf, epub, mobi)",
                                      type=['txt', 'pdf', 'epub', 'mobi'],
                                      accept_multiple_files=True)
+
+    # Mode selection
+    mode = st.selectbox("Mode of operation", ['part', 'multi_part', 'codex', 'full_codex'])
+
+
 
     thisdoc_dir = st.text_input("Output directory", value=os.path.join(os.getcwd(), 'output'))
 
@@ -54,20 +29,24 @@ def main():
     # Output size limit
     limit = st.number_input("Output size limit in tokens", value=10000)
 
-    # User prompt
-    user_prompt = st.text_area("User prompt")
+
+
+    # Desired output length
+    desired_output_length = st.number_input("Minimum required output length", value=2000)
+
+    # File upload for configuration
+    config_file = st.file_uploader("Upload JSON configuration file", type="json")
+
+    # Plans JSON file
+    plans_json_file = st.file_uploader("Upload JSON file containing multiple plans", type="json")
+
+    # Use all user keys
+    use_all_user_keys = st.checkbox("Use all user keys from the user prompts dictionary file specified in the configuration file below")
+
 
     # Log level
     log_level = st.selectbox("Log level", ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
 
-    # Use all user keys
-    use_all_user_keys = st.checkbox("Use all user keys from the user prompts dictionary file")
-
-    # Desired output length
-    desired_output_length = st.number_input("Desired output length", value=5000)
-
-    # Plans JSON file
-    plans_json_file = st.file_uploader("Upload JSON file containing multiple plans", type="json")
 
     if st.button("Run BuildLauncher"):
         # Prepare arguments for BuildLauncher
@@ -109,7 +88,8 @@ def main():
         # Display results
         st.write("Results:")
         for i, result in enumerate(results):
-            st.text_area(f"Result {i + 1}", result, height=200)
+            st.write(f"{i+1}. {result}")
+            #st.text_area(f"Result {i + 1}", result, height=200)
 
         # Clean up temporary files
         if context_files:

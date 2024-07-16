@@ -1,13 +1,12 @@
-import json
 import logging
 import os
 import traceback
-from typing import List, Dict, Any
+from typing import List
 
 import openai
 from google.generativeai import GenerativeModel
 from openai import OpenAI
-from classes.SyntheticBookProduction.PromptPlan import PromptPlan
+from classes.Codexes.Builders.PromptPlan import PromptPlan
 
 class BookAnalysisPlan:
     """

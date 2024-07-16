@@ -1,17 +1,15 @@
 import argparse
-import datetime
 import json
 import logging
 import os
 import traceback
-from pprint import pprint
 from time import sleep
 from typing import List
 
 import google.generativeai as genai
 import pandas as pd
 
-from classes.SyntheticBookProduction.PromptPlan import PromptPlan
+from classes.Codexes.Builders.PromptPlan import PromptPlan
 
 YOUR_API_KEY = os.environ['GOOGLE_API_KEY']
 
@@ -99,16 +97,9 @@ class Codexes2Parts:
                 self.logger.warning(f"Output for prompt {i + 1} does not meet desired length of {plan.desired_output_length}. Discarding.")
 
         if satisfactory_results:
-            try:
-                with open(plan.output_file_path, 'a') as f:  # Changed to 'a' for append mode
-                    for result in satisfactory_results:
-                        f.write(f"{result}\n\n")
-                self.logger.info(f"Satisfactory results appended to: {plan.output_file_path}")
-            except Exception as e:
-                self.logger.error(f"Trouble appending responses to file {plan.output_file_path}: {e}")
+                self.logger.info(f"Returning satisfactory results of len {len(satisfactory_results)}")
         else:
-            self.logger.warning("No satisfactory results were generated. Nothing appended to the output file.")
-
+            self.logger.warning("No satisfactory results were generated.")
         return "\n\n".join(satisfactory_results)  # Return only satisfactory results joined together
 
     def read_and_prepare_context(self, plan):

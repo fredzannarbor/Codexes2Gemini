@@ -1,7 +1,7 @@
 import argparse
-from PartsBuilder import PartsBuilder
-from CodexBuilder import CodexBuilder
-from PromptPlan import PromptPlan
+from classes.Codexes.Builders.PartsBuilder import PartsBuilder
+from classes.Codexes.Builders.CodexBuilder import CodexBuilder
+from classes.Codexes.Builders.PromptPlan import PromptPlan
 import os
 import json
 import logging

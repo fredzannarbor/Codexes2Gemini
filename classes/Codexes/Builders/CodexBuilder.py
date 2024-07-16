@@ -1,7 +1,7 @@
 import logging
-from typing import List, Dict
-from Codexes2PartsOfTheBook import Codexes2Parts
-from classes.SyntheticBookProduction.PromptPlan import PromptPlan
+from typing import List
+from classes.Codexes.Builders.Codexes2PartsOfTheBook import Codexes2Parts
+from classes.Codexes.Builders.PromptPlan import PromptPlan
 import google.generativeai as genai
 
 class CodexBuilder:
