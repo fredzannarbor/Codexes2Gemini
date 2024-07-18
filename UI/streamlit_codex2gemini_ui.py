@@ -88,7 +88,7 @@ def main():
         # Display results
         st.write("Results:")
         for i, result in enumerate(results):
-            st.write(f"{i+1}. {result}")
+            st.write(f"{result}")
             #st.text_area(f"Result {i + 1}", result, height=200)
 
         # Clean up temporary files
