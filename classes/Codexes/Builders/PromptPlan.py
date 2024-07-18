@@ -1,11 +1,13 @@
 import json
 import logging
 import os
+from collections import OrderedDict
+
 import fitz  # PyMuPDF
 from typing import List, Dict, Any
 
 
-class PromptPlan:
+class PromptPlan(OrderedDict):
     def __init__(self, context: str = "", context_file_paths: List[str] = None, user_keys: List[str] = None,
                  thisdoc_dir: str = "", json_required: bool = False, generation_config: dict = None,
                  system_instructions_dict_file_path: str = None, list_of_system_keys: str = None,
@@ -13,7 +15,7 @@ class PromptPlan:
                  user_prompts_dict_file_path: str = None,
                  list_of_user_keys_to_use: str = None, continuation_prompts: bool = False,
                  output_file_path: str = None, log_level: str = "INFO", number_to_run: int = 1,
-                 desired_output_length: int = None, model_name: str = None, mode: str = None,
+                 desired_output_length: int = None, model_name: str = None, mode: str = "part",
                  config_file: str = None, use_all_user_keys: bool = False) -> None:
 
         self.logger = logging.getLogger(__name__)
