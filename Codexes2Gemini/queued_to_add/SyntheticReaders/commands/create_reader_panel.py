@@ -1,7 +1,7 @@
 #  Copyright (c) 2023. Fred Zimmerman.  Personal or educational use only.  All commercial and enterprise use must be licensed, contact wfz@nimblebooks.com
 import argparse
 
-from classes.SyntheticReaders import Reader
+from Codexes2Gemini.queued_to_add.SyntheticReaders import Reader
 
 r = Reader()
 rp = r.ReaderPanels()

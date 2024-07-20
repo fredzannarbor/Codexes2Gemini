@@ -5,12 +5,12 @@ import pandas as pd
 import streamlit as st
 
 from app.ManageUserAPIKeys import ManageUserAPIKeys
-from app.utilities.utilities import (
+from classes.Utilities.utilities import (
     read_markdown_file,
     get_version_as_dict, statcounter)
-from classes.SyntheticReaders.RatingUtilities import rate_ideas, rate_remits, llmjson2json
+from Codexes2Gemini.queued_to_add.SyntheticReaders.RatingUtilities import rate_ideas, rate_remits, llmjson2json
 # from classes.SyntheticReaders import Reader, ReaderPanels as rp, RatingUtilities as cu
-from classes.SyntheticReaders.ReaderPanels import ReaderPanels as rp
+from Codexes2Gemini.queued_to_add.SyntheticReaders.ReaderPanels import ReaderPanels as rp
 
 api_key_manager = ManageUserAPIKeys()
 

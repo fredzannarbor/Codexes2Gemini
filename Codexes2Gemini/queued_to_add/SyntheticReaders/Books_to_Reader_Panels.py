@@ -9,12 +9,12 @@ from bs4 import BeautifulSoup
 from ebooklib import epub
 
 from app.ManageUserAPIKeys import ManageUserAPIKeys
-from app.utilities.utilities import (
+from classes.Utilities.utilities import (
     read_markdown_file,
     get_version_as_dict, statcounter, save_uploaded_file)
 from classes.Codexes.Tools.DocxCodex2Objects import DocxCodex2Objects as dx2obj
-from classes.SyntheticReaders.RatingUtilities import rate_objects
-from classes.SyntheticReaders.ReaderPanels import ReaderPanels
+from Codexes2Gemini.queued_to_add.SyntheticReaders.RatingUtilities import rate_objects
+from Codexes2Gemini.queued_to_add.SyntheticReaders.ReaderPanels import ReaderPanels
 
 nlp = spacy.load('en_core_web_sm')
 

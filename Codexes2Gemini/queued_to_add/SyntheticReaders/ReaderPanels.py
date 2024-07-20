@@ -7,7 +7,7 @@ import streamlit as st
 import textstat
 from faker import Faker
 
-from app.utilities.gpt3complete import chatcomplete
+from Codexes2Gemini.classes.Utilities.gpt3complete import chatcomplete
 
 
 class ReaderPanels:

@@ -27,7 +27,7 @@ from ebooklib import epub
 from bs4 import BeautifulSoup
 
 # from classes.SyntheticReaders import Reader
-from app.utilities.gpt3complete import chatcomplete
+from Codexes2Gemini.classes.Utilities.gpt3complete import chatcomplete
 # from app.utilities.files2llamaindex
 # from app.utilities.preset2servicecontext import preset_reader
 

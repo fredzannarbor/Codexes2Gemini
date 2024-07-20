@@ -5,7 +5,7 @@ import pandas as pd
 import streamlit as st
 
 from app.ManageUserAPIKeys import ManageUserAPIKeys
-from app.utilities.utilities import (
+from classes.Utilities.utilities import (
     read_markdown_file,
     get_version_as_dict, spreadsheet2df, submit_guard)
 # from classes.SyntheticReaders import Reader, ReaderPanels as rp, RatingUtilities as cu

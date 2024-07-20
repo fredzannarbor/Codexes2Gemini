@@ -3,7 +3,7 @@ import argparse
 import logging
 import uuid
 import fitz
-from app.utilities.utilities import configure_logger, set_logging_level
+from classes.Utilities.utilities import configure_logger, set_logging_level
 
 from classes.SyntheticBookProduction.Codexes2PartsOfTheBook import Codexes2Parts
 from classes.SyntheticBookProduction.PromptPlan import PromptPlan

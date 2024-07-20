@@ -1,7 +1,7 @@
 #  Copyright (c) 2024. Fred Zimmerman.  Personal or educational use only.  All commercial and enterprise use must be licensed, contact wfz@nimblebooks.com
 import logging
 
-from classes.SyntheticAuthors.DanielDefoe.DanielDefoe import CodexSpecs2Book
+from Codexes2Gemini.queued_to_add.SyntheticAuthors.DanielDefoe.DanielDefoe import CodexSpecs2Book
 
 
 class DefoeHelpers(CodexSpecs2Book):
