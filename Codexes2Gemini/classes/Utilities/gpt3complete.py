@@ -39,9 +39,8 @@ openai_user_id_for_safety_tracking = os.environ['OPENAI_USER_ID_FOR_SAFETY_TRACK
 
 import pandas as pd
 import backoff
-import docx
 
-from app.utilities.geminicomplete import generate_response
+from classes.Utilities.geminicomplete import generate_response
 
 
 

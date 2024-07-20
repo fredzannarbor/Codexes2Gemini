@@ -13,8 +13,8 @@ from random import choice
 import pandas as pd
 
 import DefoeHelpers as dh
-from app.utilities.gpt3complete import chatcomplete
-from app.utilities.utilities import select_dataframe_rows_from_string, safely_add_empty_column, create_safe_file_name
+from Codexes2Gemini.classes.Utilities.gpt3complete import chatcomplete
+from classes.Utilities.utilities import select_dataframe_rows_from_string, safely_add_empty_column, create_safe_file_name
 
 '''
 THis is a class that takes a set of specifications for a codex book then generates a draft of the book in docx format.
@@ -43,7 +43,7 @@ Desired outputs are:
 3.  LLM draft of each scene assembled into a single book draft.
 '''
 
-from app.utilities.utilities import set_logging_level
+from classes.Utilities.utilities import set_logging_level
 
 set_logging_level("INFO")
 

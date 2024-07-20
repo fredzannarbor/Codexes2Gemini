@@ -1,7 +1,7 @@
 import streamlit as st
 import json
 import os
-from classes.Codexes.Builders.BuildLauncher import BuildLauncher
+from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
 
 
 def main():
