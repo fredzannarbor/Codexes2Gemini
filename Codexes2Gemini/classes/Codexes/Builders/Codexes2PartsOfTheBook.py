@@ -9,7 +9,7 @@ from typing import List
 import google.generativeai as genai
 import pandas as pd
 
-from classes.Codexes.Builders.PromptPlan import PromptPlan
+from ..Builders.PromptPlan import PromptPlan
 
 YOUR_API_KEY = os.environ['GOOGLE_API_KEY']
 

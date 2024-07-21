@@ -3,7 +3,7 @@ import logging
 import os
 from collections import OrderedDict
 
-import fitz  # PyMuPDF
+import pymupdf as fitz # PyMuPDF
 from typing import List, Dict, Any
 
 

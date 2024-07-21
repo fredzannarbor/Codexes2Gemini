@@ -1,6 +1,6 @@
 import csv
 from typing import Dict, Any
-from PromptPlan import PromptPlan
+from .PromptPlan import PromptPlan
 
 
 class CSV2PromptPlan(PromptPlan):

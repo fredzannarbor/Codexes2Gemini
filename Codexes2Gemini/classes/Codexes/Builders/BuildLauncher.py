@@ -1,15 +1,15 @@
 import argparse
-from classes.Codexes.Builders.PartsBuilder import PartsBuilder
-from classes.Codexes.Builders.CodexBuilder import CodexBuilder
-from classes.Codexes.Builders.PromptPlan import PromptPlan
 import os
 import json
 import logging
 from typing import Dict
-import google.generativeai as genai
-from classes.Utilities.utilities import configure_logger
 import uuid
+import google.generativeai as genai
 
+from ..Builders.PartsBuilder import PartsBuilder
+from ..Builders.CodexBuilder import CodexBuilder
+from ..Builders.PromptPlan import PromptPlan
+from ...Utilities.utilities import configure_logger
 
 class BuildLauncher:
     def __init__(self):
