@@ -22,6 +22,7 @@ working days remaining: **22**
   - docstrings
 - create video assets
 - complete README # working
+- ~~test upload to TestPyPi~~
 - upload to PyPi
 - test pip install
 - have friends test pip install
