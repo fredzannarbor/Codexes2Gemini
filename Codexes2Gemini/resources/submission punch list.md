@@ -2,8 +2,7 @@
 # DUE DATE: 2024-08-11
 working days remaining: **22**
 
-- remove all folders not on critical path
-- put each folder in its own release branch
+- ~~move all folders not on critical path => queued~~
 - add prompt key/value pair for Twin Creation
 - add prompt key/value pair for Outline Creation
 - add add prompt key/value pair for Codex Creation
@@ -23,6 +22,9 @@ working days remaining: **22**
 - create video assets
 - complete README # working
 - ~~test upload to TestPyPi~~
+- make nested import structure of Codex2Gemini optimally portable
+- stash queued
+- 
 - upload to PyPi
 - test pip install
 - have friends test pip install
