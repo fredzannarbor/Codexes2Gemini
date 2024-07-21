@@ -22,9 +22,9 @@ working days remaining: **22**
 - create video assets
 - complete README # working
 - ~~test upload to TestPyPi~~
-- make nested import structure of Codex2Gemini optimally portable
+~~- make nested import structure of Codex2Gemini optimally portable~~
 - stash queued
-- 
+- make resources & UI accessible via pkg_resource
 - upload to PyPi
 - test pip install
 - have friends test pip install
