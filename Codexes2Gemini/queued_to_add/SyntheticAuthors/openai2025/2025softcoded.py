@@ -61,7 +61,7 @@ def main():
     parser.add_argument("--output_dir", type=str, required=False, help="Directory to save output files", default="output/editing")
     parser.add_argument("--prompts_file", type=str, required=False, help="Path to the JSON file containing prompts", default="resources/json/gemini_prompts/dark_baron_prompts.json")
     parser.add_argument("--system_message_file", type=str, required=False,
-                        help="Path to the file containing the system message", default="resources/json/gemini_prompts/gemini_system_instructions.json")
+                        help="Path to the file containing the system message", default="resources/json/gemini_prompts/system_instructions.json")
     parser.add_argument("--persona", type=str, choices=["darkbaron", "squaddie"],required=False, help="Persona to use", default="darkbaron")
     parser.add_argument("--max_chapters", type=int, default=6, help="Maximum number of chapters to process")
 

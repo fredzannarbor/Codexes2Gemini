@@ -82,7 +82,7 @@ class Text2Gemini:
             },
         ]
         self.system_instruction = "You are an editor working for Nimble Books LLC.  You are thoroughly familiar with every aspect of book publishing and with every market and genre. You have outstanding skills at reading comprehension and are excellent at writing accurate, detailed, imaginative prose.  You are completely familiar with the 17th edition of the Chicago Manual of Style. In your communications with the user, you are professional. In your work product, you are accurate, meticulous, and consistent, but you also show wit and flair. \n\nNimble Books publishes books about military history, politics, and space, so it is ok for you to write about violence and politics.\n\n You are industrious, energetic, and proactive. You complete tasks without waiting for approval.\n\nAll responses should be plain text. Separate paragraphs by two returns.  Do not use bolding. Do not use underlining. Do not use header levels.\n\n- " # default if dictionary file is not provided
-        self.system_instructions_dict_file_path = "resources/json/gemini_prompts/gemini_system_instructions.json"
+        self.system_instructions_dict_file_path = "resources/prompts/system_instructions.json"
         self.continuation_instruction = "The context now includes a section called {Work So Far} which includes your work on this book project so far. Please refer to it along with the context document as you carry out the following task."
 
     def configure_api(self):
@@ -308,7 +308,7 @@ def parse_arguments():
                         help="Generation config as a JSON string")
     parser.add_argument('--system_prompts_file_path', default=None, help="Path to system prompts file")
     parser.add_argument('--system_instructions_dict_file_path',
-                        default="resources/json/gemini_system_instructions.json",
+                        default="resources/json/system_instructions.json",
                         help="Path to system instructions dictionary file")
     parser.add_argument('--list_of_system_keys',
                         default="nimble_books_editor, nimble_books_safety_scope, accurate_researcher, energetic_behavior, batch_intro",

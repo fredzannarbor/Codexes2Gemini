@@ -82,7 +82,7 @@ def simple_openai():
 
 simple_openai()
 book_plan.set_attribute("thisdoc_dir", "output/gemini")
-book_plan.set_attribute("system_instructions_dict_file_path", "resources/json/gemini_prompts/gemini_system_instructions.json")
+book_plan.set_attribute("system_instructions_dict_file_path", "resources/json/gemini_prompts/system_instructions.json")
 book_plan.set_attribute("list_of_system_keys", "dark baron")
 
 print(book_plan.to_dict())

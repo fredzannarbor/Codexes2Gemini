@@ -38,7 +38,7 @@ class BookAnalysisPlan:
         self.logger = self.configure_logger()
         self.thisdoc_dir = "output/gemini/"  # default
         self.list_of_user_keys_to_use = user_keys_list if user_keys_list else ["core_audience_attributes"]
-        self.system_instructions_dict_file_path = "resources/json/gemini_prompts/gemini_system_instructions.json"
+        self.system_instructions_dict_file_path = "resources/prompts/system_instructions.json"
         self.list_of_system_keys = "nimble_books_editor, nimble_books_safety_scope, accurate_researcher, energetic_behavior, batch_intro"
 
     def set_attribute(self, attribute_name: str, value):

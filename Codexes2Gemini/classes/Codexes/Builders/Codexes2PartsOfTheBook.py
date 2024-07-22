@@ -32,7 +32,7 @@ class Codexes2Parts:
             {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
             {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
         ]
-        self.system_instructions_dict_file_path = "resources/json/gemini_prompts/gemini_system_instructions.json"
+        self.system_instructions_dict_file_path = "resources/prompts/system_instructions.json"
         self.continuation_instruction = "The context now includes a section called {Work So Far} which includes your work on this book project so far. Please refer to it along with the context document as you carry out the following task."
         self.results=[]
     def configure_api(self):
@@ -175,7 +175,7 @@ def parse_arguments():
     parser.add_argument('--model', default="gemini-1.5-flash-001", help="Model to use")
     parser.add_argument('--json_required', action='store_true', help="Require JSON output")
     parser.add_argument('--generation_config', type=str, default='{"temperature": 1, "top_p": 0.95, "top_k": 0, "max_output_tokens": 8192}', help="Generation config as a JSON string")
-    parser.add_argument('--system_instructions_dict_file_path', default="resources/json/gemini_system_instructions.json", help="Path to system instructions dictionary file")
+    parser.add_argument('--system_instructions_dict_file_path', default="resources/json/system_instructions.json", help="Path to system instructions dictionary file")
     parser.add_argument('--list_of_system_keys', default="nimble_books_editor,nimble_books_safety_scope,accurate_researcher,energetic_behavior,batch_intro", help="Comma-separated list of system keys")
     parser.add_argument('--user_prompt', default='', help="User prompt")
     parser.add_argument('--user_prompt_override', action='store_true', help="Override user prompts from dictionary")
