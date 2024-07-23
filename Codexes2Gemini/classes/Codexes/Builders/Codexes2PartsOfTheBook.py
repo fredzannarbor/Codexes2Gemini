@@ -14,6 +14,32 @@ from ..Builders.PromptPlan import PromptPlan
 YOUR_API_KEY = os.environ['GOOGLE_API_KEY']
 
 class Codexes2Parts:
+    """
+    Class: Codexes2Parts
+
+    The Codexes2Parts class is responsible for processing codexes and generating book parts based on a given plan. It provides methods for configuring the API, creating a model, processing the codex to book part, generating a full book, and more.
+
+    Attributes:
+    - logger: A logger object for logging messages and debugging information.
+    - model_name: A string representing the name of the generative model.
+    - generation_config: A dictionary representing the configuration for generation.
+    - safety_settings: A list of dictionaries representing the safety settings.
+    - system_instructions_dict_file_path: A string representing the file path of the system instructions dictionary.
+    - continuation_instruction: A string representing the instruction for continuation prompts.
+    - results: A list to store the final results.
+
+    Methods:
+    - configure_api(): Configures the API with the Google API key.
+    - create_model(model_name, safety_settings, generation_config): Creates a generative model based on the given parameters.
+    - process_codex_to_book_part(plan): Processes the codex to generate book parts based on the given plan.
+    - read_and_prepare_context(plan): Reads and prepares the context for processing.
+    - assemble_system_prompt(plan): Assembles the system prompt based on the plan and system instruction dictionary.
+    - generate_full_book(plans): Generates a full book based on the given plans.
+    - gemini_get_response(plan, system_prompt, user_prompt, context, model): Makes a request to the Gemini API to get a response.
+    - make_thisdoc_dir(plan): Creates a directory to store the output file.
+
+    Note: This class relies on external dependencies such as the `logging` module, `os` module, `genai` module, `json` module, `pd` module, `traceback` module, and `sleep` function.
+    """
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
@@ -179,7 +205,7 @@ def parse_arguments():
     parser.add_argument('--list_of_system_keys', default="nimble_books_editor,nimble_books_safety_scope,accurate_researcher,energetic_behavior,batch_intro", help="Comma-separated list of system keys")
     parser.add_argument('--user_prompt', default='', help="User prompt")
     parser.add_argument('--user_prompt_override', action='store_true', help="Override user prompts from dictionary")
-    parser.add_argument('--user_prompts_dict_file_path', default="resources/json/gemini_prompts/user_prompts_dict.json", help="Path to user prompts dictionary file")
+    parser.add_argument('--user_prompts_dict_file_path', default="resources/prompts/user_prompts_dict.json", help="Path to user prompts dictionary file")
     parser.add_argument('--list_of_user_keys_to_use', default="semantic_analysis,core_audience_attributes", help="Comma-separated list of user keys to use")
     parser.add_argument('--continuation_prompts', action='store_true', help="Use continuation prompts")
     parser.add_argument('--context_file_paths', nargs='+', help="Paths to context files")
