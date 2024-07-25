@@ -1,10 +1,11 @@
 
 # DUE DATE: 2024-08-11
-working days remaining: **22**
+working days remaining: **17**
 
 - ~~move all folders not on critical path => queued~~
-- add prompt key/value pair for Twin Creation
-- add prompt key/value pair for Outline Creation
+~~- add prompt key/value pair for Twin Creation~~
+- move all prompts from gemini_prompts to resources/prompts
+- a~~dd prompt key/value pair for Outline Creation~~
 - add add prompt key/value pair for Codex Creation
 - add prompt k/v pair for Reader response
 - add prompt k/v pair for Codex2MarkdownCodex
@@ -15,7 +16,7 @@ working days remaining: **22**
 - add Parts of the Book prompt key/value pairs
 - add CSV2Template for 2025 books
 - add key/value pairs to user_prompts and system_prompts
-  - twin-creating user prompt
+  ~~- twin-creating user prompt~~
 - - unit tests for each class
 - documentation
   - docstrings
@@ -24,7 +25,7 @@ working days remaining: **22**
 - ~~test upload to TestPyPi~~
 ~~- make nested import structure of Codex2Gemini optimally portable~~
 - stash queued
-- make resources & UI accessible via pkg_resource
+- ~~make streamlit UI accessible in pip installs~~
 - upload to PyPi
 - test pip install
 - have friends test pip install
@@ -32,7 +33,7 @@ working days remaining: **22**
 - Submit to Google
 - social media share of PyPi repo
   - Matt Schumer
-  - Logan K.
+  - Logan K.[__init__.py](Codexes2Gemini%2F__init__.py)
   - DeepMind folks
   - Book people
 
