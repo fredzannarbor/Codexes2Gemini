@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='Codexes2Gemini',
-    version='0.1.4.6',
+    version='0.1.5.0',
     description='Humans and large-context language models working together to make books richer, more diverse, and more surprising.',
     url='https://github.com/fredzannarbor/Codexes2Gemini',
     entry_points={
@@ -15,6 +15,10 @@ setup(
     author_email='wfz@nimblebooks.com',
     license='MIT',
     packages=find_packages(),
+    include_package_data=True,
+    package_data={
+        'Codexes2Gemini': ['resources/prompts/*.json'],
+    },
     install_requires=['streamlit'],
     classifiers=[
         'Development Status :: 3 - Alpha',
