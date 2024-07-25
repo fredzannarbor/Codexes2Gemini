@@ -8,7 +8,7 @@ _Humans and AI making books richer, more diverse, and more surprising._
 - [Well in excess of 150 million unique codexes](#References) have been created by humans.
 - [Many, many billions](#References) of codex-length and codex-like documents exist in virtual formats such as docx and PDF.
 - "...of making many books there is no end... " ([Ecclesiastes 12:12](https://www.biblegateway.com/passage/?search=Ecclesiastes%2012&version=KJV))
-- 
+
 **Gemini** is Latin for "twins", often referring to the half-brothers Castor and Pollux in Greek mythology.  Gemini is also the name of [Google's flagship generative AI model](https://gemini.google.com/), chosen to reflect the dual nature of language models, which are able to both understand and generate human language.  Gemini is a state-of-the-art large language model whose 2-million-token context window (July 2024) makes it ideally suitable for interacting with codexes.
 
 
@@ -29,11 +29,13 @@ Replace "your_api_key" with your actual API key. You can find your API key in th
 ## Quick Starts
 
 ### Streamlit Front End
+
+At the command line, type:
+
 ```bash
 codexes2gemini-ui
 ```
-The script will launch a tab in your default web browser.
-
+The script will launch a tab in your default web browser.  By default the UI is found at localhost:1455 (the year the Gutenberg Bible was printed).
 
 
 ## Key Features
@@ -43,8 +45,7 @@ The script will launch a tab in your default web browser.
 - **Outline Generation:** Craft detailed outlines for codex books using your chosen personas.
 - **Content Generation:**  Write entire books using a long codex as factual context for your outline.
 - **Metadata Generation:**  Create rich metadata for your book based on its actual content, rather than assumptions.
-
-
+workon
 ## Demos
 
 1. Create a pair of twinned author personas.
@@ -56,6 +57,8 @@ The script will launch a tab in your default web browser.
 ## References
 
 “Books of the World, Stand up and Be Counted! All 129,864,880 of You.” n.d. Accessed July 23, 2024. http://booksearch.blogspot.com/2010/08/books-of-world-stand-up-and-be-counted.html.
+
 “How Many Books Are In The World? (2024) - ISBNDB Blog.” 2023. October 20, 2023. https://isbndb.com/blog/how-many-books-are-in-the-world/.
+
 Duff Johnson. 2018. “PDF Statistics – the Universe of Electronic Documents.” PDF Association. https://pdfa.org/wp-content/uploads/2018/06/1330_Johnson.pdf.
 
