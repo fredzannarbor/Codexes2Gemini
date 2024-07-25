@@ -14,13 +14,32 @@ _Humans and AI making books richer, more diverse, and more surprising._
 
 This library provides tools for being creative with codexes!
 
-## Get Started
-[classes.zip](Codexes2Gemini%2Fclasses.zip)
-1. You can install the software via **pip install codexes2gemini.**
-2. You need to specify your Gemini API key as an environment variable.
+## Installation
+
+1. You can install the software via **pip install codexes2gemini.*  It's a good idea to create a virtual environment first, as C2G will install latest versions of various dependencies that may clash with your existing setup.
+2. **You need to specify your Gemini API key as an environment variable.**  This is done by setting the `GEMINI_API_KEY` environment variable to your API key.  For example, on a Linux or macOS system, you could run the following command in your terminal:
+
+   ```bash
+   export GEMINI_API_KEY="your_api_key"
+
+Replace "your_api_key" with your actual API key. You can find your API key in the Google Cloud Console.
+
+3. There is an optional Streamlit front end to the C2G library. 
+
+## Quick Starts
+
+### Streamlit Front End
+```bash
+codexes2gemini-ui
+```
+The script will launch a tab in your default web browser.
+
+
 
 ## Key Features
 
+- **Parts-of-the-Book Awareness**: Make your prompts and context fully aware of the inherent logical structure of codex books, known as the "parts of the book".
+- **Facts and Assumptions In Context**:
 - **Outline Generation:** Craft detailed outlines for codex books using your chosen personas.
 - **Content Generation:**  Write entire books using a long codex as factual context for your outline.
 - **Metadata Generation:**  Create rich metadata for your book based on its actual content, rather than assumptions.
