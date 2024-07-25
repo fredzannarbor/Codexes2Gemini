@@ -3,7 +3,7 @@
 _Humans and AI making books richer, more diverse, and more surprising._
 
 **Codexes** are books constructed of sheets of paper bound together [(taxonomy, h/t Gemini)](https://g.co/gemini/share/57d3f2b1b163)
-- [The codex, which delivers immersive deep sharing of knowledge and experience, must rank among the most beneficial technologies ever created.](https://nimblebooks.com/A_Longform_Prospectus#:~:text=The%20immersive%20deep%20reading%20of%20high%2Dquality%20books%20must%20rank%20among%20the%20most%20beneficial%20and%20broadly%20distributed%20technologies%20ever%20invented%20(see%20inter%20alia%20McLuhan%2C%201962%3B%20McDermott%2C%202006%3B%20Boorstin%2C%201992%3B%20UNESCO%202019).)
+- The codex, which delivers immersive deep sharing of knowledge and experience, must rank among the most beneficial technologies ever created. [A Longform Prospectus, 2021](https://nimblebooks.com/A_Longform_Prospectus#:~:text=The%20immersive%20deep%20reading%20of%20high%2Dquality%20books%20must%20rank%20among%20the%20most%20beneficial%20and%20broadly%20distributed%20technologies%20ever%20invented%20(see%20inter%20alia%20McLuhan%2C%201962%3B%20McDermott%2C%202006%3B%20Boorstin%2C%201992%3B%20UNESCO%202019).)
 - [Well in excess of 150 million unique codexes](#References) have been created by humans.
 - [Many, many billions](#References) of codex-length and codex-like documents exist in virtual formats such as docx and PDF.
 - "...of making many books there is no end... " ([Ecclesiastes 12:12](https://www.biblegateway.com/passage/?search=Ecclesiastes%2012&version=KJV))
