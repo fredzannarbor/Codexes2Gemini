@@ -314,7 +314,7 @@ def parse_arguments():
                         default="nimble_books_editor, nimble_books_safety_scope, accurate_researcher, energetic_behavior, batch_intro",
                         help="Comma-separated list of system keys")
     parser.add_argument('--user_prompt', default='', help="User prompt")
-    parser.add_argument('--user_prompts_dict_file_path', default="resources/json/gemini_prompts/user_prompts_dict.json",
+    parser.add_argument('--user_prompts_dict_file_path', default="resources/prompts/user_prompts_dict.json",
                         help="Path to user prompts dictionary file")
     parser.add_argument('--list_of_user_keys_to_use', default="semantic_analysis, core_audience_attributes",
                         help="Comma-separated list of user keys to use")

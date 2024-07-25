@@ -6,6 +6,22 @@ import sys
 from importlib import resources
 
 def load_json_file(file_name):
+    """
+    Load a JSON file and return its contents as a dictionary.
+
+    Parameters:
+    file_name (str): The name of the JSON file to load.
+
+    Returns:
+    dict: The contents of the JSON file as a dictionary.
+
+    Raises:
+    None.
+
+    Example:
+    >>> load_json_file("data.json")
+    {'key1': 'value1', 'key2': 'value2'}
+    """
     try:
         with resources.files('Codexes2Gemini.resources.prompts').joinpath(file_name).open('r') as file:
             return json.load(file)
@@ -14,9 +30,27 @@ def load_json_file(file_name):
         return {}
 
 def filter_dict(dictionary, filter_text):
+    """
+    Filters a dictionary based on the presence of a given text in the keys.
+
+    Args:
+        dictionary (dict): The dictionary to be filtered.
+        filter_text (str): The text to be searched in the dictionary keys.
+
+    Returns:
+        dict: A new dictionary containing only the key-value pairs that match the filter_text,
+            regardless of case.
+
+    Example:
+        >>> my_dict = {'apple': 1, 'banana': 2, 'orange': 3, 'coconut': 4}
+        >>> filter_dict(my_dict, 'an')
+        {'banana': 2, 'orange': 3}
+
+    """
     return {k: v for k, v in dictionary.items() if filter_text.lower() in k.lower()}
 
 def tab1_user_parameters():
+
     st.header("Enrich and Build Codexes")
 
     # Context file paths
@@ -112,6 +146,29 @@ def tab3_create_multiplan():
 def run_build_launcher(selected_user_prompts, selected_system_instructions, user_prompt,
                        context_files, mode, thisdoc_dir, output_file, limit,
                        desired_output_length, log_level, use_all_user_keys):
+    """
+
+    Run Build Launcher method.
+
+    Executes the BuildLauncher.main() method with the specified arguments and handles the results.
+
+    Parameters:
+    - selected_user_prompts (list): List of selected user prompts.
+    - selected_system_instructions (list): List of selected system instructions.
+    - user_prompt (str): User input prompt.
+    - context_files (list): List of context files.
+    - mode (str): Mode of operation.
+    - thisdoc_dir (str): Directory of the current document.
+    - output_file (str): File path of the output.
+    - limit (int): Limit of generated outputs.
+    - desired_output_length (int): Desired output length.
+    - log_level (str): Log level.
+    - use_all_user_keys (bool): Flag indicating whether to use all user keys.
+
+    Returns:
+    None
+
+    """
     args = {
         'mode': mode,
         'output': output_file,
@@ -146,6 +203,25 @@ def run_build_launcher(selected_user_prompts, selected_system_instructions, user
 
 
 def run_build_launcher_with_config(config_data):
+    """
+
+    Runs the build launcher with the given configuration data.
+
+    Parameters:
+    - config_data: The configuration data for the build launcher.
+
+    Returns:
+    None
+
+    Example usage:
+    config_data = {
+        'param1': value1,
+        'param2': value2,
+        ...
+    }
+    run_build_launcher_with_config(config_data)
+
+    """
     launcher = BuildLauncher()
     results = launcher.main(config_data)
 
@@ -155,6 +231,23 @@ def run_build_launcher_with_config(config_data):
 
 
 def run_streamlit_app():
+    """
+    Runs the Codexes2Gemini Streamlit UI app.
+
+    This method sets the page configuration for the app, including layout, sidebar state, page title, and page icon. It then displays a title and a brief description of the app. Next, it creates three tabs for different sections of the app: "Self-Serve", "Run Build Plans", and "Create Build Plans".
+
+    In the "Self-Serve" tab, the method calls the `tab1_user_parameters()` function to display the user parameters section.
+
+    In the "Run Build Plans" tab, the method calls the `tab2_upload_config()` function to display the configuration upload section.
+
+    In the "Create Build Plans" tab, the method calls the `tab3_create_multiplan()` function to display the multiplan creation section.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
     st.set_page_config(layout="wide", initial_sidebar_state="expanded", page_title="Codexes2Gemini Streamlit UI Demo",
                        page_icon=":book:")
 

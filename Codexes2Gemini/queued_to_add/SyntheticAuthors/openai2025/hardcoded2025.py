@@ -152,7 +152,7 @@ book_plan = BookAnalysisPlan(context="", user_keys_list=listokeys)
 # with open("resources/json/gemini_prompts/stellar_futures.json", 'r') as f:
 #     # read json
 #     prompts = json.load(f)[0]
-with open("resources/json/gemini_prompts/user_prompts_dict.json", 'r') as f:
+with open("resources/prompts/user_prompts_dict.json", 'r') as f:
     # read json
     prompts = json.load(f)#[0]
 
