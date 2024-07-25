@@ -1,10 +1,26 @@
+
+
 import streamlit as st
 import json
 import os
 from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
 import sys
 
+
 def run_streamlit_app():
+    """
+
+    This method is used to run an optional Streamlit application for the Codexes2Gemini build launcher. It initializes the Streamlit page configuration, sets the title of the page, and prompts the user for various inputs.  This method has all the functional logic for the streamlit UI.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+
+    Example usage:
+        run_streamlit_app()
+    """
     st.set_page_config(layout="wide", initial_sidebar_state="expanded", page_title="Codexes2Gemini Streamlit UI Demo", page_icon=":book:")
 
     st.title("Build Launcher")
@@ -89,9 +105,21 @@ def run_streamlit_app():
                 os.remove(file.name)
 
 def main(port=1455):
+    """
+    Run the Streamlit application.
+
+    This method has one job: launch streamlit.  All the functional logic is in run_streamlit_app.
+
+    Parameters:
+    - port (int): The port to run the Streamlit application on. Default is 1455.
+
+    Returns:
+    None
+    """
     sys.argv = ["streamlit", "run", __file__, f"--server.port={port}"]
     import streamlit.web.cli as stcli
     stcli.main()
 
 if __name__ == "__main__":
+
     run_streamlit_app()
