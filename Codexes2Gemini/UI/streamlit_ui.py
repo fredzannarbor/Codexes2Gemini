@@ -2,14 +2,15 @@ import streamlit as st
 import json
 import os
 from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
+import sys
 
+def run_streamlit_app():
+    st.set_page_config(layout="wide", initial_sidebar_state="expanded", page_title="Codexes2Gemini Streamlit UI Demo", page_icon=":book:")
 
-def main():
     st.title("Build Launcher")
 
     # User prompt
     user_prompt = st.text_area("User prompt")
-
 
     # Context file paths
     context_files = st.file_uploader("Upload context files (txt, pdf, epub, mobi)",
@@ -19,8 +20,6 @@ def main():
     # Mode selection
     mode = st.selectbox("Mode of operation", ['part', 'multi_part', 'codex', 'full_codex'])
 
-
-
     thisdoc_dir = st.text_input("Output directory", value=os.path.join(os.getcwd(), 'output'))
 
     # Output file path
@@ -28,8 +27,6 @@ def main():
 
     # Output size limit
     limit = st.number_input("Output size limit in tokens", value=10000)
-
-
 
     # Desired output length
     desired_output_length = st.number_input("Minimum required output length", value=2000)
@@ -43,10 +40,8 @@ def main():
     # Use all user keys
     use_all_user_keys = st.checkbox("Use all user keys from the user prompts dictionary file specified in the configuration file below")
 
-
     # Log level
     log_level = st.selectbox("Log level", ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
-
 
     if st.button("Run BuildLauncher"):
         # Prepare arguments for BuildLauncher
@@ -75,8 +70,6 @@ def main():
                 context_file_paths.append(file.name)
             args['context_file_paths'] = context_file_paths
 
-        # In your Streamlit script (UI/streamlit_codex2gemini_ui.py)
-
         if plans_json_file:
             plans_data = json.load(plans_json_file)
             args['plans_json'] = plans_data
@@ -89,13 +82,16 @@ def main():
         st.write("Results:")
         for i, result in enumerate(results):
             st.write(f"{result}")
-            #st.text_area(f"Result {i + 1}", result, height=200)
 
         # Clean up temporary files
         if context_files:
             for file in context_files:
                 os.remove(file.name)
 
+def main(port=1455):
+    sys.argv = ["streamlit", "run", __file__, f"--server.port={port}"]
+    import streamlit.web.cli as stcli
+    stcli.main()
 
 if __name__ == "__main__":
-    main()
+    run_streamlit_app()
