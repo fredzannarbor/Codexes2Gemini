@@ -1,11 +1,14 @@
 # Welcome to Codexes2Gemini
 
-_Humans and AI making books richer, more diverse, and more surprising._
+_Humans and AIs making books richer, more diverse, and more surprising._
 
-**Codexes** are books constructed of sheets of paper bound together [(taxonomy, h/t Gemini)](https://g.co/gemini/share/57d3f2b1b163)
-- The codex, which delivers immersive deep sharing of knowledge and experience, [must rank among the most beneficial technologies ever created.](https://nimblebooks.com/A_Longform_Prospectus#:~:text=The%20immersive%20deep%20reading%20of%20high%2Dquality%20books%20must%20rank%20among%20the%20most%20beneficial%20and%20broadly%20distributed%20technologies%20ever%20invented%20(see%20inter%20alia%20McLuhan%2C%201962%3B%20McDermott%2C%202006%3B%20Boorstin%2C%201992%3B%20UNESCO%202019).)
+**Codexes** are books constructed of sheets of paper bound together.
+
+- [Taxonomy](https://g.co/gemini/share/57d3f2b1b163) (h/t Gemini)
+
 - [Well in excess of 150 million unique codexes](#References) have been created by humans.
 - [Many, many billions](#References) of codex-length and codex-like documents exist in virtual formats such as docx and PDF.
+- The codex's power to deliver immersive sharing of experience and deep knowledge makes it one of the most beneficial technologies ever created--[and we're just getting started!](https://nimblebooks.com/A_Longform_Prospectus#:~:text=The%20immersive%20deep%20reading%20of%20high%2Dquality%20books%20must%20rank%20among%20the%20most%20beneficial%20and%20broadly%20distributed%20technologies%20ever%20invented%20(see%20inter%20alia%20McLuhan%2C%201962%3B%20McDermott%2C%202006%3B%20Boorstin%2C%201992%3B%20UNESCO%202019).)
 - "...of making many books there is no end... " ([Ecclesiastes 12:12](https://www.biblegateway.com/passage/?search=Ecclesiastes%2012&version=KJV))
 
 **Gemini** is Latin for "twins", often referring to the half-brothers Castor and Pollux in Greek mythology.  Gemini is also the name of [Google's flagship generative AI model](https://gemini.google.com/), chosen to reflect the dual nature of language models, which are able to both understand and generate human language.  Gemini is a state-of-the-art large language model whose 2-million-token context window (July 2024) makes it ideally suitable for interacting with codexes.
@@ -35,11 +38,10 @@ The file [quickstart.py](Codexes2Gemini/quickstart.py) contains simple illustrat
 
 1.  Pass arguments in dictionary format to the appropriate Builder classes.
 
-`from Codexes2Gemini.classes.Codexes.Builders import BuildLauncher
+```from Codexes2Gemini.classes.Codexes.Builders import BuildLauncher
 
 import json
 
-# Create a BuildLauncher instance
 launcher = BuildLauncher()
 
 
@@ -54,11 +56,12 @@ args1 = {
     'model_name': 'gemini-pro'
 }
 
-results = launcher.main(args1)`
+results = launcher.main(args1)
+```
 
 2. Create a JSON format PromptPlan object.
 
-`import json
+```import json
 
 json_config = {
     "plans": [
@@ -76,12 +79,12 @@ args2 = {
     'log_level': 'DEBUG'
 }
 
-results = launcher.main(args2)`
-
+results = launcher.main(args2)
+```
 
 ### Streamlit Front End
 
-You can also access many library features via an optional Streamlit front end.
+The library comes with an optional Streamlit front end.
 
 At the command line, type:
 
