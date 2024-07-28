@@ -14,11 +14,18 @@ _Humans and AIs making books richer, more diverse, and more surprising._
 **Gemini** is Latin for "twins", often referring to the half-brothers Castor and Pollux in Greek mythology.  Gemini is also the name of [Google's flagship generative AI model](https://gemini.google.com/), chosen to reflect the dual nature of language models, which are able to both understand and generate human language.  Gemini is a state-of-the-art large language model whose 2-million-token context window (July 2024) makes it ideally suitable for interacting with codexes.
 
 
-This library provides tools for being creative with codexes!
+## Key Features
+
+
+- **Metadata Generation:**  Create rich metadata for your book based on its actual content, rather than assumptions.
+- **Parts-of-the-Book Awareness**: Make your prompts and context fully aware of the inherent logical structure of codex books, known as the "parts of the book".
+- **Facts and Assumptions In Context**:
+- **Outline Generation:** Craft detailed outlines for codex books using your chosen personas.
+- **Content Generation:**  Write entire books using a long codex as factual context for your outline.
 
 ## Installation
 
-1. You can install the software via **pip install codexes2gemini.*  It's a good idea to create a virtual environment first, as C2G will install latest versions of various dependencies that may clash with your existing setup.
+1. You can install the software via **pip install codexes2gemini.**  It's a good idea to create a virtual environment first, as C2G will install latest versions of various dependencies that may clash with your existing setup.
 2. **You need to specify your Gemini API key as an environment variable.**  This is done by setting the `GEMINI_API_KEY` environment variable to your API key.  For example, on a Linux or macOS system, you could run the following command in your terminal:
 
    ```bash
@@ -101,13 +108,7 @@ The script will launch a streamlit web server in your default web server at loca
 4. Write the book.
 5. Create metadata for the book "bottom up" (based on what its content actually is) rather than "top down" (what authors and publishers _think_ it is.)
 
-## Key Features
 
-- **Parts-of-the-Book Awareness**: Make your prompts and context fully aware of the inherent logical structure of codex books, known as the "parts of the book".
-- **Facts and Assumptions In Context**:
-- **Outline Generation:** Craft detailed outlines for codex books using your chosen personas.
-- **Content Generation:**  Write entire books using a long codex as factual context for your outline.
-- **Metadata Generation:**  Create rich metadata for your book based on its actual content, rather than assumptions.
 
 ## 
 
