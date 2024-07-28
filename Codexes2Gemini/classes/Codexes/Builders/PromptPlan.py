@@ -2,8 +2,8 @@ import json
 import logging
 import os
 from collections import OrderedDict
-
-import pymupdf as fitz # PyMuPDF
+import streamlit as st
+import pymupdf as fitz  # PyMuPDF
 from typing import List, Dict, Any
 
 
@@ -13,10 +13,11 @@ class PromptPlan(OrderedDict):
                  system_instructions_dict_file_path: str = None, list_of_system_keys: str = None,
                  user_prompt: str = "", user_prompt_override: bool = False,
                  user_prompts_dict_file_path: str = None,
-                 list_of_user_keys_to_use: str = None, continuation_prompts: bool = False,
+                 list_of_user_keys_to_use: List[str] = None,  # Changed to List[str]
+                 continuation_prompts: bool = False,
                  output_file_path: str = None, log_level: str = "INFO", number_to_run: int = 1,
                  desired_output_length: int = None, model_name: str = None, mode: str = "part",
-                 config_file: str = None, use_all_user_keys: bool = False) -> None:
+                 config_file: str = None, use_all_user_keys: bool = False, add_system_prompt: str = "") -> None:
 
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(log_level)
@@ -46,7 +47,7 @@ class PromptPlan(OrderedDict):
         self.user_prompt = user_prompt
         self.user_prompt_override = user_prompt_override
         self.user_prompts_dict_file_path = user_prompts_dict_file_path
-        self.list_of_user_keys_to_use = list_of_user_keys_to_use
+        self.list_of_user_keys_to_use = list_of_user_keys_to_use or []  # Initialize as an empty list
         self.continuation_prompts = continuation_prompts
         self.output_file_path = output_file_path
         self.number_to_run = number_to_run
@@ -57,6 +58,7 @@ class PromptPlan(OrderedDict):
 
         self.user_prompts_dict = self.load_user_prompts_dict()
         self.final_prompts = self.prepare_final_prompts()
+        self.add_system_prompt = add_system_prompt
 
     def load_config(self, config_file: str) -> None:
         """Load configuration from a JSON file."""
@@ -96,32 +98,50 @@ class PromptPlan(OrderedDict):
         if self.user_prompts_dict_file_path:
             try:
                 with open(self.user_prompts_dict_file_path, 'r') as f:
-                    return json.load(f)
+                    data = json.load(f)
+                    return data
+
             except Exception as e:
                 self.logger.error(f"Error loading user prompts dict: {e}")
+                print(f"Error loading user prompts dict {e}")
+            print(data)
+            st.write(data)
         return {}
 
     def prepare_final_prompts(self) -> List[str]:
+
+       # print(f"{self.user_prompt_override},{self.user_prompt}, {self.use_all_user_keys},{self.list_of_user_keys_to_use}, {self.user_prompts_dict}")
         """Prepare the final list of prompts to be used."""
-        if self.user_prompt_override and self.user_prompt:
+        self.logger.info(
+            f"Preparing final prompts. User prompt override: {self.user_prompt_override}, User prompt: {self.user_prompt}")
+        self.logger.info(
+            f"Use all user keys: {self.use_all_user_keys}, List of user keys to use: {self.list_of_user_keys_to_use}")
+
+        if self.user_prompt_override == "Override other user prompts" and self.user_prompt:
+            self.logger.info("Overriding selected users prompts in favor of input box")
             return [self.user_prompt]
 
         final_prompts = []
         if self.use_all_user_keys and self.user_prompts_dict:
+            self.logger.debug("Using all prompts from user_prompts_dict")
             final_prompts = list(self.user_prompts_dict.values())
         elif self.list_of_user_keys_to_use and self.user_prompts_dict:
-            keys_to_use = [key.strip() for key in self.list_of_user_keys_to_use.split(',')]
-            for key in keys_to_use:
+            self.logger.info(f"Selecting prompts based on list_of_user_keys_to_use: {self.list_of_user_keys_to_use}")
+            for key in self.list_of_user_keys_to_use:
                 if key in self.user_prompts_dict:
                     final_prompts.append(self.user_prompts_dict[key])
+                else:
+                    self.logger.warning(f"Key '{key}' not found in user_prompts_dict")
 
         if self.user_prompt:
+            self.logger.info("Appending user_prompt to final_prompts")
             final_prompts.append(self.user_prompt)
 
         if not final_prompts:
             self.logger.warning("No prompts available. Using default prompt.")
             final_prompts = ["Please provide output based on the given context."]
 
+        self.logger.debug(f"Final prompts: {final_prompts}")
         return final_prompts
 
     def get_prompts(self) -> List[str]:

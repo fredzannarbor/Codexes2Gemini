@@ -1,9 +1,16 @@
+import sys
 import streamlit as st
 import json
 import os
-from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
-import sys
 from importlib import resources
+
+# Add the parent directory to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Add the parent of the parent directory to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
 
 def load_json_file(file_name):
     """
@@ -54,75 +61,120 @@ def tab1_user_parameters():
     st.header("Enrich and Build Codexes")
 
     # Context file paths
-    context_files = st.file_uploader("Upload context files (txt, pdf, epub, mobi)",
-                                     type=['txt', 'pdf', 'epub', 'mobi'],
+    context_files = st.file_uploader("Upload context files (txt)",
+                                     type=['txt'],
                                      accept_multiple_files=True)
+    context_file_names = []
+    for c in context_files:
+        context_file_names.append(c.name)
 
     # Load user prompts dictionary and system instructions
     user_prompts_dict = load_json_file("user_prompts_dict.json")
     system_instructions_dict = load_json_file("system_instructions.json")
 
-    # User prompts filtering and selection
-    st.subheader("User Prompts")
-    user_prompts_filter = st.text_input("Filter user prompts", "")
-    filtered_user_prompts = filter_dict(user_prompts_dict, user_prompts_filter)
-    selected_user_prompts = st.multiselect(
-        "Select user prompts",
-        options=list(filtered_user_prompts.keys()),
-        default=[]
-    )
+    with st.expander("Filter, Select, and Add System Prompts"):
+        st.subheader("System Instructions")
+        system_instructions_filter = st.text_input("Filter system instructions", "nimble")
+        filtered_system_instructions = filter_dict(system_instructions_dict, system_instructions_filter)
+        selected_system_instructions = st.multiselect(
+            "Select system instructions",
+            options=list(filtered_system_instructions.keys()),
+            default=[]
+        )
 
-    # Display selected user prompts
-    if selected_user_prompts:
-        st.write("Selected user prompts:")
-        for prompt in selected_user_prompts:
-            st.text(user_prompts_dict[prompt])
+        add_system_prompt = st.text_area("Add to system prompt (optional)")
 
-    # System instructions filtering and selection
-    st.subheader("System Instructions")
-    system_instructions_filter = st.text_input("Filter system instructions", "")
-    filtered_system_instructions = filter_dict(system_instructions_dict, system_instructions_filter)
-    selected_system_instructions = st.multiselect(
-        "Select system instructions",
-        options=list(filtered_system_instructions.keys()),
-        default=[]
-    )
+        # Display selected system instructions
+        if selected_system_instructions:
+            st.write("Selected system instructions:")
+            for instruction in selected_system_instructions:
+                st.write(system_instructions_dict[instruction])
 
-    # Display selected system instructions
-    if selected_system_instructions:
-        st.write("Selected system instructions:")
-        for instruction in selected_system_instructions:
-            st.text(system_instructions_dict[instruction])
+    # add user-supplied system message
 
-    # User prompt
-    user_prompt = st.text_area("Custom user prompt (optional)")
 
-    # Mode selection
-    mode = st.selectbox("Mode of operation", ['part', 'multi_part', 'codex', 'full_codex'])
 
-    thisdoc_dir = st.text_input("Output directory", value=os.path.join(os.getcwd(), 'output'))
+    # Collapsible element for user prompts filtering and selection
+    with st.expander("Filtering, Select and Add User Prompts"):
+        st.subheader("User Prompts")
+        user_prompts_filter = st.text_input("Filter user prompts", "abstracts")
+        filtered_user_prompts = filter_dict(user_prompts_dict, user_prompts_filter)
+        selected_user_prompts = st.multiselect(
+            "Select user prompts",
+            options=list(filtered_user_prompts.keys()),
+            default=[]
+        )
 
-    # Output file path
-    output_file = st.text_input("Output file path")
+        # Display selected user prompts
+        if selected_user_prompts:
+            st.write("Selected user prompts:")
+            for prompt in selected_user_prompts:
+                st.write(user_prompts_dict[prompt])
 
-    # Output size limit
-    limit = st.number_input("Output size limit in tokens", value=10000)
+        # Use all user keys
+        use_all_user_keys = st.checkbox("Use all user keys from the user prompts dictionary file")
 
-    # Desired output length
-    desired_output_length = st.number_input("Minimum required output length", value=2000)
+        # Custom user prompt
+        user_prompt = st.text_area("Custom user prompt (optional)")
 
-    # Log level
-    log_level = st.selectbox("Log level", ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
+        # Custom user prompt overrides all other user prompts
+        user_prompt_override = st.radio("Override?",
+                                        ["Override other user prompts", "Add at end of other user prompts"], index=1)
+        if user_prompt_override == "Override other user prompts":
+            selected_user_prompts = []
 
-    # Use all user keys
-    use_all_user_keys = st.checkbox("Use all user keys from the user prompts dictionary file")
+    with st.expander("Set Goals"):
+        # Mode selection
 
+        mode_options = [
+            "Single Part of a Book (Part)",
+            "Multiple Parts of a Book (Multi-Part)",
+            "Basic Codex (Codex)",
+            "Comprehensive Codex (Full Codex)"
+        ]
+        mode_mapping = {
+            "Single Part of a Book (Part)": 'part',
+            "Multiple Parts of a Book (Multi-Part)": 'multi_part',
+            "Basic Codex (Codex)": 'codex',
+            "Comprehensive Codex (Full Codex)": 'full_codex'
+        }
+        selected_mode_label = st.selectbox("Create This Type of Codex Object:", mode_options)
+        mode = mode_mapping[selected_mode_label]
+
+        thisdoc_dir = st.text_input("Output directory", value=os.path.join(os.getcwd(), 'output/c2g'))
+
+        # Output file path
+        output_file = st.text_input("Output file path", "output")
+
+        # Output size limit
+        limit = st.number_input("Output size limit in tokens", value=10000)
+
+        # Desired output length
+        desired_output_length = st.number_input("Minimum required output length", value=1000)
+
+        # Log level
+        log_level = st.selectbox("Log level", ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
+
+    user_prompts_dict_file_path = resources.files('Codexes2Gemini.resources.prompts').joinpath("user_prompts_dict.json")
     if st.button("Run BuildLauncher"):
         run_build_launcher(selected_user_prompts, selected_system_instructions, user_prompt,
                            context_files, mode, thisdoc_dir, output_file, limit,
-                           desired_output_length, log_level, use_all_user_keys)
-
-
+                           desired_output_length, log_level, use_all_user_keys, user_prompts_dict_file_path, add_system_prompt)
+    with st.expander("Debugging Information"):
+        st.info(
+            f"**Submitting**:\n"
+            f"- **Selected User Prompts**: {selected_user_prompts}\n"
+            f"- **Selected System Instructions**: {selected_system_instructions}\n"
+            f"- **User Prompt**: {user_prompt}\n"
+            f"- **Context Files**: {context_files}\n"
+            f"- **Mode**: {mode}\n"
+            f"- **Thisdoc Directory**: {thisdoc_dir}\n"
+            f"- **Output File**: {output_file}\n"
+            f"- **Limit**: {limit}\n"
+            f"- **Desired Output Length**: {desired_output_length}\n"
+            f"- **Log Level**: {log_level}\n"
+            f"- **Use All User Keys**: {use_all_user_keys}"
+        )
 def tab2_upload_config():
     st.header("Upload Plan Files")
 
@@ -145,7 +197,7 @@ def tab3_create_multiplan():
 
 def run_build_launcher(selected_user_prompts, selected_system_instructions, user_prompt,
                        context_files, mode, thisdoc_dir, output_file, limit,
-                       desired_output_length, log_level, use_all_user_keys):
+                       desired_output_length, log_level, use_all_user_keys, user_prompts_dict_file_path, add_system_prompt):
     """
 
     Run Build Launcher method.
@@ -173,13 +225,15 @@ def run_build_launcher(selected_user_prompts, selected_system_instructions, user
         'mode': mode,
         'output': output_file,
         'limit': limit,
+        'selected_system_instructions': selected_system_instructions,
         'user_prompt': user_prompt,
         'log_level': log_level,
         'use_all_user_keys': use_all_user_keys,
         'desired_output_length': desired_output_length,
         'thisdoc_dir': thisdoc_dir,
-        'list_of_user_keys_to_use': ','.join(selected_user_prompts),
-        'list_of_system_keys': ','.join(selected_system_instructions)
+        'list_of_user_keys_to_use': selected_user_prompts,  # Pass the list directly
+        'list_of_system_keys': selected_system_instructions,  # Pass the list directly
+        'user_prompts_dict_file_path': user_prompts_dict_file_path
     }
 
     if context_files:
@@ -229,6 +283,20 @@ def run_build_launcher_with_config(config_data):
     for result in results:
         st.write(result)
 
+def apply_custom_css(css):
+    st.markdown(f'<style>{css}</style>', unsafe_allow_html=True)
+
+custom_css = """
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans&display=swap');
+
+body {
+    font-family: 'Google Sans'', sans;
+    font-size: 16px;
+    font-weight: 300;
+}
+"""
+
+
 
 def run_streamlit_app():
     """
@@ -250,7 +318,7 @@ def run_streamlit_app():
     """
     st.set_page_config(layout="wide", initial_sidebar_state="expanded", page_title="Codexes2Gemini Streamlit UI Demo",
                        page_icon=":book:")
-
+    apply_custom_css(custom_css)
     st.title("Codexes2Gemini")
     st.write("_Humans and large-context language models making books richer, more diverse, and more surprising._")
 

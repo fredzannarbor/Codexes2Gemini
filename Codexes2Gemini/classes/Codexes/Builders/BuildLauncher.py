@@ -49,7 +49,7 @@ class BuildLauncher:
             'user_prompt': config.get('user_prompt', ''),
             'user_prompt_override': config.get('user_prompt_override', False),
             'user_prompts_dict_file_path': config.get('user_prompts_dict_file_path'),
-            'list_of_user_keys_to_use': config.get('list_of_user_keys_to_use'),
+            'list_of_user_keys_to_use': config.get('list_of_user_keys_to_use', []),
             'continuation_prompts': config.get('continuation_prompts', False),
             'output_file_path': config.get('output_file_path'),
             'log_level': config.get('log_level', 'INFO'),
@@ -57,7 +57,8 @@ class BuildLauncher:
             'desired_output_length': config.get('desired_output_length'),
             'model_name': config.get('model_name'),
             'mode': config.get('mode'),
-            'use_all_user_keys': config.get('use_all_user_keys', False)
+            'use_all_user_keys': config.get('use_all_user_keys', False),
+            'add_system_prompt': config.get('add_system_prompt', '')
         }
         # Remove None values to avoid passing unnecessary keyword arguments
         prompt_plan_params = {k: v for k, v in prompt_plan_params.items() if v is not None}

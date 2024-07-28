@@ -61,6 +61,7 @@ class Codexes2Parts:
         self.system_instructions_dict_file_path = "resources/prompts/system_instructions.json"
         self.continuation_instruction = "The context now includes a section called {Work So Far} which includes your work on this book project so far. Please refer to it along with the context document as you carry out the following task."
         self.results=[]
+        self.add_system_prompt = ""
     def configure_api(self):
         api_key = os.getenv("GOOGLE_API_KEY")
         if not api_key:
@@ -157,6 +158,9 @@ class Codexes2Parts:
                 system_prompt += system_instruction_dict[key]
             except KeyError as e:
                 self.logger.error(f"System instruction key {key} not found: {e}")
+        if self.add_system_prompt:
+            system_prompt += self.add_system_prompt
+
         return system_prompt
 
     def generate_full_book(self, plans: List[PromptPlan]):
