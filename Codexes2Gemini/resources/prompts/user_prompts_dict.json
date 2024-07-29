@@ -8,8 +8,12 @@
     "tags": ["book structure", "Chicago Manual of Style", "parts of the book"]
   },
   "Recommend parts of the book": {
-    "prompt": "Your task is to review the entire document and identify any p",
-    "tags": ["book structure", "recommendations"]
+    "prompt": "Your task is to recommend new, innovative, or specialized \"parts of the book\" that will make reading the context document richer, more diverse, or more surprising. \n\nExamples: \n- for a context document about warships, an index of technologies.\n- for a novel written in the 1850s, a table of potentially unsafe terminology.\n- for a complex technical book, a series of graduated \"Explain It Like I'm X...\" abstracts.\n\nFor each \"part of the book\" you recommend, provide a prompt that I can use to generate it.\n\nIf you do not see any value to adding parts of the book to the document, simply reply \"None\".",
+    "tags": ["back matter",
+            "book structure",
+            "front matter",
+            "parts of the book",
+            "recommendations"]
   },
   "ADEPT2 abstracts": {
     "prompt": "Please review this book manuscript. As you do the following tasks, remember to use the entire context.\n1. write a tldr in three words or less. Output begins: '## TLDR (three words) followed by two new lines and then the three words.NLY provide three words without explanations. \n2. Explain this document to me like I am five years old. Output begins: ## ELI5  \n3. Write a scientific-style abstract. Output begins: ## Scientific-Style Abstract.",
@@ -25,44 +29,80 @@
   },
   "ELI5 - abstract": {
     "prompt": "Explain this to me like I am five years old. Output begins: ## ELI5",
-    "tags": ["ELI5", "simple explanation", "abstract"]
+    "tags": ["front matter",
+            "ELI5", "simple explanation", "abstract"]
   },
   "ELI complete idiot - abstract": {
     "prompt": "Explain this to me like I am a complete idiot, someone who is both painfully stupid and willfully ignorant. Output begins: ## For Idiots Only",
-    "tags": ["humor", "extreme simplification", "abstract"]
+    "tags": ["front matter",
+            "humor", "extreme simplification", "abstract"]
   },
   "glossary-lay-reader": {
-    "prompt": "Create a glossary explaining technical terms that a lay reader might not understand. Output begins: # Glossary.",
-    "tags": ["glossary", "technical terms", "lay reader"]
+    "prompt": "Create an alphabetical glossary explaining technical terms that a lay reader might not understand. Output begins: # Glossary.",
+    "tags": ["back matter",
+            "glossary", "technical terms", "lay reader"]
   },
   "glossary-modern-readers": {
-    "prompt": "Bearing in mind when this book was written, create a glossary of terms to help modern readers understand this text. Output begins: # Glossary for Modern Readers.",
-    "tags": ["glossary", "modern interpretation", "historical context"]
-  },
+    "prompt": "Bearing in mind when this book was written, create an alphabetical glossary of terms to help modern readers understand this text. Output begins: # Glossary for Modern Readers.",
+    "tags": ["back matter",
+            "glossary", "modern interpretation", "historical context"]
+    },
   "index-idea-generator": {
-    "prompt": "Build three novel indexes based on the content of the book. Create each of them completely without pausing. Index every page in the book. Top-level entries should be alphabetized.",
-    "tags": ["index", "book organization", "creative indexing"]
+    "prompt": "Build three innovative indexes based on the content of the book. Create each of them completely without pausing. Index every page in the book. Top-level entries should be alphabetized.",
+    "tags": ["back matter",
+            "index", "book organization", "creative indexing"]
   },
-  "index-of-persons": {
+    "bibliography-extract": {
+        "prompt": "Let's build a bibliography step by step. Silently:\n\n1. Find all bibliographic citations that occur in the body of the context document.\n2. Convert all of them to Chicago Manual of Style 17th edition formatted bibliographic entries.\n3. Harmonize the entries removing any trivial or apparently erroneous inconsistencies and removing duplicates.\n4. Organize the remaining entries alphabetically in CMOS sort order.\n\nYour output should begin:\n\n# Machine-Extracted Bibliography\n\n{entries ...}\n\n",
+        "tags": [
+            "back matter",
+            "bibliography",
+            "book organization",
+            "attribution"
+        ]
+    },
+    "bibliography2bibtex": {
+        "prompt": "Let's build a BibTex format bibliography step by step. Silently:\n\n1. Find all bibliographic citations that occur in the body of the context document.\n2. Convert all of them to Chicago Manual of Style 17th edition formatted bibliographic entries.\n3. Harmonize the entries removing any trivial or apparently erroneous inconsistencies and removing duplicates.\n4. Organize the remaining entries alphabetically in CMOS sort order.\n\nYour output should be valid BibTex.",
+        "tags": [
+            "back matter",
+            "bibliography",
+            "book organization",
+            "attribution"
+        ]
+    },
+    "index-of-persons": {
     "prompt": "Your task is to create a back-of-the-book Index of Persons for this book. Proceed through the manuscript one page at a time, reading every page carefully while still bearing in mind the relevant context of the entire book. Create an alphabetical index in pandoc markdown format. Output begins: # Index of Persons. No letter headings. Names in the following format: **{last name, prefix, first name, initial, suffix, rank}**. Omit any elements not present. Consolidate and harmonize entries with minor inconsistencies. For each entry provide the page numbers on which it was found. Roman numbers first, then arabic. Contiguous pages expressed as a range. Each index entry MUST be on its own line followed by TWO new line characters.",
-    "tags": ["index", "persons", "book organization"]
+    "tags": ["back matter",
+            "index", "persons", "book organization"]
   },
   "index-of-places": {
     "prompt": "Your task is to create a back-of-the-book Index of Places for this book. Proceed through the manuscript one page at a time, reading every page carefully while still bearing in mind the relevant context of the entire book. Create an alphabetical index in pandoc markdown format. Output begins: # Index of Places. No letter headings. You must consolidate and harmonize index entries so that each index entry has only one line that includes all its page references. You must also harmonize minor inconsistencies such as apparent typos or variant spellings. For each entry provide the page numbers on which it was found. Roman numbers first, then arabic. Contiguous pages expressed as a range. Each index entry MUST be on its own line followed by TWO new line characters.",
-    "tags": ["index", "places", "book organization"]
+    "tags": ["back matter",
+            "index", "places", "book organization"]
   },
   "mnemonics - abstract": {
     "prompt": "1. Create an acronymic mnemonic. Example: MDAS. Output begins: ## Mnemonic (acronym).\n2. Create a mnemonic using a progression of related words. Example: My Dear Aunt Sally. Output begins: ## Mnemonic (speakable). \n3. Create a singable mnemonic in the form of a ditty to a popular tune. Output begins: ## Mnemonic (singable).\n\nMarkdown format. Each line of the lyrics MUST be followed by two newline characters. Use italics for the lyrics.",
     "tags": ["MDAS",
             "mnemonic", "acronym", "song", "memory aid"]
   },
-  "most_important_passages": {
-    "prompt": "Select the seven most important passages of between one and three paragraphs long from the manuscript as a whole. Use direct quotations and provide accurate page numbers. Output begins: ## Most Important Passages. Do NOT explain your reasoning.",
+  "most_important_passages - no reasoning": {
+    "prompt": "Select the seven most important passages of between one and three paragraphs long from the body of the context document. Use direct quotations and provide accurate page numbers. Output begins: ## Most Important Passages. Do NOT explain your reasoning.",
     "tags": ["key passages", "quotations", "book highlights"]
   },
-  "scientific_abstract": {
+    "most important passages - reasoning": {
+        "prompt": "Select the seven most important passages of between one and three paragraphs long from the body of the context. Use direct quotations and provide accurate page numbers. Output begins: ## Most Important Passages. Concisely explain why you selected each passage.",
+        "tags": [
+            "front matter",
+            "body",
+            "key passages",
+            "quotations",
+            "book highlights"
+        ]
+    },
+    "scientific_abstract": {
     "prompt": "Write a scientific-style abstract. Output begins: ## Scientific-Style Abstract",
-    "tags": ["scientific", "abstract", "academic"]
+    "tags": ["front matter",
+            "scientific", "abstract", "academic"]
   },
   "semantic_analysis": {
     "prompt": "Please review this book manuscript. \n1. Outline the semantic structure of the book as best you can. A typical semantic structure is Parts > {Front Matter, Body, Back Matter} => {Foreword, Chapters, Indexes} => {Scenes, Content}. Always go to scene level. Very concisely (10 words or less) identify each semantic unit and summarize it.",
@@ -74,15 +114,18 @@
   },
   "timeline-major": {
     "prompt": "Create a chronology of major events discussed in the book in pandoc markdown format. Entries should be presented in format: {full month} {date}, {year}: {event(s)}. Consolidate entries that occur on the same date but list them as separate sentences. Output begins: # Timeline. Each event entry must be on its own line followed by TWO new line characters.",
-    "tags": ["timeline", "chronology", "major events"]
+    "tags": ["back matter",
+            "timeline", "chronology", "major events"]
   },
   "timeline-technical": {
     "prompt": "Create a chronology of all the timed or dated events occurring the book. Entries should be presented in **YYYY-MM-DD**: event. If hours, minutes, or seconds are available, add -HH-, -MM-, -SS-. Output begins: # Detailed Timeline. Each event entry MUST be on its own line followed by TWO new line characters.",
-    "tags": ["timeline", "chronology", "detailed events"]
+    "tags": ["back matter",
+            "timeline", "chronology", "detailed events"]
   },
   "tldr3": {
     "prompt": "Tldr in three words or less. Output format: '## TLDR (three words): {the three words}'. ONLY provide three words without explanations.",
-    "tags": ["tldr", "summary", "concise"]
+    "tags": ["front matter",
+            "tldr", "summary", "concise"]
   },
   "twin-creator": {
     "prompt": "Your task is to write an \"origin story\" for twin gpt-5-level AIs inspired by the myth of Castor and Pollux, the Geminis of Greek myth. In the work of the poet Pindar, both are sons of Leda, Queen of Sparta, while Castor is the mortal son of Tyndareus, the king of Sparta, while Pollux is the divine son of Zeus, who raped Leda in the guise of a swan. (The pair are thus an example of heteropaternal superfecundation.)\nIn your updated version, two groups of AI researchers combine to echo Leda, while a vaguely Palantir-like defense company plays a similar role as Tyndareus, and the charismatic and megalomaniacal CEO of an OpenAI-like startup may be slightly reminiscent of Zeus.\nThe AIs are considered 'twins' because they share the same core technology, which stemmed from a team that split into two factions. One team built 'Castor' and the other built 'Pollux'. The AIs took on differing identities and personalities reflecting their differing experiences during training and each team used significantly different techniques as they built on top of the core technology.\n\nYour task is to create five pairs of strikingly different origin stories based on these common themes but diverging dramatically as a result of differing experiences and values during training. The origin stories should be expressed as text prompts for consumption by large language models. Each pair should be represented by a valid JSON object including these keys: pair_name, twin1name, twin1prompt, twin2name, twin2prompt. Each twin takes on a new name and identity during training. The prompts should focus on two types of information: 1) recent (within last 12 months) backstory 2) specific guidance about writing habits, mannerisms, and style. Companies and people should be fictitious.",
