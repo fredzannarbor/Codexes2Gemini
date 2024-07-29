@@ -1,10 +1,9 @@
-import pickle
+import sys
+import random
 
 import streamlit as st
 import json
-
-import sys
-from typing import Dict, List
+from typing import Dict, List, Counter
 import base64
 from importlib import resources
 import pandas as pd
@@ -19,15 +18,20 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
 from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space
 
-def delete_user_space_file():
-    pickle_file = 'user_space.pkl'
-    if os.path.exists(pickle_file):
-        os.remove(pickle_file)
-        print(f"Deleted {pickle_file}")
-    else:
-        print(f"{pickle_file} not found")
 
-# Function to download file
+def load_json_file(file_name):
+    try:
+        with resources.files('Codexes2Gemini.resources.prompts').joinpath(file_name).open('r') as file:
+            return json.load(file)
+    except Exception as e:
+        st.error(f"Error loading JSON file: {e}")
+        return {}
+
+
+def filter_dict(dictionary, filter_text):
+    return {k: v for k, v in dictionary.items() if
+            filter_text.lower() in k.lower() or (isinstance(v, str) and filter_text.lower() in v.lower())}
+
 def get_binary_file_downloader_html(bin_file, file_label='File'):
     with open(bin_file, 'rb') as f:
         data = f.read()
@@ -36,22 +40,23 @@ def get_binary_file_downloader_html(bin_file, file_label='File'):
     return href
 
 
-def load_json_file(file_name):
-    try:
-        with resources.files('Codexes2Gemini.resources.prompts').joinpath(file_name).open('r') as file:
-            return json.load(file)
-    except Exception as e:
-        st.error(f"Error loading JSON file {file_name}: {e}")
-        return {}
+def create_tag_frequencies(prompts):
+    all_tags = [tag for prompt in prompts.values() for tag in prompt['tags']]
+    return Counter(all_tags)
 
 
-def filter_dict(dictionary, filter_text):
-    return {k: v for k, v in dictionary.items() if
-            filter_text.lower() in k.lower() or
-            (isinstance(v, dict) and
-             (filter_text.lower() in v.get('prompt', '').lower() or
-              any(filter_text.lower() in tag.lower() for tag in v.get('tags', []))))}
+def display_tag_cloud(tag_freq, key_prefix):
+    max_freq = max(tag_freq.values())
+    min_freq = min(tag_freq.values())
 
+    tag_cloud_html = ""
+    for tag, freq in sorted(tag_freq.items()):
+        font_size = 1 + (freq - min_freq) / (max_freq - min_freq) * 1.5
+        color = f"rgb({random.randint(100, 200)}, {random.randint(100, 200)}, {random.randint(100, 200)})"
+        tag_html = f'<a href="?{key_prefix}={tag}" target="_self" style="font-size: {font_size}em; color: {color}; text-decoration: none; margin-right: 10px;">{tag}</a>'
+        tag_cloud_html += tag_html
+
+    st.markdown(tag_cloud_html, unsafe_allow_html=True)
 
 
 def tab1_user_parameters(user_space: UserSpace):
@@ -60,20 +65,48 @@ def tab1_user_parameters(user_space: UserSpace):
     context_files = st.file_uploader("Upload context files (txt)",
                                      type=['txt'],
                                      accept_multiple_files=True)
-    context_file_names = []
-    for c in context_files:
-        context_file_names.append(c.name)
+    context_file_names = [c.name for c in context_files]
 
     user_prompts_dict = load_json_file("user_prompts_dict.json")
     system_instructions_dict = load_json_file("system_instructions.json")
 
-    with st.expander("Filter, Select, and Add System Prompts"):
+    with st.expander("Filter, Select, and Add System Prompts", expanded=True):
         st.subheader("System Instructions")
-        system_instructions_filter = st.text_input("Filter system instructions", "nimble")
-        filtered_system_instructions = filter_dict(system_instructions_dict, system_instructions_filter)
 
-        # Include saved filters from UserSpace
-        all_system_instructions = list(filtered_system_instructions.keys()) + list(user_space.filters.keys())
+        if 'system_instructions_filter' not in st.session_state:
+            st.session_state.system_instructions_filter = ""
+        if 'filtered_system_instructions' not in st.session_state:
+            st.session_state.filtered_system_instructions = system_instructions_dict
+        if 'system_selected_tag' not in st.session_state:
+            st.session_state.system_selected_tag = None
+
+
+        system_tag_freq = create_tag_frequencies(system_instructions_dict)
+        display_tag_cloud(system_tag_freq, "system_tag")
+
+        # Check if a tag was clicked
+        params = st.query_params
+        if "system_tag" in params:
+            clicked_tag = params["system_tag"]
+            st.session_state.filtered_system_instructions = {k: v for k, v in system_instructions_dict.items() if
+                                                             clicked_tag in v['tags']}
+            st.session_state.system_selected_tag = clicked_tag
+            st.query_params.clear()  # Clear the query parameter
+            st.toast(f"Showing prompts tagged with: {clicked_tag}")
+            st.rerun()
+
+        system_instructions_filter = st.text_input("Filter system instructions",
+                                                   value=st.session_state.system_instructions_filter)
+        if system_instructions_filter != st.session_state.system_instructions_filter:
+            st.session_state.system_instructions_filter = system_instructions_filter
+            st.session_state.filtered_system_instructions = filter_dict(system_instructions_dict,
+                                                                        system_instructions_filter)
+
+        all_system_instructions = list(st.session_state.filtered_system_instructions.keys()) + list(
+            user_space.filters.keys())
+
+        if st.session_state.system_selected_tag:
+            st.info(f"Filtering for tag: {st.session_state.system_selected_tag}")
 
         selected_system_instructions = st.multiselect(
             "Select system instructions",
@@ -87,17 +120,44 @@ def tab1_user_parameters(user_space: UserSpace):
             st.write("Selected system instructions:")
             for instruction in selected_system_instructions:
                 if instruction in system_instructions_dict:
-                    st.write(system_instructions_dict[instruction])
+                    st.write(system_instructions_dict[instruction]['prompt'])
                 elif instruction in user_space.filters:
                     st.write(user_space.filters[instruction])
 
-    with st.expander("Filtering, Select and Add User Prompts"):
+    with st.expander("Filtering, Select and Add User Prompts", expanded=True):
         st.subheader("User Prompts")
-        user_prompts_filter = st.text_input("Filter user prompts", placeholder="abstract", help="Filter for prompts containing this term ")
-        filtered_user_prompts = filter_dict(user_prompts_dict, user_prompts_filter)
 
-        # Include saved prompts from UserSpace
-        all_user_prompts = list(filtered_user_prompts.keys()) + list(user_space.prompts.keys())
+        if 'user_prompts_filter' not in st.session_state:
+            st.session_state.user_prompts_filter = ""
+        if 'filtered_user_prompts' not in st.session_state:
+            st.session_state.filtered_user_prompts = user_prompts_dict
+        if 'user_selected_tag' not in st.session_state:
+            st.session_state.user_selected_tag = None
+
+        user_tag_freq = create_tag_frequencies(user_prompts_dict)
+        display_tag_cloud(user_tag_freq, "user_tag")
+
+        # Check if a tag was clicked
+        if "user_tag" in params:
+            clicked_tag = params["user_tag"]
+            st.session_state.filtered_user_prompts = {k: v for k, v in user_prompts_dict.items() if
+                                                      clicked_tag in v['tags']}
+            st.session_state.user_selected_tag = clicked_tag
+            st.query_params.clear()  # Clear the query parameter
+            st.toast(f"Showing prompts tagged with: {clicked_tag}")
+            st.rerun()
+
+        user_prompts_filter = st.text_input("Filter user prompts", value=st.session_state.user_prompts_filter,
+                                            help="Filter for prompts containing this term")
+        if user_prompts_filter != st.session_state.user_prompts_filter:
+            st.session_state.user_prompts_filter = user_prompts_filter
+            st.session_state.filtered_user_prompts = filter_dict(user_prompts_dict, user_prompts_filter)
+
+        all_user_prompts = list(st.session_state.filtered_user_prompts.keys()) + list(user_space.prompts.keys())
+
+        if st.session_state.user_selected_tag:
+            st.info(f"Filtering for tag: {st.session_state.user_selected_tag}")
+
         selected_user_prompts = st.multiselect(
             "Select user prompts",
             options=all_user_prompts,
@@ -108,11 +168,8 @@ def tab1_user_parameters(user_space: UserSpace):
             st.write("Selected user prompts:")
             for prompt in selected_user_prompts:
                 if prompt in user_prompts_dict:
-                    st.write(f"**{prompt}**")
                     st.write(user_prompts_dict[prompt]['prompt'])
-                    st.write(f"Tags: {', '.join(user_prompts_dict[prompt]['tags'])}")
                 elif prompt in user_space.prompts:
-                    st.write(f"**{prompt}**")
                     st.write(user_space.prompts[prompt])
 
         use_all_user_keys = st.checkbox("Use all user keys from the user prompts dictionary file")
@@ -123,7 +180,6 @@ def tab1_user_parameters(user_space: UserSpace):
                                         ["Override other user prompts", "Add at end of other user prompts"], index=1)
         if user_prompt_override == "Override other user prompts":
             selected_user_prompts = []
-
     with st.expander("Set Goals"):
         mode_options = [
             "Single Part of a Book (Part)",
@@ -184,7 +240,6 @@ def tab1_user_parameters(user_space: UserSpace):
             f"- **Log Level**: {log_level}\n"
             f"- **Use All User Keys**: {use_all_user_keys}"
         )
-
 
 def tab2_upload_config():
     st.header("Upload Plan Files")
@@ -357,7 +412,6 @@ body {
 def run_streamlit_app():
     st.set_page_config(layout="wide", initial_sidebar_state="expanded", page_title="Codexes2Gemini Streamlit UI Demo",
                        page_icon=":book:")
-    apply_custom_css(custom_css)
     st.title("Codexes2Gemini")
     st.write("_Humans and large-context language models making books richer, more diverse, and more surprising._")
 
@@ -367,7 +421,6 @@ def run_streamlit_app():
     # Check if 'prompts' attribute exists
     if not hasattr(user_space, 'prompts'):
         st.warning("Loaded UserSpace object is invalid. Creating a new UserSpace.")
-        delete_user_space_file()
         user_space = UserSpace()
         save_user_space(user_space)
 
@@ -385,6 +438,7 @@ def run_streamlit_app():
 
     with tab4:
         user_space_app(user_space)
+
 
 def main(port=1455):
     sys.argv = ["streamlit", "run", __file__, f"--server.port={port}"]
