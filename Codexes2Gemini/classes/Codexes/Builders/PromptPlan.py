@@ -4,7 +4,7 @@ import os
 from collections import OrderedDict
 import streamlit as st
 import pymupdf as fitz  # PyMuPDF
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 
 
 class PromptPlan(OrderedDict):
@@ -55,7 +55,6 @@ class PromptPlan(OrderedDict):
         self.model = model_name
         self.mode = mode
         self.use_all_user_keys = use_all_user_keys
-
         self.user_prompts_dict = self.load_user_prompts_dict()
         self.final_prompts = self.prepare_final_prompts()
         self.add_system_prompt = add_system_prompt
@@ -93,19 +92,15 @@ class PromptPlan(OrderedDict):
 
         return combined_context.strip()
 
-    def load_user_prompts_dict(self) -> Dict[str, str]:
+    def load_user_prompts_dict(self) -> Dict[str, Dict[str, Union[str, List[str]]]]:
         """Load user prompts from a JSON file."""
         if self.user_prompts_dict_file_path:
             try:
                 with open(self.user_prompts_dict_file_path, 'r') as f:
                     data = json.load(f)
                     return data
-
             except Exception as e:
-                self.logger.error(f"Error loading user prompts dict: {e}")
-                print(f"Error loading user prompts dict {e}")
-            print(data)
-            st.write(data)
+                self.logger.error(f"Error loading user prompts dict {self.user_prompts_dict_file_path}: {e}")
         return {}
 
     def prepare_final_prompts(self) -> List[str]:
@@ -129,7 +124,7 @@ class PromptPlan(OrderedDict):
             self.logger.info(f"Selecting prompts based on list_of_user_keys_to_use: {self.list_of_user_keys_to_use}")
             for key in self.list_of_user_keys_to_use:
                 if key in self.user_prompts_dict:
-                    final_prompts.append(self.user_prompts_dict[key])
+                    final_prompts.append(self.user_prompts_dict[key]['prompt'])
                 else:
                     self.logger.warning(f"Key '{key}' not found in user_prompts_dict")
 
