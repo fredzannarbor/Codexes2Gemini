@@ -2,6 +2,7 @@ import argparse
 import os
 import json
 import logging
+from importlib import resources
 from typing import Dict
 import uuid
 import google.generativeai as genai
@@ -11,12 +12,15 @@ from ..Builders.CodexBuilder import CodexBuilder
 from ..Builders.PromptPlan import PromptPlan
 from ...Utilities.utilities import configure_logger
 
+
 class BuildLauncher:
     def __init__(self):
         self.parts_builder = PartsBuilder()
         self.codex_builder = CodexBuilder()
         self.logger = logging.getLogger(__name__)
         genai.configure(api_key="YOUR_API_KEY_HERE")  # Replace with your actual API key
+        self.user_prompts_dict = {}
+        self.system_instructions_dict = {}
 
     def parse_arguments(self):
         parser = argparse.ArgumentParser(description="Book Part and Codex Generator Launcher")
@@ -35,6 +39,16 @@ class BuildLauncher:
         parser.add_argument('--desired_output_length', '-do', type=int, default=5000, help='Desired output length')
         parser.add_argument('--plans_json', type=str, help='Path to JSON file containing multiple plans')
         return parser.parse_args()
+
+    def load_prompt_dictionaries(self):
+        dictionaries = ['user_prompts_dict.json', 'system_instructions_dict.json']
+        for file_name in dictionaries:
+            try:
+                with resources.files('Codexes2Gemini.resources.prompts').joinpath(file_name).open('r') as file:
+                    return json.load(file)
+            except Exception as e:
+                logging.error(f"Error loading JSON file {file_name}: {e}")
+                return {}
 
     def create_prompt_plan(self, config: Dict) -> PromptPlan:
         prompt_plan_params = {
@@ -93,6 +107,9 @@ class BuildLauncher:
         log_level = args.get('log_level', 'INFO') if isinstance(args, dict) else args.log_level
         logger = configure_logger(log_level)
 
+        # Load prompt dictionaries
+        self.load_prompt_dictionaries()
+
         if isinstance(args, dict) and 'plans_json' in args:
             plans_data = args['plans_json']
             plans = [self.create_prompt_plan(plan_config) for plan_config in plans_data['plans']]
@@ -141,6 +158,7 @@ class BuildLauncher:
             logger.info(f"Output length {len(result)}")
 
         return results
+
 
 if __name__ == "__main__":
     launcher = BuildLauncher()
