@@ -1,8 +1,14 @@
-import sys
+import pickle
+
 import streamlit as st
 import json
-import os
+
+import sys
+from typing import Dict, List
+import base64
 from importlib import resources
+import pandas as pd
+import os
 
 # Add the parent directory to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -11,56 +17,46 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
+from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space
+
+def delete_user_space_file():
+    pickle_file = 'user_space.pkl'
+    if os.path.exists(pickle_file):
+        os.remove(pickle_file)
+        print(f"Deleted {pickle_file}")
+    else:
+        print(f"{pickle_file} not found")
+
+# Function to download file
+def get_binary_file_downloader_html(bin_file, file_label='File'):
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    bin_str = base64.b64encode(data).decode()
+    href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(bin_file)}">Download {file_label}</a>'
+    return href
+
 
 def load_json_file(file_name):
-    """
-    Load a JSON file and return its contents as a dictionary.
-
-    Parameters:
-    file_name (str): The name of the JSON file to load.
-
-    Returns:
-    dict: The contents of the JSON file as a dictionary.
-
-    Raises:
-    None.
-
-    Example:
-    >>> load_json_file("data.json")
-    {'key1': 'value1', 'key2': 'value2'}
-    """
     try:
         with resources.files('Codexes2Gemini.resources.prompts').joinpath(file_name).open('r') as file:
             return json.load(file)
     except Exception as e:
-        st.error(f"Error loading JSON file: {e}")
+        st.error(f"Error loading JSON file {file_name}: {e}")
         return {}
 
+
 def filter_dict(dictionary, filter_text):
-    """
-    Filters a dictionary based on the presence of a given text in the keys.
+    return {k: v for k, v in dictionary.items() if
+            filter_text.lower() in k.lower() or
+            (isinstance(v, dict) and
+             (filter_text.lower() in v.get('prompt', '').lower() or
+              any(filter_text.lower() in tag.lower() for tag in v.get('tags', []))))}
 
-    Args:
-        dictionary (dict): The dictionary to be filtered.
-        filter_text (str): The text to be searched in the dictionary keys.
 
-    Returns:
-        dict: A new dictionary containing only the key-value pairs that match the filter_text,
-            regardless of case.
 
-    Example:
-        >>> my_dict = {'apple': 1, 'banana': 2, 'orange': 3, 'coconut': 4}
-        >>> filter_dict(my_dict, 'an')
-        {'banana': 2, 'orange': 3}
-
-    """
-    return {k: v for k, v in dictionary.items() if filter_text.lower() in k.lower()}
-
-def tab1_user_parameters():
-
+def tab1_user_parameters(user_space: UserSpace):
     st.header("Enrich and Build Codexes")
 
-    # Context file paths
     context_files = st.file_uploader("Upload context files (txt)",
                                      type=['txt'],
                                      accept_multiple_files=True)
@@ -68,7 +64,6 @@ def tab1_user_parameters():
     for c in context_files:
         context_file_names.append(c.name)
 
-    # Load user prompts dictionary and system instructions
     user_prompts_dict = load_json_file("user_prompts_dict.json")
     system_instructions_dict = load_json_file("system_instructions.json")
 
@@ -76,56 +71,60 @@ def tab1_user_parameters():
         st.subheader("System Instructions")
         system_instructions_filter = st.text_input("Filter system instructions", "nimble")
         filtered_system_instructions = filter_dict(system_instructions_dict, system_instructions_filter)
+
+        # Include saved filters from UserSpace
+        all_system_instructions = list(filtered_system_instructions.keys()) + list(user_space.filters.keys())
+
         selected_system_instructions = st.multiselect(
             "Select system instructions",
-            options=list(filtered_system_instructions.keys()),
+            options=all_system_instructions,
             default=[]
         )
 
         add_system_prompt = st.text_area("Add to system prompt (optional)")
 
-        # Display selected system instructions
         if selected_system_instructions:
             st.write("Selected system instructions:")
             for instruction in selected_system_instructions:
-                st.write(system_instructions_dict[instruction])
+                if instruction in system_instructions_dict:
+                    st.write(system_instructions_dict[instruction])
+                elif instruction in user_space.filters:
+                    st.write(user_space.filters[instruction])
 
-    # add user-supplied system message
-
-
-
-    # Collapsible element for user prompts filtering and selection
     with st.expander("Filtering, Select and Add User Prompts"):
         st.subheader("User Prompts")
-        user_prompts_filter = st.text_input("Filter user prompts", "abstracts")
+        user_prompts_filter = st.text_input("Filter user prompts", placeholder="abstract", help="Filter for prompts containing this term ")
         filtered_user_prompts = filter_dict(user_prompts_dict, user_prompts_filter)
+
+        # Include saved prompts from UserSpace
+        all_user_prompts = list(filtered_user_prompts.keys()) + list(user_space.prompts.keys())
         selected_user_prompts = st.multiselect(
             "Select user prompts",
-            options=list(filtered_user_prompts.keys()),
+            options=all_user_prompts,
             default=[]
         )
 
-        # Display selected user prompts
         if selected_user_prompts:
             st.write("Selected user prompts:")
             for prompt in selected_user_prompts:
-                st.write(user_prompts_dict[prompt])
+                if prompt in user_prompts_dict:
+                    st.write(f"**{prompt}**")
+                    st.write(user_prompts_dict[prompt]['prompt'])
+                    st.write(f"Tags: {', '.join(user_prompts_dict[prompt]['tags'])}")
+                elif prompt in user_space.prompts:
+                    st.write(f"**{prompt}**")
+                    st.write(user_space.prompts[prompt])
 
-        # Use all user keys
         use_all_user_keys = st.checkbox("Use all user keys from the user prompts dictionary file")
 
-        # Custom user prompt
         user_prompt = st.text_area("Custom user prompt (optional)")
 
-        # Custom user prompt overrides all other user prompts
         user_prompt_override = st.radio("Override?",
                                         ["Override other user prompts", "Add at end of other user prompts"], index=1)
         if user_prompt_override == "Override other user prompts":
             selected_user_prompts = []
 
     with st.expander("Set Goals"):
-        # Mode selection
-
         mode_options = [
             "Single Part of a Book (Part)",
             "Multiple Parts of a Book (Multi-Part)",
@@ -143,23 +142,33 @@ def tab1_user_parameters():
 
         thisdoc_dir = st.text_input("Output directory", value=os.path.join(os.getcwd(), 'output/c2g'))
 
-        # Output file path
         output_file = st.text_input("Output file path", "output")
 
-        # Output size limit
         limit = st.number_input("Output size limit in tokens", value=10000)
 
-        # Desired output length
         desired_output_length = st.number_input("Minimum required output length", value=1000)
 
-        # Log level
         log_level = st.selectbox("Log level", ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
 
     user_prompts_dict_file_path = resources.files('Codexes2Gemini.resources.prompts').joinpath("user_prompts_dict.json")
     if st.button("Run BuildLauncher"):
-        run_build_launcher(selected_user_prompts, selected_system_instructions, user_prompt,
-                           context_files, mode, thisdoc_dir, output_file, limit,
-                           desired_output_length, log_level, use_all_user_keys, user_prompts_dict_file_path, add_system_prompt)
+        result = run_build_launcher(selected_user_prompts, selected_system_instructions, user_prompt,
+                                    context_files, mode, thisdoc_dir, output_file, limit,
+                                    desired_output_length, log_level, use_all_user_keys, user_prompts_dict_file_path,
+                                    add_system_prompt)
+
+        # Save result and prompt plan to user space
+        user_space.save_result(result[0])
+        user_space.save_prompt_plan({
+            "mode": mode,
+            "user_prompts": selected_user_prompts,
+            "system_instructions": selected_system_instructions,
+            "custom_prompt": user_prompt,
+            "desired_output_length": desired_output_length
+        })
+        save_user_space(user_space)
+        st.success("Result and Prompt Plan saved to UserSpace")
+
     with st.expander("Debugging Information"):
         st.info(
             f"**Submitting**:\n"
@@ -175,6 +184,8 @@ def tab1_user_parameters():
             f"- **Log Level**: {log_level}\n"
             f"- **Use All User Keys**: {use_all_user_keys}"
         )
+
+
 def tab2_upload_config():
     st.header("Upload Plan Files")
 
@@ -192,35 +203,96 @@ def tab3_create_multiplan():
     st.header("Create PromptPlan Multiplan Files")
 
     st.write("This feature is not yet implemented.")
-    # Here you can add fields and logic to create multiplan files
+
+
+def user_space_app(user_space: UserSpace):
+    st.title("UserSpace")
+
+    # Filters
+    st.header("Saved Filters")
+    filter_name = st.text_input("Filter Name (optional)")
+    filter_data = st.text_area("Filter Data (JSON)")
+    if st.button("Save Filter"):
+        try:
+            user_space.save_filter(filter_name, json.loads(filter_data))
+            save_user_space(user_space)
+            st.success("Filter saved")
+        except json.JSONDecodeError:
+            st.error("Invalid JSON for filter data")
+
+    # Display saved filters
+    if user_space.filters:
+        filter_df = pd.DataFrame(
+            [(name, json.dumps(data)[:50] + "...") for name, data in user_space.filters.items()],
+            columns=["Name", "Data Preview"]
+        )
+        st.table(filter_df)
+
+    # Prompts
+    st.header("Saved Prompts")
+    prompt_name = st.text_input("Prompt Name (optional)")
+    prompt = st.text_area("Prompt")
+    if st.button("Save Prompt"):
+        user_space.save_prompt(prompt_name, prompt)
+        save_user_space(user_space)
+        st.success("Prompt saved")
+
+    # Display saved prompts
+    if user_space.prompts:
+        prompt_df = pd.DataFrame(
+            [(name, text[:50] + "...") for name, text in user_space.prompts.items()],
+            columns=["Name", "Prompt Preview"]
+        )
+        st.table(prompt_df)
+
+    # Context Files
+    st.header("Saved Context Files")
+    context_name = st.text_input("Context Group Name")
+    context_files = st.text_area("Context Files (one path per line)")
+    if st.button("Save Context Files"):
+        user_space.save_context_files(context_name, context_files.split('\n'))
+        save_user_space(user_space)
+        st.success("Context files saved")
+
+    # Display saved context files
+    if user_space.context_files:
+        context_df = pd.DataFrame(
+            [(name, ", ".join(files[:3]) + ("..." if len(files) > 3 else ""))
+             for name, files in user_space.context_files.items()],
+            columns=["Name", "Files Preview"]
+        )
+        st.table(context_df)
+
+    # Results
+    st.header("Saved Results")
+    if user_space.results:
+        result_df = pd.DataFrame(
+            [(r["timestamp"], r["result"][:50] + "...") for r in user_space.results],
+            columns=["Timestamp", "Result Preview"]
+        )
+        st.table(result_df)
+
+        for i, result in enumerate(user_space.results):
+            with open(f"result_{i}.txt", "w") as f:
+                f.write(result["result"])
+            st.markdown(get_binary_file_downloader_html(f"result_{i}.txt", f"Result {i + 1}"), unsafe_allow_html=True)
+
+    # Prompt Plans
+    st.header("Saved Prompt Plans")
+    if user_space.prompt_plans:
+        for i, plan in enumerate(user_space.prompt_plans):
+            st.write(f"Prompt Plan {i + 1}")
+            st.json(plan)
+            with open(f"prompt_plan_{i}.json", "w") as f:
+                json.dump(plan, f)
+            st.markdown(get_binary_file_downloader_html(f"prompt_plan_{i}.json", f"Prompt Plan {i + 1}"),
+                        unsafe_allow_html=True)
 
 
 def run_build_launcher(selected_user_prompts, selected_system_instructions, user_prompt,
                        context_files, mode, thisdoc_dir, output_file, limit,
-                       desired_output_length, log_level, use_all_user_keys, user_prompts_dict_file_path, add_system_prompt):
-    """
-
-    Run Build Launcher method.
-
-    Executes the BuildLauncher.main() method with the specified arguments and handles the results.
-
-    Parameters:
-    - selected_user_prompts (list): List of selected user prompts.
-    - selected_system_instructions (list): List of selected system instructions.
-    - user_prompt (str): User input prompt.
-    - context_files (list): List of context files.
-    - mode (str): Mode of operation.
-    - thisdoc_dir (str): Directory of the current document.
-    - output_file (str): File path of the output.
-    - limit (int): Limit of generated outputs.
-    - desired_output_length (int): Desired output length.
-    - log_level (str): Log level.
-    - use_all_user_keys (bool): Flag indicating whether to use all user keys.
-
-    Returns:
-    None
-
-    """
+                       desired_output_length, log_level, use_all_user_keys, user_prompts_dict_file_path,
+                       add_system_prompt):
     args = {
         'mode': mode,
         'output': output_file,
@@ -255,27 +327,10 @@ def run_build_launcher(selected_user_prompts, selected_system_instructions, user
         for file in context_files:
             os.remove(file.name)
 
+    return results
+
 
 def run_build_launcher_with_config(config_data):
-    """
-
-    Runs the build launcher with the given configuration data.
-
-    Parameters:
-    - config_data: The configuration data for the build launcher.
-
-    Returns:
-    None
-
-    Example usage:
-    config_data = {
-        'param1': value1,
-        'param2': value2,
-        ...
-    }
-    run_build_launcher_with_config(config_data)
-
-    """
     launcher = BuildLauncher()
     results = launcher.main(config_data)
 
@@ -283,49 +338,44 @@ def run_build_launcher_with_config(config_data):
     for result in results:
         st.write(result)
 
+
 def apply_custom_css(css):
     st.markdown(f'<style>{css}</style>', unsafe_allow_html=True)
+
 
 custom_css = """
 @import url('https://fonts.googleapis.com/css2?family=Google+Sans&display=swap');
 
 body {
-    font-family: 'Google Sans'', sans;
+    font-family: 'Google Sans', sans-serif;
     font-size: 16px;
     font-weight: 300;
 }
 """
 
 
-
 def run_streamlit_app():
-    """
-    Runs the Codexes2Gemini Streamlit UI app.
-
-    This method sets the page configuration for the app, including layout, sidebar state, page title, and page icon. It then displays a title and a brief description of the app. Next, it creates three tabs for different sections of the app: "Self-Serve", "Run Build Plans", and "Create Build Plans".
-
-    In the "Self-Serve" tab, the method calls the `tab1_user_parameters()` function to display the user parameters section.
-
-    In the "Run Build Plans" tab, the method calls the `tab2_upload_config()` function to display the configuration upload section.
-
-    In the "Create Build Plans" tab, the method calls the `tab3_create_multiplan()` function to display the multiplan creation section.
-
-    Parameters:
-        None
-
-    Returns:
-        None
-    """
     st.set_page_config(layout="wide", initial_sidebar_state="expanded", page_title="Codexes2Gemini Streamlit UI Demo",
                        page_icon=":book:")
     apply_custom_css(custom_css)
     st.title("Codexes2Gemini")
     st.write("_Humans and large-context language models making books richer, more diverse, and more surprising._")
 
-    tab1, tab2, tab3 = st.tabs(["Self-Serve", "Run Build Plans", "Create Build Plans"])
+    # Try to load existing UserSpace
+    user_space = load_user_space()
+
+    # Check if 'prompts' attribute exists
+    if not hasattr(user_space, 'prompts'):
+        st.warning("Loaded UserSpace object is invalid. Creating a new UserSpace.")
+        delete_user_space_file()
+        user_space = UserSpace()
+        save_user_space(user_space)
+
+    # Rest of the function remains the same
+    tab1, tab2, tab3, tab4 = st.tabs(["Self-Serve", "Run Build Plans", "Create Build Plans", "UserSpace"])
 
     with tab1:
-        tab1_user_parameters()
+        tab1_user_parameters(user_space)
 
     with tab2:
         tab2_upload_config()
@@ -333,19 +383,10 @@ def run_streamlit_app():
     with tab3:
         tab3_create_multiplan()
 
+    with tab4:
+        user_space_app(user_space)
 
 def main(port=1455):
-    """
-    Run the Streamlit application.
-
-    This method has one job: launch streamlit.  All the functional logic is in run_streamlit_app.
-
-    Parameters:
-    - port (int): The port to run the Streamlit application on. Default is 1455.
-
-    Returns:
-    None
-    """
     sys.argv = ["streamlit", "run", __file__, f"--server.port={port}"]
     import streamlit.web.cli as stcli
     stcli.main()
