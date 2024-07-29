@@ -154,8 +154,9 @@ class Codexes2Parts:
                                                                      list) else plan.list_of_system_keys.split(',')
         for key in list_of_system_keys:
             key = key.strip()  # Remove any leading/trailing whitespace
+            print(system_instruction_dict[key]['prompt'])
             try:
-                system_prompt += system_instruction_dict[key]
+                system_prompt += system_instruction_dict[key]['prompt']
             except KeyError as e:
                 self.logger.error(f"System instruction key {key} not found: {e}")
         if self.add_system_prompt:
