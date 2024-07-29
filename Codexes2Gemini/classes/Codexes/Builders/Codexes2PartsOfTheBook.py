@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import traceback
+from importlib import resources
 from time import sleep
 from typing import List
 
@@ -58,7 +59,7 @@ class Codexes2Parts:
             {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
             {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
         ]
-        self.system_instructions_dict_file_path = "resources/prompts/system_instructions.json"
+        self.system_instructions_dict_file_path = resources.files('Codexes2Gemini.resources.prompts').joinpath("system_instructions.json")
         self.continuation_instruction = "The context now includes a section called {Work So Far} which includes your work on this book project so far. Please refer to it along with the context document as you carry out the following task."
         self.results=[]
         self.add_system_prompt = ""
@@ -206,19 +207,19 @@ def parse_arguments():
     parser.add_argument('--model', default="gemini-1.5-flash-001", help="Model to use")
     parser.add_argument('--json_required', action='store_true', help="Require JSON output")
     parser.add_argument('--generation_config', type=str, default='{"temperature": 1, "top_p": 0.95, "top_k": 0, "max_output_tokens": 8192}', help="Generation config as a JSON string")
-    parser.add_argument('--system_instructions_dict_file_path', default="resources/json/system_instructions.json", help="Path to system instructions dictionary file")
+    parser.add_argument('--system_instructions_dict_file_path', default="resources/prompts/system_instructions.json", help="Path to system instructions dictionary file")
     parser.add_argument('--list_of_system_keys', default="nimble_books_editor,nimble_books_safety_scope,accurate_researcher,energetic_behavior,batch_intro", help="Comma-separated list of system keys")
     parser.add_argument('--user_prompt', default='', help="User prompt")
     parser.add_argument('--user_prompt_override', action='store_true', help="Override user prompts from dictionary")
-    parser.add_argument('--user_prompts_dict_file_path', default="resources/prompts/user_prompts_dict.json", help="Path to user prompts dictionary file")
+    parser.add_argument('--user_prompts_dict_file_path', default=resources.files('Codexes2Gemini.resources.prompts').joinpath("user_prompts_dict.json"), help="Path to user prompts dictionary file")
     parser.add_argument('--list_of_user_keys_to_use', default="semantic_analysis,core_audience_attributes", help="Comma-separated list of user keys to use")
     parser.add_argument('--continuation_prompts', action='store_true', help="Use continuation prompts")
     parser.add_argument('--context_file_paths', nargs='+', help="Paths to context files")
     parser.add_argument('--output_file_path', default="results.md", help="Path to output file")
-    parser.add_argument('--thisdoc_dir', default="output/gemini/", help="Document directory")
+    parser.add_argument('--thisdoc_dir', default="output/c2g/", help="Document directory")
     parser.add_argument('--log_level', default="INFO", help="Logging level")
     parser.add_argument('--number_to_run', type=int, default=3, help="Number of runs")
-    parser.add_argument('--desired_output_length', "-do", type=int, default=10000, help="Desired output length in characters")
+    parser.add_argument('--desired_output_length', "-do", type=int, default=1000, help="Desired output length in characters")
     return parser.parse_args()
 
 if __name__ == "__main__":
