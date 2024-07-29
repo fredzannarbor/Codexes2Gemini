@@ -6,19 +6,19 @@ import json
 launcher = BuildLauncher()
 
 # Example 1: Using command-line style arguments
-# args = {
-#     'mode': 'part',
-#     'context_file_paths': ['path/to/context1.txt', 'path/to/context2.pdf'],
-#     'output': 'output/result.md',
-#     'limit': 5000,
-#     'user_prompt': "Write a chapter about artificial intelligence",
-#     'log_level': 'INFO',
-#     'desired_output_length': 4000,
-#     'model_name': 'gemini-pro'
-# }
+args1 = {
+    'mode': 'part',
+    'context_file_paths': ['path/to/context1.txt', 'path/to/context2.pdf'],
+    'output': 'output/result.md',
+    'limit': 5000,
+    'user_prompt': "Write a chapter about artificial intelligence",
+    'log_level': 'INFO',
+    'desired_output_length': 4000,
+    'model_name': 'gemini-pro'
+}
 
 # Run the launcher with these arguments
-#results = launcher.main(args)
+# results = launcher.main(args1)
 
 # Example 2: Using a JSON configuration file
 json_config = {
@@ -32,12 +32,12 @@ json_config = {
             "model_name": "gemini-1.5-flash-001",
         }]}
 
-args = {
+args2 = {
     'plans_json': json_config,
     'log_level': 'DEBUG'
 }
 
-results = launcher.main(args)
+results = launcher.main(args2)
 
 # Print the results
 for i, result in enumerate(results):
