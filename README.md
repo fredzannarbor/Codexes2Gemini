@@ -35,6 +35,11 @@ Replace "your_api_key" with your actual API key. You can find your API key in th
 
 3. There is an optional Streamlit front end to the C2G library. 
 
+4. To download the software so you can customize and enhance it:
+```bash
+git clone https://github.com/fredzannarbor/Codexes2Gemini.git
+```
+
 ## Quick Starts
 
 ### Scripting
