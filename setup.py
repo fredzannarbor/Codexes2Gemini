@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name='Codexes2Gemini',
-    version='0.1.7.1',
-    description='Humans and large-context language models working together to make books richer, more diverse, and more surprising.',
+    version='0.1.9.1',
+    description='Humans and AIs making books richer, more diverse, and more surprising.',
     url='https://github.com/fredzannarbor/Codexes2Gemini',
     entry_points={
         'console_scripts': [
