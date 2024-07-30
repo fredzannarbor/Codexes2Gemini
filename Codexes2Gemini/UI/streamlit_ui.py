@@ -8,6 +8,9 @@ import base64
 from importlib import resources
 import pandas as pd
 import os
+import tempfile
+import google.generativeai as genai
+
 
 # Add the parent directory to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -59,12 +62,12 @@ def display_tag_cloud(tag_freq, key_prefix):
     st.markdown(tag_cloud_html, unsafe_allow_html=True)
 
 
-def tab1_user_parameters(user_space: UserSpace):
+def self_serve_single_plan(user_space: UserSpace):
     st.header("Enrich and Build Codexes")
 
     context_files = st.file_uploader("Upload context files (txt)",
                                      type=['txt'],
-                                     accept_multiple_files=True)
+                                     accept_multiple_files=True, help="Maximum 2 million tokens")
     context_file_names = [c.name for c in context_files]
 
     user_prompts_dict = load_json_file("user_prompts_dict.json")
@@ -253,15 +256,205 @@ def tab2_upload_config():
         if st.button("Run BuildLauncher with Uploaded Config"):
             run_build_launcher_with_config(config_data)
 
+def count_tokens(context, model='models/gemini-1.5-flash-001'):
+    model = genai.GenerativeModel()
+    return model.count_tokens(context)
 
-def tab3_create_multiplan():
-    st.header("Create PromptPlan Multiplan Files")
 
-    st.write("This feature is not yet implemented.")
+def multi_plan_builder(user_space: UserSpace):
+    st.header("Multi-Plan Builder")
 
+    if 'multiplan' not in st.session_state:
+        st.session_state.multiplan = []
+
+    # Load prompt dictionaries
+    user_prompts_dict = load_json_file("user_prompts_dict.json")
+    system_instructions_dict = load_json_file("system_instructions.json")
+
+    # Form for creating a new prompt plan
+    with st.form("new_prompt_plan"):
+        st.subheader("Create New Prompt Plan")
+        plan_name = st.text_input("Plan Name")
+        mode = st.selectbox("Mode", ['part', 'multi_part', 'codex', 'full_codex'])
+        context_files = st.file_uploader("Upload context files", accept_multiple_files=True)
+
+        # System instructions selection
+        st.subheader("System Instructions")
+        system_filter = st.text_input("Filter system instructions")
+        filtered_system = filter_dict(system_instructions_dict, system_filter)
+        selected_system_instructions = st.multiselect(
+            "Select system instructions",
+            options=list(filtered_system.keys()),
+            format_func=lambda x: f"{x}: {filtered_system[x]['prompt'][:50]}..."
+        )
+
+        # User prompts selection
+        st.subheader("User Prompts")
+        user_filter = st.text_input("Filter user prompts")
+        filtered_user = filter_dict(user_prompts_dict, user_filter)
+        selected_user_prompts = st.multiselect(
+            "Select user prompts",
+            options=list(filtered_user.keys()),
+            format_func=lambda x: f"{x}: {filtered_user[x]['prompt'][:50]}..."
+        )
+
+        custom_user_prompt = st.text_area("Custom User Prompt (optional)")
+        desired_output_length = st.number_input("Desired Output Length", min_value=1, value=1000)
+
+        submitted = st.form_submit_button("Add Plan")
+        if submitted:
+            context_contents = {}
+            for file in context_files:
+                context_contents[file.name] = file.getvalue().decode("utf-8")
+
+            new_plan = {
+                "name": plan_name,
+                "mode": mode,
+                "context_files": context_contents,
+                "system_instructions": selected_system_instructions,
+                "user_prompts": selected_user_prompts,
+                "custom_user_prompt": custom_user_prompt,
+                "desired_output_length": desired_output_length
+            }
+            st.session_state.multiplan.append(new_plan)
+            st.success(f"Plan '{plan_name}' added to multiplan")
+
+    # Display current multiplan
+    if st.session_state.multiplan:
+        st.subheader("Current Multiplan")
+        for i, plan in enumerate(st.session_state.multiplan):
+            st.write(f"Plan {i + 1}: {plan['name']}")
+            st.json(truncate_context_files(plan))
+            if st.button(f"Remove Plan {i + 1}"):
+                st.session_state.multiplan.pop(i)
+                st.rerun()
+
+    # Save and run multiplan
+    if st.session_state.multiplan:
+        if st.button("Run Multiplan"):
+            run_multiplan(st.session_state.multiplan)
+            user_space.save_prompt_plan({"multiplan": st.session_state.multiplan})
+            save_user_space(user_space)
+            st.success("Multiplan saved to UserSpace")
+
+
+def run_multiplan(multiplan):
+    launcher = BuildLauncher()
+    results = []
+    for plan in multiplan:
+        # Create temporary files for context
+        temp_context_files = []
+        for filename, content in plan['context_files'].items():
+            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as temp_file:
+                temp_file.write(content)
+                temp_context_files.append(temp_file.name)
+
+        # Load the user prompts dictionary
+        user_prompts_dict = load_json_file("user_prompts_dict.json")
+
+        # Prepare the user prompts
+        user_prompts = []
+        for prompt_key in plan['user_prompts']:
+            if prompt_key in user_prompts_dict:
+                user_prompts.append(user_prompts_dict[prompt_key]['prompt'])
+
+        # Add the custom user prompt if it exists
+        if plan['custom_user_prompt']:
+            user_prompts.append(plan['custom_user_prompt'])
+
+        # Join all user prompts into a single string
+        combined_user_prompt = "\n".join(user_prompts)
+
+        print(combined_user_prompt)
+
+        # Convert the plan to the format expected by BuildLauncher
+        launcher_plan = {
+            'mode': plan['mode'],
+            'context_file_paths': temp_context_files,
+            'output': f"output_{plan['name']}.md",
+            'limit': plan['desired_output_length'],
+            'selected_system_instructions': plan['system_instructions'],
+            'user_prompt': combined_user_prompt,
+            'list_of_user_keys_to_use': plan['user_prompts'],
+            'desired_output_length': plan['desired_output_length'],
+        }
+
+        try:
+            result = launcher.main(launcher_plan)
+            results.append(result)
+        finally:
+            # Clean up temporary files
+            for temp_file in temp_context_files:
+                os.unlink(temp_file)
+
+    st.subheader("Multiplan Results")
+    # for i, result in enumerate(results):
+    #     st.write(f"Result for Plan {i + 1}:")
+    #     st.write(result)
+    st.write(results)
+
+# Helper functions
+def filter_dict(dictionary, filter_text):
+    return {k: v for k, v in dictionary.items() if
+            filter_text.lower() in k.lower() or (
+                        isinstance(v, dict) and filter_text.lower() in v.get('prompt', '').lower())}
+
+
+def load_json_file(file_name):
+    try:
+        with resources.files('Codexes2Gemini.resources.prompts').joinpath(file_name).open('r') as file:
+            return json.load(file)
+    except Exception as e:
+        st.error(f"Error loading JSON file: {e}")
+        return {}
+
+def truncate_context_files(plan: Dict) -> Dict:
+    """
+    Nondestructively replaces the value of plan["context_files"] with a version truncated after 50 Gemini tokens.
+
+    Args:
+        plan: A dictionary representing a prompt plan.
+
+    Returns:
+        A new dictionary with the truncated context files.
+    """
+
+    truncated_plan = plan.copy()  # Create a copy to avoid modifying the original
+
+    for filename, content in truncated_plan["context_files"].items():
+        # Tokenize the content using the Gemini API tokenizer
+
+
+        truncated_content = content[:240] + " ..." # Truncate the content based on token count
+        truncated_plan["context_files"][filename] = truncated_content
+
+    return truncated_plan
+
+
+
+def filter_dict(dictionary, filter_text):
+    return {k: v for k, v in dictionary.items() if
+            filter_text.lower() in k.lower() or (
+                        isinstance(v, dict) and filter_text.lower() in v.get('prompt', '').lower())}
+
+
+def load_json_file(file_name):
+    try:
+        with resources.files('Codexes2Gemini.resources.prompts').joinpath(file_name).open('r') as file:
+            return json.load(file)
+    except Exception as e:
+        st.error(f"Error loading JSON file: {e}")
+        return {}
 
 def user_space_app(user_space: UserSpace):
     st.title("UserSpace")
+
+    # Add a button to clear the entire user space
+    if st.button("Clear Entire UserSpace"):
+            user_space = UserSpace()  # Create a new, empty UserSpace
+            save_user_space(user_space)
+            st.success("UserSpace has been cleared.")
+            st.rerun()  # Rerun the app to reflect the changes
 
     # Filters
     st.header("Saved Filters")
@@ -282,6 +475,11 @@ def user_space_app(user_space: UserSpace):
             columns=["Name", "Data Preview"]
         )
         st.table(filter_df)
+        if st.button("Clear All Filters"):
+            user_space.filters = {}
+            save_user_space(user_space)
+            st.success("All filters cleared")
+            st.rerun()
 
     # Prompts
     st.header("Saved Prompts")
@@ -299,6 +497,11 @@ def user_space_app(user_space: UserSpace):
             columns=["Name", "Prompt Preview"]
         )
         st.table(prompt_df)
+        if st.button("Clear All Prompts"):
+            user_space.prompts = {}
+            save_user_space(user_space)
+            st.success("All prompts cleared")
+            st.rerun()
 
     # Context Files
     st.header("Saved Context Files")
@@ -317,6 +520,11 @@ def user_space_app(user_space: UserSpace):
             columns=["Name", "Files Preview"]
         )
         st.table(context_df)
+        if st.button("Clear All Context Files"):
+            user_space.context_files = {}
+            save_user_space(user_space)
+            st.success("All context files cleared")
+            st.rerun()
 
     # Results
     st.header("Saved Results")
@@ -326,6 +534,11 @@ def user_space_app(user_space: UserSpace):
             columns=["Timestamp", "Result Preview"]
         )
         st.table(result_df)
+        if st.button("Clear All Results"):
+            user_space.results = []
+            save_user_space(user_space)
+            st.success("All results cleared")
+            st.rerun()
 
         for i, result in enumerate(user_space.results):
             with open(f"result_{i}.txt", "w") as f:
@@ -342,7 +555,11 @@ def user_space_app(user_space: UserSpace):
                 json.dump(plan, f)
             st.markdown(get_binary_file_downloader_html(f"prompt_plan_{i}.json", f"Prompt Plan {i + 1}"),
                         unsafe_allow_html=True)
-
+        if st.button("Clear All Prompt Plans"):
+            user_space.prompt_plans = []
+            save_user_space(user_space)
+            st.success("All prompt plans cleared")
+            st.rerun()
 
 def run_build_launcher(selected_user_prompts, selected_system_instructions, user_prompt,
                        context_files, mode, thisdoc_dir, output_file, limit,
@@ -425,20 +642,21 @@ def run_streamlit_app():
         save_user_space(user_space)
 
     # Rest of the function remains the same
-    tab1, tab2, tab3, tab4 = st.tabs(["Self-Serve", "Run Build Plans", "Create Build Plans", "UserSpace"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Multi-Prompt Codex Builder", "Run Build Plans", "Self-Serve", "UserSpace"])
 
     with tab1:
-        tab1_user_parameters(user_space)
+        multi_plan_builder(user_space)
+
+    with tab3:
+        self_serve_single_plan(user_space)
 
     with tab2:
         tab2_upload_config()
 
-    with tab3:
-        tab3_create_multiplan()
+
 
     with tab4:
         user_space_app(user_space)
-
 
 def main(port=1455):
     sys.argv = ["streamlit", "run", __file__, f"--server.port={port}"]
