@@ -42,3 +42,4 @@ def load_user_space() -> UserSpace:
             return pickle.load(f)
     except FileNotFoundError:
         return UserSpace()
+
