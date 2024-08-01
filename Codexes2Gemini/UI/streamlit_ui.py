@@ -12,6 +12,7 @@ import tempfile
 import google.generativeai as genai
 
 
+
 # Add the parent directory to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -62,7 +63,7 @@ def display_tag_cloud(tag_freq, key_prefix):
     st.markdown(tag_cloud_html, unsafe_allow_html=True)
 
 
-def self_serve_single_plan(user_space: UserSpace):
+def tab1_user_parameters(user_space: UserSpace):
     st.header("Enrich and Build Codexes")
 
     context_files = st.file_uploader("Upload context files (txt)",
@@ -648,7 +649,7 @@ def run_streamlit_app():
         multi_plan_builder(user_space)
 
     with tab3:
-        self_serve_single_plan(user_space)
+        tab1_user_parameters(user_space)
 
     with tab2:
         tab2_upload_config()
@@ -658,8 +659,8 @@ def run_streamlit_app():
     with tab4:
         user_space_app(user_space)
 
-def main(port=1455):
-    sys.argv = ["streamlit", "run", __file__, f"--server.port={port}"]
+def main(port=1455, themebase="light"):
+    sys.argv = ["streamlit", "run", __file__, f"--server.port={port}", f'--theme.base={themebase}']
     import streamlit.web.cli as stcli
     stcli.main()
 
