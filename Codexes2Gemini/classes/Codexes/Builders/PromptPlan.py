@@ -15,7 +15,7 @@ class PromptPlan(OrderedDict):
                  user_prompts_dict_file_path: str = None,
                  list_of_user_keys_to_use: List[str] = None,  # Changed to List[str]
                  continuation_prompts: bool = False,
-                 output_file_path: str = None, log_level: str = "INFO", number_to_run: int = 1,
+                 output_file_path: str = "output", log_level: str = "INFO", number_to_run: int = 1,
                  minimum_required_output_tokens: int = 1, ensure_output_limit = False,
                  model_name: str = None, mode: str = "part",
                  config_file: str = None, use_all_user_keys: bool = False, add_system_prompt: str = "") -> None:
@@ -101,6 +101,7 @@ class PromptPlan(OrderedDict):
             try:
                 with open(self.user_prompts_dict_file_path, 'r') as f:
                     data = json.load(f)
+                    st.write(data)
                     return data
             except Exception as e:
                 self.logger.error(f"Error loading user prompts dict {self.user_prompts_dict_file_path}: {e}")
