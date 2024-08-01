@@ -18,8 +18,8 @@ import google.generativeai as genai
 # # Add the parent of the parent directory to the Python path
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from classes.Codexes.Builders.BuildLauncher import BuildLauncher
-from classes.user_space import UserSpace, save_user_space, load_user_space
+from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
+from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space
 
 
 def load_json_file(file_name):
@@ -31,9 +31,7 @@ def load_json_file(file_name):
         return {}
 
 
-def filter_dict(dictionary, filter_text):
-    return {k: v for k, v in dictionary.items() if
-            filter_text.lower() in k.lower() or (isinstance(v, str) and filter_text.lower() in v.lower())}
+
 
 def get_binary_file_downloader_html(bin_file, file_label='File'):
     with open(bin_file, 'rb') as f:
@@ -411,10 +409,7 @@ def run_multiplan(multiplan):
     st.write(results)
 
 # Helper functions
-def filter_dict(dictionary, filter_text):
-    return {k: v for k, v in dictionary.items() if
-            filter_text.lower() in k.lower() or (
-                        isinstance(v, dict) and filter_text.lower() in v.get('prompt', '').lower())}
+
 
 
 def load_json_file(file_name):
