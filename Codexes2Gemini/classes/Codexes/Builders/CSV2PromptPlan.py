@@ -29,7 +29,7 @@ class CSV2PromptPlan(PromptPlan):
             "output_file_path": row['output_file_path'],
             "log_level": row['log_level'],
             "number_to_run": int(row['number_to_run']),
-            "desired_output_length": int(row['desired_output_length']),
+            "minimum_required_output_tokens": int(row['minimum_required_output_tokens']),
             "model_name": row['model_name'],
             "use_all_user_keys": row['use_all_user_keys'].lower() == 'true'
         }

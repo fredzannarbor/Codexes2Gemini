@@ -12,15 +12,14 @@ import tempfile
 import google.generativeai as genai
 
 
+# # Add the parent directory to the Python path
+# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+#
+# # Add the parent of the parent directory to the Python path
+# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-# Add the parent directory to the Python path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-# Add the parent of the parent directory to the Python path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-
-from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
-from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space
+from classes.Codexes.Builders.BuildLauncher import BuildLauncher
+from classes.user_space import UserSpace, save_user_space, load_user_space
 
 
 def load_json_file(file_name):
@@ -206,7 +205,7 @@ def tab1_user_parameters(user_space: UserSpace):
 
         limit = st.number_input("Output size limit in tokens", value=10000)
 
-        desired_output_length = st.number_input("Minimum required output length", value=1000)
+        minimum_required_output_tokens = st.number_input("Minimum required output length", value=1000)
 
         log_level = st.selectbox("Log level", ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
 
@@ -214,7 +213,7 @@ def tab1_user_parameters(user_space: UserSpace):
     if st.button("Run BuildLauncher"):
         result = run_build_launcher(selected_user_prompts, selected_system_instructions, user_prompt,
                                     context_files, mode, thisdoc_dir, output_file, limit,
-                                    desired_output_length, log_level, use_all_user_keys, user_prompts_dict_file_path,
+                                    minimum_required_output_tokens, log_level, use_all_user_keys, user_prompts_dict_file_path,
                                     add_system_prompt)
 
         # Save result and prompt plan to user space
@@ -224,7 +223,7 @@ def tab1_user_parameters(user_space: UserSpace):
             "user_prompts": selected_user_prompts,
             "system_instructions": selected_system_instructions,
             "custom_prompt": user_prompt,
-            "desired_output_length": desired_output_length
+            "minimum_required_output_tokens": minimum_required_output_tokens
         })
         save_user_space(user_space)
         st.success("Result and Prompt Plan saved to UserSpace")
@@ -240,10 +239,11 @@ def tab1_user_parameters(user_space: UserSpace):
             f"- **Thisdoc Directory**: {thisdoc_dir}\n"
             f"- **Output File**: {output_file}\n"
             f"- **Limit**: {limit}\n"
-            f"- **Desired Output Length**: {desired_output_length}\n"
+            f"- **Desired Output Length**: {minimum_required_output_tokens}\n"
             f"- **Log Level**: {log_level}\n"
             f"- **Use All User Keys**: {use_all_user_keys}"
         )
+
 
 def tab2_upload_config():
     st.header("Upload Plan Files")
@@ -255,6 +255,17 @@ def tab2_upload_config():
         st.json(config_data)
 
         if st.button("Run BuildLauncher with Uploaded Config"):
+            # Ensure that the context is properly loaded
+            if 'multiplan' in config_data:
+                for plan in config_data['multiplan']:
+                    if 'context_files' in plan:
+                        context = "\n".join(plan['context_files'].values())
+                        plan['context'] = context
+
+                    # Set a default value for minimum_required_output_tokens if not provided
+                    if 'minimum_required_output_tokens' not in plan or plan['minimum_required_output_tokens'] is None:
+                        plan['minimum_required_output_tokens'] = 1000  # Set a default value
+
             run_build_launcher_with_config(config_data)
 
 def count_tokens(context, model='models/gemini-1.5-flash-001'):
@@ -300,7 +311,11 @@ def multi_plan_builder(user_space: UserSpace):
         )
 
         custom_user_prompt = st.text_area("Custom User Prompt (optional)")
-        desired_output_length = st.number_input("Desired Output Length", min_value=1, value=1000)
+        ensure_output_limit = st.checkbox("Ensure Output Limit", value=False)
+        if ensure_output_limit:
+            minimum_required_output_tokens = st.number_input("Minimum Required Output Tokens", min_value=1, value=1000)
+        else:
+            minimum_required_output_tokens = None
 
         submitted = st.form_submit_button("Add Plan")
         if submitted:
@@ -315,7 +330,8 @@ def multi_plan_builder(user_space: UserSpace):
                 "system_instructions": selected_system_instructions,
                 "user_prompts": selected_user_prompts,
                 "custom_user_prompt": custom_user_prompt,
-                "desired_output_length": desired_output_length
+                "ensure_output_limit": ensure_output_limit,
+                "minimum_required_output_tokens": minimum_required_output_tokens
             }
             st.session_state.multiplan.append(new_plan)
             st.success(f"Plan '{plan_name}' added to multiplan")
@@ -373,11 +389,11 @@ def run_multiplan(multiplan):
             'mode': plan['mode'],
             'context_file_paths': temp_context_files,
             'output': f"output_{plan['name']}.md",
-            'limit': plan['desired_output_length'],
+            'limit': plan['minimum_required_output_tokens'],
             'selected_system_instructions': plan['system_instructions'],
             'user_prompt': combined_user_prompt,
             'list_of_user_keys_to_use': plan['user_prompts'],
-            'desired_output_length': plan['desired_output_length'],
+            'minimum_required_output_tokens': plan['minimum_required_output_tokens'],
         }
 
         try:
@@ -564,7 +580,7 @@ def user_space_app(user_space: UserSpace):
 
 def run_build_launcher(selected_user_prompts, selected_system_instructions, user_prompt,
                        context_files, mode, thisdoc_dir, output_file, limit,
-                       desired_output_length, log_level, use_all_user_keys, user_prompts_dict_file_path,
+                       minimum_required_output_tokens, log_level, use_all_user_keys, user_prompts_dict_file_path,
                        add_system_prompt):
     args = {
         'mode': mode,
@@ -574,7 +590,7 @@ def run_build_launcher(selected_user_prompts, selected_system_instructions, user
         'user_prompt': user_prompt,
         'log_level': log_level,
         'use_all_user_keys': use_all_user_keys,
-        'desired_output_length': desired_output_length,
+        'minimum_required_output_tokens': minimum_required_output_tokens,
         'thisdoc_dir': thisdoc_dir,
         'list_of_user_keys_to_use': selected_user_prompts,  # Pass the list directly
         'list_of_system_keys': selected_system_instructions,  # Pass the list directly
@@ -660,7 +676,7 @@ def run_streamlit_app():
         user_space_app(user_space)
 
 def main(port=1455, themebase="light"):
-    sys.argv = ["streamlit", "run", __file__, f"--server.port={port}", f'--theme.base={themebase}']
+    sys.argv = ["streamlit", "run", __file__, f"--server.port={port}", f'--theme.base={themebase}', f'--server.maxUploadSize=10']
     import streamlit.web.cli as stcli
     stcli.main()
 

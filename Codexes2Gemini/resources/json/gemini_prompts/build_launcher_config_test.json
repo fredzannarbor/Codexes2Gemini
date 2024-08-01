@@ -28,7 +28,7 @@
 		<key>max_output_tokens</key>
 		<integer>8192</integer>
 	</dict>
-	<key>desired_output_length</key>
+	<key>minimum_required_output_tokens</key>
 	<integer>8000</integer>
 	<key>number_to_run</key>
 	<integer>3</integer>

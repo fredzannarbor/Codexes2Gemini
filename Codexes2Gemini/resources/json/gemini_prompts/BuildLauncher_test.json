@@ -2,7 +2,7 @@
     "context_file_paths": ["/Users/fred/Downloads/a2025_MandateForLeadership_FULL.txt"
     ],
     "continuation_prompts": false,
-    "desired_output_length": 1000,
+    "minimum_required_output_tokens": 1000,
     "generation_config": {
         "temperature": 1,
         "top_p": 0.95,

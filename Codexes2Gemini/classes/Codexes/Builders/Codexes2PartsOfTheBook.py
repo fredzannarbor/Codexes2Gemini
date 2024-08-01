@@ -95,15 +95,15 @@ class Codexes2Parts:
             retry_count = 0
             max_retries = 3
 
-            while len(full_output) < plan.desired_output_length and retry_count < max_retries:
+            while len(full_output) < plan.minimum_required_output_tokens and retry_count < max_retries:
                 try:
                     response = self.gemini_get_response(plan, system_prompt, user_prompt, context, model)
                     self.logger.debug(f"Response received, length: {len(response.text)}")
                     full_output += response.text
 
-                    if len(full_output) < plan.desired_output_length:
+                    if len(full_output) < plan.minimum_required_output_tokens:
                         self.logger.info(
-                            f"Output length ({len(full_output)}) is less than desired length ({plan.desired_output_length}). Retrying.")
+                            f"Output length ({len(full_output)}) is less than desired length ({plan.minimum_required_output_tokens}). Retrying.")
                         retry_count += 1
                         if plan.continuation_prompts:
                             context += f"\n\n{{Work So Far}}:\n\n{full_output}"
@@ -118,11 +118,11 @@ class Codexes2Parts:
 
             self.logger.info(f"Final output length for prompt {i + 1}: {len(full_output)}")
 
-            if len(full_output) >= plan.desired_output_length:
+            if len(full_output) >= plan.minimum_required_output_tokens:
                 satisfactory_results.append(full_output)
                 self.logger.info(f"Output for prompt {i + 1} meets desired length. Appending to results.")
             else:
-                self.logger.warning(f"Output for prompt {i + 1} does not meet desired length of {plan.desired_output_length}. Discarding.")
+                self.logger.warning(f"Output for prompt {i + 1} does not meet desired length of {plan.minimum_required_output_tokens}. Discarding.")
 
         if satisfactory_results:
                 self.logger.info(f"Returning satisfactory results of len {len(satisfactory_results)}")
@@ -219,7 +219,7 @@ def parse_arguments():
     parser.add_argument('--thisdoc_dir', default="output/c2g/", help="Document directory")
     parser.add_argument('--log_level', default="INFO", help="Logging level")
     parser.add_argument('--number_to_run', type=int, default=3, help="Number of runs")
-    parser.add_argument('--desired_output_length', "-do", type=int, default=1000, help="Desired output length in characters")
+    parser.add_argument('--minimum_required_output_tokens', "-do", type=int, default=1000, help="Desired output length in characters")
     return parser.parse_args()
 
 if __name__ == "__main__":
@@ -244,7 +244,7 @@ if __name__ == "__main__":
         output_file_path=args.output_file_path,
         log_level=args.log_level,
         number_to_run=args.number_to_run,
-        desired_output_length=args.desired_output_length
+        minimum_required_output_tokens=args.minimum_required_output_tokens
     )
 
     book_part = c2b.process_codex_to_book_part(plan)

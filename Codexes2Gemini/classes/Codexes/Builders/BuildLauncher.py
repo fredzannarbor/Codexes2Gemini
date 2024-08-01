@@ -36,7 +36,7 @@ class BuildLauncher:
                             default='INFO', help='Set the logging level')
         parser.add_argument('--use-all-user-keys', action='store_true',
                             help='Use all user keys from the user prompts dictionary file')
-        parser.add_argument('--desired_output_length', '-do', type=int, default=5000, help='Desired output length')
+        parser.add_argument('--minimum_required_output_tokens', '-do', type=int, default=5000, help='Desired output length')
         parser.add_argument('--plans_json', type=str, help='Path to JSON file containing multiple plans')
         return parser.parse_args()
 
@@ -68,7 +68,7 @@ class BuildLauncher:
             'output_file_path': config.get('output_file_path'),
             'log_level': config.get('log_level', 'INFO'),
             'number_to_run': config.get('number_to_run', 1),
-            'desired_output_length': config.get('desired_output_length'),
+            'minimum_required_output_tokens': config.get('minimum_required_output_tokens'),
             'model_name': config.get('model_name'),
             'mode': config.get('mode'),
             'use_all_user_keys': config.get('use_all_user_keys', False),
@@ -110,7 +110,15 @@ class BuildLauncher:
         # Load prompt dictionaries
         self.load_prompt_dictionaries()
 
-        if isinstance(args, dict) and 'plans_json' in args:
+        if isinstance(args, dict) and 'multiplan' in args:
+            plans = []
+            for plan_config in args['multiplan']:
+                plan_config['context'] = plan_config.get('context', '')
+                if 'context_files' in plan_config:
+                    plan_config['context'] += "\n".join(plan_config['context_files'].values())
+                plan_config['minimum_required_output_tokens'] = plan_config.get('minimum_required_output_tokens', 1000)
+                plans.append(self.create_prompt_plan(plan_config))
+        elif isinstance(args, dict) and 'plans_json' in args:
             plans_data = args['plans_json']
             plans = [self.create_prompt_plan(plan_config) for plan_config in plans_data['plans']]
         elif hasattr(args, 'plans_json') and args.plans_json:
@@ -143,8 +151,9 @@ class BuildLauncher:
             else:
                 logger.error(f"Invalid mode specified for plan: {plan.mode}")
                 continue
+            if plan.ensure_output_limit:
+                result = self.parts_builder.ensure_output_limit(result, plan.minimum_required_output_tokens)
 
-            result = self.parts_builder.ensure_output_limit(result, plan.desired_output_length)
             results.append(result)
 
             # Generate a unique filename for each plan
@@ -158,7 +167,6 @@ class BuildLauncher:
             logger.info(f"Output length {len(result)}")
 
         return results
-
 
 if __name__ == "__main__":
     launcher = BuildLauncher()

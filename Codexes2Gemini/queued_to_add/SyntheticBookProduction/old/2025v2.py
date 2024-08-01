@@ -23,7 +23,7 @@ def main():
     parser.add_argument("--persona", type=str, choices=["darkbaron", "squaddie"], required=False, help="Persona to use", default="darkbaron")
     parser.add_argument("--max_chapters", "-mc", type=int, default=3, help="Maximum number of chapters to process")
     parser.add_argument("--model_name", default="gpt-4o", help="Model to use")
-    parser.add_argument("--desired_output_length", type=int, default=3800, help="Desired output length in characters")
+    parser.add_argument("--minimum_required_output_tokens", type=int, default=3800, help="Desired output length in characters")
     parser.add_argument("--no-context", "-nc", action='store_true', help="Do not use context")
 
     args = parser.parse_args()
@@ -70,7 +70,7 @@ def main():
             generation_config={
                 "temperature": 0.85,
                 "top_p": 1.0,
-                "max_output_tokens": args.desired_output_length
+                "max_output_tokens": args.minimum_required_output_tokens
             },
             system_instructions_dict_file_path=args.system_message_file,
             list_of_system_keys=args.persona,
@@ -80,7 +80,7 @@ def main():
             output_file_path=f"{args.output_dir}/chapter_{i+1}.md",
             log_level="INFO",
             number_to_run=1,
-            desired_output_length=args.desired_output_length
+            minimum_required_output_tokens=args.minimum_required_output_tokens
         )
         plans.append(plan)
 

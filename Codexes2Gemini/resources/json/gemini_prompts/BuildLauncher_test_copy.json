@@ -13,7 +13,7 @@
         "top_k": 0,
         "max_output_tokens": 8192
     },
-    "desired_output_length": 8000,
+    "minimum_required_output_tokens": 8000,
     "number_to_run": 3,
     "user_prompt": "",
     "list_of_system_keys": "darkbaron",

@@ -16,8 +16,10 @@ class PromptPlan(OrderedDict):
                  list_of_user_keys_to_use: List[str] = None,  # Changed to List[str]
                  continuation_prompts: bool = False,
                  output_file_path: str = None, log_level: str = "INFO", number_to_run: int = 1,
-                 desired_output_length: int = None, model_name: str = None, mode: str = "part",
+                 minimum_required_output_tokens: int = 1, ensure_output_limit = False,
+                 model_name: str = None, mode: str = "part",
                  config_file: str = None, use_all_user_keys: bool = False, add_system_prompt: str = "") -> None:
+
 
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(log_level)
@@ -51,7 +53,8 @@ class PromptPlan(OrderedDict):
         self.continuation_prompts = continuation_prompts
         self.output_file_path = output_file_path
         self.number_to_run = number_to_run
-        self.desired_output_length = desired_output_length
+        self.ensure_output_limit = ensure_output_limit
+        self.minimum_required_output_tokens = minimum_required_output_tokens
         self.model = model_name
         self.mode = mode
         self.use_all_user_keys = use_all_user_keys
@@ -173,7 +176,7 @@ class PromptPlan(OrderedDict):
             "thisdoc_dir": self.thisdoc_dir,
             "log_level": self.logger.level,
             "number_to_run": self.number_to_run,
-            "desired_output_length": self.desired_output_length,
+            "minimum_required_output_tokens": self.minimum_required_output_tokens,
             "provider": getattr(self, 'provider', None),
             "model": self.model,
             "final_prompts": self.final_prompts,

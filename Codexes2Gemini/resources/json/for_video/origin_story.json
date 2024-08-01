@@ -21,7 +21,7 @@
       "output_file_path": "origin_story",
       "log_level": "INFO",
       "number_to_run": 1,
-      "desired_output_length": 2000,
+      "minimum_required_output_tokens": 2000,
       "model_name": "gemini-1.5-flash-001",
       "mode": "part",
       "use_all_user_keys": false

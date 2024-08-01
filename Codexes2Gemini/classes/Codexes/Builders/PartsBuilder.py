@@ -34,11 +34,11 @@ class PartsBuilder:
     def use_continuation_prompt(self, plan: PromptPlan, initial_content: str) -> str:
         """Use continuation prompts to extend content to desired token count."""
         full_content = initial_content
-        while self.count_tokens(full_content) < plan.desired_output_length:
+        while self.count_tokens(full_content) < plan.minimum_required_output_tokens:
             plan.context += f"\n\n{{Work So Far}}:\n\n{full_content}"
             additional_content = self.build_part(plan)
             full_content += additional_content
-        return self.truncate_to_token_limit(full_content, plan.desired_output_length)
+        return self.truncate_to_token_limit(full_content, plan.minimum_required_output_tokens)
 
         # ... (rest of the class remains the same)
 
