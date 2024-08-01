@@ -16,7 +16,7 @@ class PromptPlan(OrderedDict):
                  list_of_user_keys_to_use: List[str] = None,  # Changed to List[str]
                  continuation_prompts: bool = False,
                  output_file_path: str = "output", log_level: str = "INFO", number_to_run: int = 1,
-                 minimum_required_output_tokens: int = 1, ensure_output_limit = False,
+                 minimum_required_output_tokens: int = 100, ensure_output_limit = False,
                  model_name: str = None, mode: str = "part",
                  config_file: str = None, use_all_user_keys: bool = False, add_system_prompt: str = "") -> None:
 
