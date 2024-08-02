@@ -53,7 +53,7 @@ class BuildLauncher:
     def create_prompt_plan(self, config: Dict) -> PromptPlan:
         prompt_plan_params = {
             'context': config.get('context', ''),
-            'context_file_paths': config.get('context_file_paths'),
+            # Remove 'context_file_paths' as we're now using the context directly
             'user_keys': config.get('user_keys', []),
             'thisdoc_dir': config.get('thisdoc_dir') or os.path.join(os.getcwd(), 'output'),
             'json_required': config.get('json_required', False),
@@ -77,7 +77,6 @@ class BuildLauncher:
         # Remove None values to avoid passing unnecessary keyword arguments
         prompt_plan_params = {k: v for k, v in prompt_plan_params.items() if v is not None}
         return PromptPlan(**prompt_plan_params)
-
     def load_plans_from_json(self, json_data):
         if isinstance(json_data, dict):
             # If json_data is already a dictionary, use it directly

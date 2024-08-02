@@ -6,6 +6,8 @@ import traceback
 from importlib import resources
 from time import sleep
 from typing import List
+import streamlit as st
+
 
 import google.generativeai as genai
 import pandas as pd
@@ -77,7 +79,7 @@ class Codexes2Parts:
         self.make_thisdoc_dir(plan)
         context = self.read_and_prepare_context(plan)
         self.logger.debug(f"Context prepared, length: {len(context)}")
-
+        st.info(f"Context is type {type(context)}, length {len(context)}")
         model = self.create_model(self.model_name, self.safety_settings, plan.generation_config)
         self.logger.debug("Model created")
 
@@ -140,11 +142,13 @@ class Codexes2Parts:
                 try:
                     with open(file_path, "r", encoding='utf-8') as f:
                         context_content += f.read() + "\n\n"
+                        st.write(context_content)
                 except Exception as e:
                     self.logger.error(f"Error reading context file {file_path}: {e}")
 
         context_msg = f"Context is type {type(context_content)}, length {len(context_content)}"
         self.logger.debug(context_msg)
+        st.write(context_msg)
         return f"Context: {context_content.strip()}\n\n"
 
     def assemble_system_prompt(self, plan):
