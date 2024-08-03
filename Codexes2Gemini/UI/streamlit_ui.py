@@ -1,4 +1,11 @@
+import inspect
 import sys
+print("Python path:")
+for path in sys.path:
+    print(path)
+import os
+
+print("Current working directory:", os.getcwd())
 import random
 import streamlit as st
 import json
@@ -6,14 +13,35 @@ from typing import Dict, List, Counter
 import base64
 from importlib import resources
 import pandas as pd
-import os
-import tempfile
+
+import Codexes2Gemini
+print("Codexes2Gemini location:", Codexes2Gemini.__file__)
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Get the parent directory
+parent_dir = os.path.dirname(current_dir)
+
+# Get the directory above the parent
+grandparent_dir = os.path.dirname(parent_dir)
+
+# Append both directories to the Python path
+sys.path.append(parent_dir)
+sys.path.append(grandparent_dir)
+
 import google.generativeai as genai
 import logging
 
 from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
+from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space
+#from ..classes.user_space import UserSpace, save_user_space, load_user_space
 
+print("UserSpace methods:", dir(UserSpace))
+user_space = load_user_space()
+print("user_space methods:", dir(user_space))
+print("user_space type:", type(user_space))
+YOUR_API_KEY = os.environ['GOOGLE_API_KEY']
 
 def load_json_file(file_name):
     try:
@@ -23,7 +51,6 @@ def load_json_file(file_name):
         st.error(f"Error loading JSON file: {e}")
         return {}
 
-
 def get_binary_file_downloader_html(bin_file, file_label='File'):
     with open(bin_file, 'rb') as f:
         data = f.read()
@@ -31,11 +58,9 @@ def get_binary_file_downloader_html(bin_file, file_label='File'):
     href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(bin_file)}">Download {file_label}</a>'
     return href
 
-
 def create_tag_frequencies(prompts):
     all_tags = [tag for prompt in prompts.values() for tag in prompt['tags']]
     return Counter(all_tags)
-
 
 def display_tag_cloud(tag_freq, key_prefix):
     max_freq = max(tag_freq.values())
@@ -49,7 +74,6 @@ def display_tag_cloud(tag_freq, key_prefix):
         tag_cloud_html += tag_html
 
     st.markdown(tag_cloud_html, unsafe_allow_html=True)
-
 
 def tab2_upload_config():
     st.header("Upload Plan Files")
@@ -72,13 +96,10 @@ def tab2_upload_config():
 
             run_build_launcher_with_config(config_data)
 
-
 def count_tokens(text, model='models/gemini-1.5-pro'):
     model = genai.GenerativeModel(model)
     response = model.count_tokens(text)
-    return response.total_tokens  # Return the integer value
-
-
+    return response.total_tokens
 
 def count_context_tokens(context_files):
     total_tokens = 0
@@ -93,10 +114,8 @@ def tokens_to_mb(tokens, bytes_per_token=4):
     mb_total = bytes_total / (1024 * 1024)
     return mb_total
 
-
 def tokens_to_millions(tokens):
     return tokens / 1_000_000
-
 
 def read_file_content(file):
     try:
@@ -117,17 +136,42 @@ def multi_plan_builder(user_space: UserSpace):
     with st.form("new_prompt_plan"):
         st.subheader("Create New Prompt Plan")
         plan_name = st.text_input("Plan Name")
-        context_files = st.file_uploader("Upload context files", accept_multiple_files=True,
+
+        st.subheader("Context")
+        context_filter = st.text_input("Filter saved contexts")
+        filtered_contexts = user_space.get_filtered_contexts(context_filter)
+        selected_saved_context = st.selectbox(
+            "Select a saved context",
+            options=[""] + list(filtered_contexts.keys()),
+            format_func=lambda x: f"{x}: {filtered_contexts[x].content[:50]}..." if x else "None"
+        )
+
+        context_files = st.file_uploader("Upload new context files", accept_multiple_files=True,
                                          help="May be up to 10M tokens of text or ~40MB (!)")
 
         context_content = ""
         total_tokens = 0
         total_mb = 0
+
+        if selected_saved_context:
+            context_content = filtered_contexts[selected_saved_context].content
+
         if context_files:
-            context_content = "\n\n".join([read_file_content(file) for file in context_files])
+            new_content = "\n\n".join([read_file_content(file) for file in context_files])
+            context_content += ("\n\n" + new_content) if context_content else new_content
+
+        if context_content:
             total_tokens = count_tokens(context_content)
             total_mb = tokens_to_millions(total_tokens)
-            st.info(f"Total tokens in uploaded context files: {total_tokens:,} (approximately {total_mb:.2f} MB)")
+            st.info(f"Total tokens in context: {total_tokens:,} (approximately {total_mb:.2f} MB)")
+
+        new_context_name = st.text_input("Save this context as (optional)")
+        new_context_tags = st.text_input("Context tags (comma-separated, optional)")
+        if st.form_submit_button("Save New Context"):
+            if new_context_name and context_content:
+                user_space.save_context(new_context_name, context_content, new_context_tags.split(',') if new_context_tags else None)
+                save_user_space(user_space)
+                st.success(f"Context '{new_context_name}' saved successfully.")
 
         with st.expander("Enter System Instructions"):
             st.subheader("System Instructions")
@@ -213,7 +257,6 @@ def multi_plan_builder(user_space: UserSpace):
             st.success(
                 f"Plan '{plan_name}' added to multiplan (Context: {total_tokens:,} tokens, approximately {total_mb:.3f} M)")
 
-    # Display current multiplan
     if st.session_state.multiplan:
         st.subheader("Current Multiplan")
         for i, plan in enumerate(st.session_state.multiplan):
@@ -227,25 +270,34 @@ def multi_plan_builder(user_space: UserSpace):
                     st.session_state.multiplan.pop(i)
                     st.rerun()
 
-    # Save and run multiplan
     if st.session_state.multiplan:
         if st.button("Run Multiplan"):
-            run_multiplan(st.session_state.multiplan)
+            run_multiplan(st.session_state.multiplan, user_prompts_dict)
             user_space.save_prompt_plan({"multiplan": st.session_state.multiplan})
             save_user_space(user_space)
             st.success("Multiplan saved to UserSpace")
 
-def run_multiplan(multiplan):
+def run_multiplan(multiplan, user_prompts_dict):
     launcher = BuildLauncher()
     results = []
     for plan in multiplan:
+        user_prompts = []
+        for prompt_key in plan['user_prompts']:
+            if prompt_key in user_prompts_dict:
+                user_prompts.append(user_prompts_dict[prompt_key]['prompt'])
+
+        if plan['custom_user_prompt']:
+            user_prompts.append(plan['custom_user_prompt'])
+
+        combined_user_prompt = "\n".join(user_prompts)
+
         launcher_plan = {
             'mode': plan['mode'],
             'context': plan['context'],
             'output': f"output_{plan['name']}.md",
             'limit': plan['minimum_required_output_tokens'],
             'selected_system_instructions': plan['system_instructions'],
-            'user_prompt': plan['custom_user_prompt'],
+            'user_prompt': combined_user_prompt,
             'list_of_user_keys_to_use': plan['user_prompts'],
             'minimum_required_output_tokens': plan['minimum_required_output_tokens'],
         }
@@ -264,14 +316,10 @@ def display_full_context(context_files):
         st.subheader(f"File: {filename}")
         st.text_area("Content", value=content, height=300, disabled=True)
 
-
-
-
 def filter_dict(dictionary, filter_text):
     return {k: v for k, v in dictionary.items() if
             filter_text.lower() in k.lower() or (
                     isinstance(v, dict) and filter_text.lower() in v.get('prompt', '').lower())}
-
 
 def truncate_context_files(plan: Dict, max_chars=1000) -> Dict:
     truncated_plan = plan.copy()
@@ -314,6 +362,22 @@ def user_space_app(user_space: UserSpace):
             st.success("All filters cleared")
             st.rerun()
 
+    st.header("Saved Contexts")
+    context_filter = st.text_input("Filter contexts")
+    filtered_contexts = user_space.get_filtered_contexts(context_filter)
+
+    if filtered_contexts:
+        context_df = pd.DataFrame(
+            [(name, context.content[:50] + "...", ", ".join(context.tags)) for name, context in filtered_contexts.items()],
+            columns=["Name", "Content Preview", "Tags"]
+        )
+        st.table(context_df)
+        if st.button("Clear All Contexts"):
+            user_space.saved_contexts = {}
+            save_user_space(user_space)
+            st.success("All contexts cleared")
+            st.rerun()
+
     st.header("Saved Prompts")
     prompt_name = st.text_input("Prompt Name (optional)")
     prompt = st.text_area("Prompt")
@@ -334,27 +398,6 @@ def user_space_app(user_space: UserSpace):
             st.success("All prompts cleared")
             st.rerun()
 
-    st.header("Saved Context Files")
-    context_name = st.text_input("Context Group Name")
-    context_files = st.text_area("Context Files (one path per line)")
-    if st.button("Save Context Files"):
-        user_space.save_context_files(context_name, context_files.split('\n'))
-        save_user_space(user_space)
-        st.success("Context files saved")
-
-    if user_space.context_files:
-        context_df = pd.DataFrame(
-            [(name, ", ".join(files[:3]) + ("..." if len(files) > 3 else ""))
-             for name, files in user_space.context_files.items()],
-            columns=["Name", "Files Preview"]
-        )
-        st.table(context_df)
-        if st.button("Clear All Context Files"):
-            user_space.context_files = {}
-            save_user_space(user_space)
-            st.success("All context files cleared")
-            st.rerun()
-
     st.header("Saved Results")
     if user_space.results:
         result_df = pd.DataFrame(
@@ -367,7 +410,6 @@ def user_space_app(user_space: UserSpace):
             save_user_space(user_space)
             st.success("All results cleared")
             st.rerun()
-
 
     st.header("Saved Prompt Plans")
     if user_space.prompt_plans:
@@ -479,11 +521,11 @@ def run_streamlit_app():
     with tab4:
         user_space_app(user_space)
 
-
 def main(port=1455, themebase="light"):
     sys.argv = ["streamlit", "run", __file__, f"--server.port={port}", f'--theme.base={themebase}', f'--server.maxUploadSize=40']
     import streamlit.web.cli as stcli
     stcli.main()
+    configure_logger("DEBUG")
 
 if __name__ == "__main__":
     run_streamlit_app()
