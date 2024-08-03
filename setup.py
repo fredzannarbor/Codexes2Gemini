@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='Codexes2Gemini',
-    version='0.1.9.1',
+    version='0.1.11.1',
     description='Humans and AIs making books richer, more diverse, and more surprising.',
     url='https://github.com/fredzannarbor/Codexes2Gemini',
     entry_points={
