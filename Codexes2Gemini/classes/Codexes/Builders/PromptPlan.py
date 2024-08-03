@@ -2,28 +2,32 @@ import json
 import logging
 import os
 from collections import OrderedDict
+from importlib import resources
+
 import streamlit as st
 import pymupdf as fitz  # PyMuPDF
 from typing import List, Dict, Any, Union
 
+from Codexes2Gemini.UI.streamlit_ui import load_json
+from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 
 class PromptPlan(OrderedDict):
     def __init__(self, context: str = "", context_file_paths: List[str] = None, user_keys: List[str] = None,
                  thisdoc_dir: str = "", json_required: bool = False, generation_config: dict = None,
                  system_instructions_dict_file_path: str = None, list_of_system_keys: str = None,
                  user_prompt: str = "", user_prompt_override: bool = False,
-                 user_prompts_dict_file_path: str = None,
-                 list_of_user_keys_to_use: List[str] = None,  # Changed to List[str]
+                 user_prompts_dict: Dict[str, Any] = None,  # Change this line
+                 list_of_user_keys_to_use: List[str] = None,
                  continuation_prompts: bool = False,
                  output_file_path: str = "output", log_level: str = "INFO", number_to_run: int = 1,
-                 minimum_required_output_tokens: int = 100, ensure_output_limit = False,
+                 minimum_required_output_tokens: int = 100, ensure_output_limit=False,
                  model_name: str = None, mode: str = "part",
                  config_file: str = None, use_all_user_keys: bool = False, add_system_prompt: str = "") -> None:
 
 
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(log_level)
-
+        configure_logger(log_level)
         # If a config file is provided, load it first
         if config_file:
             self.load_config(config_file)
@@ -58,12 +62,13 @@ class PromptPlan(OrderedDict):
         self.model = model_name
         self.mode = mode
         self.use_all_user_keys = use_all_user_keys
-        self.user_prompts_dict = self.load_user_prompts_dict()
+        self.user_prompts_dict = user_prompts_dict or {}  # Change this line
         self.final_prompts = self.prepare_final_prompts()
         self.add_system_prompt = add_system_prompt
 
     def load_config(self, config_file: str) -> None:
         """Load configuration from a JSON file."""
+
         try:
             with open(config_file, 'r') as f:
                 config = json.load(f)
@@ -95,36 +100,13 @@ class PromptPlan(OrderedDict):
 
         return combined_context.strip()
 
-    def load_user_prompts_dict(self) -> Dict[str, Dict[str, Union[str, List[str]]]]:
-        """Load user prompts from a JSON file."""
-        if self.user_prompts_dict_file_path:
-            try:
-                with open(self.user_prompts_dict_file_path, 'r') as f:
-                    data = json.load(f)
-                    st.write(data)
-                    return data
-            except Exception as e:
-                self.logger.error(f"Error loading user prompts dict {self.user_prompts_dict_file_path}: {e}")
-        return {}
-
     def prepare_final_prompts(self) -> List[str]:
-
-       # print(f"{self.user_prompt_override},{self.user_prompt}, {self.use_all_user_keys},{self.list_of_user_keys_to_use}, {self.user_prompts_dict}")
-        """Prepare the final list of prompts to be used."""
-        self.logger.info(
-            f"Preparing final prompts. User prompt override: {self.user_prompt_override}, User prompt: {self.user_prompt}")
-        self.logger.info(
-            f"Use all user keys: {self.use_all_user_keys}, List of user keys to use: {self.list_of_user_keys_to_use}")
-
-        if self.user_prompt_override == "Override other user prompts" and self.user_prompt:
-            self.logger.info("Overriding selected users prompts in favor of input box")
-            return [self.user_prompt]
+        self.logger.info(f"Preparing final prompts. User prompt: {self.user_prompt}")
+        self.logger.info(f"List of user keys to use: {self.list_of_user_keys_to_use}")
 
         final_prompts = []
-        if self.use_all_user_keys and self.user_prompts_dict:
-            self.logger.debug("Using all prompts from user_prompts_dict")
-            final_prompts = list(self.user_prompts_dict.values())
-        elif self.list_of_user_keys_to_use and self.user_prompts_dict:
+
+        if self.list_of_user_keys_to_use and self.user_prompts_dict:
             self.logger.info(f"Selecting prompts based on list_of_user_keys_to_use: {self.list_of_user_keys_to_use}")
             for key in self.list_of_user_keys_to_use:
                 if key in self.user_prompts_dict:
@@ -220,3 +202,11 @@ class PromptPlan(OrderedDict):
     def __repr__(self) -> str:
         """Detailed string representation of the PromptPlan object."""
         return f"PromptPlan({self.to_dict()})"
+
+    # def load_json_file(self, file_name):
+    #     try:
+    #         # Use the imported load_json function
+    #         return load_json(os.path.join(resources.files('Codexes2Gemini.resources.prompts'), file_name))
+    #     except Exception as e:
+    #         st.error(f"Error loading JSON file: {e}")
+    #         return {}
