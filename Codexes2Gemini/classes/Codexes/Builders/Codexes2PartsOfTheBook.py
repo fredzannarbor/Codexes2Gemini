@@ -7,14 +7,15 @@ from importlib import resources
 from time import sleep
 from typing import List
 import streamlit as st
-
+from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 
 import google.generativeai as genai
 import pandas as pd
 
 from ..Builders.PromptPlan import PromptPlan
 
-YOUR_API_KEY = os.environ['GOOGLE_API_KEY']
+
+configure_logger("DEBUG")
 
 class Codexes2Parts:
     """

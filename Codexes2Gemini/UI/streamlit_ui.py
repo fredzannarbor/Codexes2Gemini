@@ -1,20 +1,19 @@
 import inspect
 import sys
-print("Python path:")
-for path in sys.path:
-    print(path)
 import os
-
-print("Current working directory:", os.getcwd())
 import random
+import traceback
+
 import streamlit as st
 import json
-from typing import Dict, List, Counter
+from typing import Dict, List
 import base64
 from importlib import resources
 import pandas as pd
+import time
 
 import Codexes2Gemini
+
 print("Codexes2Gemini location:", Codexes2Gemini.__file__)
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -35,13 +34,24 @@ import logging
 from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space
-#from ..classes.user_space import UserSpace, save_user_space, load_user_space
 
-print("UserSpace methods:", dir(UserSpace))
 user_space = load_user_space()
-print("user_space methods:", dir(user_space))
-print("user_space type:", type(user_space))
-YOUR_API_KEY = os.environ['GOOGLE_API_KEY']
+
+GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
+
+
+def load_json(file_path: str) -> dict:
+    try:
+        with open(file_path, 'r') as f:
+            data = json.load(f)
+        return data
+    except FileNotFoundError:
+        st.error(f"Error: File not found: {file_path}")
+        return {}
+    except json.JSONDecodeError:
+        st.error(f"Error: Invalid JSON in file: {file_path}")
+        return {}
+
 
 def load_json_file(file_name):
     try:
@@ -51,6 +61,7 @@ def load_json_file(file_name):
         st.error(f"Error loading JSON file: {e}")
         return {}
 
+
 def get_binary_file_downloader_html(bin_file, file_label='File'):
     with open(bin_file, 'rb') as f:
         data = f.read()
@@ -58,9 +69,11 @@ def get_binary_file_downloader_html(bin_file, file_label='File'):
     href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(bin_file)}">Download {file_label}</a>'
     return href
 
+
 def create_tag_frequencies(prompts):
     all_tags = [tag for prompt in prompts.values() for tag in prompt['tags']]
     return Counter(all_tags)
+
 
 def display_tag_cloud(tag_freq, key_prefix):
     max_freq = max(tag_freq.values())
@@ -74,6 +87,7 @@ def display_tag_cloud(tag_freq, key_prefix):
         tag_cloud_html += tag_html
 
     st.markdown(tag_cloud_html, unsafe_allow_html=True)
+
 
 def tab2_upload_config():
     st.header("Upload Plan Files")
@@ -96,10 +110,26 @@ def tab2_upload_config():
 
             run_build_launcher_with_config(config_data)
 
+
 def count_tokens(text, model='models/gemini-1.5-pro'):
+    genai.configure(api_key=GOOGLE_API_KEY)
     model = genai.GenerativeModel(model)
     response = model.count_tokens(text)
     return response.total_tokens
+
+def get_epoch_time_string():
+
+    # Get the current time in seconds since the Unix epoch
+    current_time_seconds = time.time()
+
+    # Convert to tenths of a second
+    current_time_tenths = int(current_time_seconds * 10)
+
+    # Convert to string
+    current_time_string = str(current_time_tenths)
+
+    return current_time_string
+
 
 def count_context_tokens(context_files):
     total_tokens = 0
@@ -109,13 +139,16 @@ def count_context_tokens(context_files):
         total_tokens += tokens
     return total_tokens
 
+
 def tokens_to_mb(tokens, bytes_per_token=4):
     bytes_total = tokens * bytes_per_token
     mb_total = bytes_total / (1024 * 1024)
     return mb_total
 
+
 def tokens_to_millions(tokens):
     return tokens / 1_000_000
+
 
 def read_file_content(file):
     try:
@@ -124,20 +157,38 @@ def read_file_content(file):
         st.error(f"Error decoding file {file.name}. Make sure it's a text file.")
         return ""
 
+
 def multi_plan_builder(user_space: UserSpace):
     st.header("Multi-Prompt Codex Analyzer and Builder")
 
     if 'multiplan' not in st.session_state:
         st.session_state.multiplan = []
+    if 'current_plan' not in st.session_state:
+        st.session_state.current_plan = {}
+    if 'name' not in st.session_state['current_plan']:
+        # string version of date stamp
+        datestamp = get_epoch_time_string()
+        st.session_state.current_plan['name'] = "New Plan" + "_" + datestamp
+
+    if 'context_files' not in st.session_state:
+            st.session_state.context_files = []
 
     user_prompts_dict = load_json_file("user_prompts_dict.json")
+    #st.write(user_prompts_dict)
     system_instructions_dict = load_json_file("system_instructions.json")
 
-    with st.form("new_prompt_plan"):
-        st.subheader("Create New Prompt Plan")
+
+    # File uploader outside the form
+    st.subheader("Step 1: Context Selection")
+    uploaded_files = st.file_uploader("Upload new context files", accept_multiple_files=True,
+                                      help="May be up to 10M tokens of text or ~40MB (!)")
+    if uploaded_files:
+        st.session_state.context_files = uploaded_files
+
+    # Form 1: Context
+    with st.form("step1-context"):
         plan_name = st.text_input("Plan Name")
 
-        st.subheader("Context")
         context_filter = st.text_input("Filter saved contexts")
         filtered_contexts = user_space.get_filtered_contexts(context_filter)
         selected_saved_context = st.selectbox(
@@ -146,32 +197,54 @@ def multi_plan_builder(user_space: UserSpace):
             format_func=lambda x: f"{x}: {filtered_contexts[x].content[:50]}..." if x else "None"
         )
 
-        context_files = st.file_uploader("Upload new context files", accept_multiple_files=True,
-                                         help="May be up to 10M tokens of text or ~40MB (!)")
+        save_new_context = st.checkbox("Save this as a new context")
+        new_context_name = st.text_input("New context name", disabled=not save_new_context)
+        new_context_tags = st.text_input("Context tags (comma-separated, optional)", disabled=not save_new_context)
 
+        context_submitted = st.form_submit_button("Select This Context and Continue")
+
+    # Process form submission
+    if context_submitted:
         context_content = ""
-        total_tokens = 0
-        total_mb = 0
-
         if selected_saved_context:
             context_content = filtered_contexts[selected_saved_context].content
 
-        if context_files:
-            new_content = "\n\n".join([read_file_content(file) for file in context_files])
+        if st.session_state.context_files:
+            new_content = "\n\n".join([read_file_content(file) for file in st.session_state.context_files])
             context_content += ("\n\n" + new_content) if context_content else new_content
 
-        if context_content:
-            total_tokens = count_tokens(context_content)
-            total_mb = tokens_to_millions(total_tokens)
-            st.info(f"Total tokens in context: {total_tokens:,} (approximately {total_mb:.2f} MB)")
+        total_tokens = count_tokens(context_content) if context_content else 0
+        total_mb = tokens_to_millions(total_tokens)
 
-        new_context_name = st.text_input("Save this context as (optional)")
-        new_context_tags = st.text_input("Context tags (comma-separated, optional)")
-        if st.form_submit_button("Save New Context"):
-            if new_context_name and context_content:
-                user_space.save_context(new_context_name, context_content, new_context_tags.split(',') if new_context_tags else None)
-                save_user_space(user_space)
-                st.success(f"Context '{new_context_name}' saved successfully.")
+        if save_new_context and new_context_name and context_content:
+            user_space.save_context(new_context_name, context_content,
+                                    new_context_tags.split(',') if new_context_tags else None)
+            save_user_space(user_space)
+            st.success(f"Context '{new_context_name}' saved successfully.")
+
+        st.session_state.current_plan.update({
+            "name": plan_name,
+            "context": context_content,
+            "context_total_tokens": total_tokens,
+            "context_total_mb": total_mb
+        })
+        st.success(
+            f"Context {new_context_name} saved to userspace.")
+
+    # Display current context info
+    if 'context' in st.session_state.current_plan:
+        st.info(f"Current context: {st.session_state.current_plan['context_total_tokens']:,} tokens "
+                f"(approximately {st.session_state.current_plan['context_total_mb']:.3f} MB)")
+        plan = st.session_state.current_plan
+        truncated_plan = plan.copy()
+        truncated_plan['context'] = truncated_plan['context'][:1000] + "..." if len(
+            truncated_plan['context']) > 1000 else truncated_plan['context']
+        st.json(truncated_plan)
+
+
+    # Form 2: Instructions and Prompts
+    with st.form("step2-instructions-prompts"):
+        st.subheader("Step 2: Instructions and Prompts")
 
         with st.expander("Enter System Instructions"):
             st.subheader("System Instructions")
@@ -194,6 +267,33 @@ def multi_plan_builder(user_space: UserSpace):
             )
 
             custom_user_prompt = st.text_area("Custom User Prompt (optional)")
+            user_prompt_override = st.radio("Override?",
+                                            ["Override other user prompts", "Add at end of other user prompts"],
+                                            index=1)
+            if user_prompt_override == "Override other user prompts":
+                selected_user_prompts = [custom_user_prompt]
+
+        instructions_submitted = st.form_submit_button("Save Instructions and Continue")
+
+
+    if instructions_submitted:
+        st.session_state.current_plan.update({
+            "system_instructions": selected_system_instructions,
+            "user_prompts": selected_user_prompts,
+            "custom_user_prompt": custom_user_prompt
+        })
+        st.success("Instructions and prompts saved. Please proceed to the final step.")
+
+        plan = st.session_state.current_plan
+        truncated_plan = plan.copy()
+        truncated_plan['context'] = truncated_plan['context'][:1000] + "..." if len(
+            truncated_plan['context']) > 1000 else truncated_plan['context']
+        st.json(truncated_plan)
+
+
+    # Form 3: Output Settings
+    with st.form("step3-output-settings"):
+        st.subheader("Step 3: Output Settings")
 
         with st.expander("Set Output Destinations"):
             mode_options = [
@@ -225,7 +325,7 @@ def multi_plan_builder(user_space: UserSpace):
             output_file = st.text_input("Output filename base", "output")
 
         with st.expander("Set Output Requirements"):
-            with st.container(border=True):
+            with st.container():
                 limit = st.number_input("Maximum output size in tokens", value=8000, step=500)
                 ensure_output_limit = st.checkbox("Ensure Minimum Output Tokens", value=False)
                 minimum_required_output_tokens = st.number_input("Minimum required output tokens", value=500, step=500,
@@ -235,28 +335,23 @@ def multi_plan_builder(user_space: UserSpace):
 
             log_level = st.selectbox("Log level", ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
 
-        submitted = st.form_submit_button("Add Plan")
-        if submitted:
-            new_plan = {
-                "name": plan_name,
-                "mode": mode,
-                "context": context_content,
-                "context_total_tokens": total_tokens,
-                "context_total_mb": total_mb,
-                "system_instructions": selected_system_instructions,
-                "user_prompts": selected_user_prompts,
-                "custom_user_prompt": custom_user_prompt,
-                "ensure_output_limit": ensure_output_limit,
-                "minimum_required_output_tokens": minimum_required_output_tokens,
-                "limit": limit,
-                "log_level": log_level,
-                "output_file": output_file,
-                "thisdoc_dir": thisdoc_dir
-            }
-            st.session_state.multiplan.append(new_plan)
-            st.success(
-                f"Plan '{plan_name}' added to multiplan (Context: {total_tokens:,} tokens, approximately {total_mb:.3f} M)")
+        plan_submitted = st.form_submit_button("Add Plan")
 
+    if plan_submitted and st.session_state.current_plan:
+        st.session_state.current_plan.update({
+            "mode": mode,
+            "thisdoc_dir": thisdoc_dir,
+            "output_file": output_file,
+            "limit": limit,
+            "ensure_output_limit": ensure_output_limit,
+            "minimum_required_output_tokens": minimum_required_output_tokens,
+            "log_level": log_level,
+        })
+        st.session_state.multiplan.append(st.session_state.current_plan)
+        st.success(f"Plan '{st.session_state.current_plan['name']}' added to multiplan")
+        st.session_state.current_plan = {}
+
+    # Display current multiplan
     if st.session_state.multiplan:
         st.subheader("Current Multiplan")
         for i, plan in enumerate(st.session_state.multiplan):
@@ -264,19 +359,21 @@ def multi_plan_builder(user_space: UserSpace):
                 truncated_plan = plan.copy()
                 truncated_plan['context'] = truncated_plan['context'][:1000] + "..." if len(truncated_plan['context']) > 1000 else truncated_plan['context']
                 st.json(truncated_plan)
-                if st.button(f"View Full Context for Plan {i + 1}"):
-                    st.text_area("Full Context", value=plan['context'], height=300)
-                if st.button(f"Remove Plan {i + 1}"):
-                    st.session_state.multiplan.pop(i)
-                    st.rerun()
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button(f"View Full Context for Plan {i + 1}"):
+                        st.text_area("Full Context", value=plan['context'], height=300)
+                with col2:
+                    if st.button(f"Remove Plan {i + 1}"):
+                        st.session_state.multiplan.pop(i)
+                        st.rerun()
 
-    if st.session_state.multiplan:
-        if st.button("Run Multiplan"):
-            run_multiplan(st.session_state.multiplan, user_prompts_dict)
-            user_space.save_prompt_plan({"multiplan": st.session_state.multiplan})
-            save_user_space(user_space)
-            st.success("Multiplan saved to UserSpace")
-
+    # Run multiplan button
+    if st.session_state.multiplan and st.button("Run Multiplan"):
+        run_multiplan(st.session_state.multiplan, user_prompts_dict)
+        user_space.save_prompt_plan({"multiplan": st.session_state.multiplan})
+        save_user_space(user_space)
+        st.success("Multiplan saved to UserSpace")
 def run_multiplan(multiplan, user_prompts_dict):
     launcher = BuildLauncher()
     results = []
@@ -300,6 +397,7 @@ def run_multiplan(multiplan, user_prompts_dict):
             'user_prompt': combined_user_prompt,
             'list_of_user_keys_to_use': plan['user_prompts'],
             'minimum_required_output_tokens': plan['minimum_required_output_tokens'],
+            'user_prompts_dict': user_prompts_dict  # Add this line
         }
 
         try:
@@ -307,6 +405,7 @@ def run_multiplan(multiplan, user_prompts_dict):
             results.append(result)
         except Exception as e:
             st.error(f"Error processing plan '{plan['name']}': {str(e)}")
+            st.write(traceback.format_exc())
 
     st.subheader("Multiplan Results")
     st.write(results)
@@ -316,10 +415,12 @@ def display_full_context(context_files):
         st.subheader(f"File: {filename}")
         st.text_area("Content", value=content, height=300, disabled=True)
 
+
 def filter_dict(dictionary, filter_text):
     return {k: v for k, v in dictionary.items() if
             filter_text.lower() in k.lower() or (
                     isinstance(v, dict) and filter_text.lower() in v.get('prompt', '').lower())}
+
 
 def truncate_context_files(plan: Dict, max_chars=1000) -> Dict:
     truncated_plan = plan.copy()
@@ -335,6 +436,7 @@ def truncate_context_files(plan: Dict, max_chars=1000) -> Dict:
             "truncated": len(content) > max_chars
         }
     return truncated_plan
+
 
 def user_space_app(user_space: UserSpace):
     st.title("UserSpace")
@@ -368,7 +470,8 @@ def user_space_app(user_space: UserSpace):
 
     if filtered_contexts:
         context_df = pd.DataFrame(
-            [(name, context.content[:50] + "...", ", ".join(context.tags)) for name, context in filtered_contexts.items()],
+            [(name, context.content[:50] + "...", ", ".join(context.tags)) for name, context in
+             filtered_contexts.items()],
             columns=["Name", "Content Preview", "Tags"]
         )
         st.table(context_df)
@@ -436,6 +539,7 @@ def user_space_app(user_space: UserSpace):
         st.success("UserSpace has been cleared.")
         st.rerun()
 
+
 def run_build_launcher(selected_user_prompts, selected_system_instructions, user_prompt,
                        context_files, mode, thisdoc_dir, output_file, limit,
                        minimum_required_output_tokens, log_level, use_all_user_keys, user_prompts_dict_file_path,
@@ -476,6 +580,7 @@ def run_build_launcher(selected_user_prompts, selected_system_instructions, user
 
     return results
 
+
 def run_build_launcher_with_config(config_data):
     launcher = BuildLauncher()
     results = launcher.main(config_data)
@@ -484,8 +589,10 @@ def run_build_launcher_with_config(config_data):
     for result in results:
         st.write(result)
 
+
 def apply_custom_css(css):
     st.markdown(f'<style>{css}</style>', unsafe_allow_html=True)
+
 
 custom_css = """
 @import url('https://fonts.googleapis.com/css2?family=Google+Sans&display=swap');
@@ -496,6 +603,7 @@ body {
     font-weight: 300;
 }
 """
+
 
 def run_streamlit_app():
     st.set_page_config(layout="wide", initial_sidebar_state="expanded", page_title="Codexes2Gemini Streamlit UI Demo",
@@ -521,11 +629,14 @@ def run_streamlit_app():
     with tab4:
         user_space_app(user_space)
 
+
 def main(port=1455, themebase="light"):
-    sys.argv = ["streamlit", "run", __file__, f"--server.port={port}", f'--theme.base={themebase}', f'--server.maxUploadSize=40']
+    sys.argv = ["streamlit", "run", __file__, f"--server.port={port}", f'--theme.base={themebase}',
+                f'--server.maxUploadSize=40']
     import streamlit.web.cli as stcli
     stcli.main()
     configure_logger("DEBUG")
+
 
 if __name__ == "__main__":
     run_streamlit_app()

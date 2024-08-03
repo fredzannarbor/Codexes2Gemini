@@ -8,7 +8,7 @@ import streamlit as st
 import pymupdf as fitz  # PyMuPDF
 from typing import List, Dict, Any, Union
 
-from Codexes2Gemini.UI.streamlit_ui import load_json
+
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 
 class PromptPlan(OrderedDict):

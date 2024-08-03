@@ -7,18 +7,19 @@ from typing import Dict
 import uuid
 import google.generativeai as genai
 
+
 from ..Builders.PartsBuilder import PartsBuilder
 from ..Builders.CodexBuilder import CodexBuilder
-from ..Builders.PromptPlan import PromptPlan
+from Codexes2Gemini.classes.Codexes.Builders.PromptPlan import PromptPlan
 from ...Utilities.utilities import configure_logger
 
-
+GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
 class BuildLauncher:
     def __init__(self):
         self.parts_builder = PartsBuilder()
         self.codex_builder = CodexBuilder()
         self.logger = logging.getLogger(__name__)
-        genai.configure(api_key="YOUR_API_KEY_HERE")  # Replace with your actual API key
+        genai.configure(api_key=GOOGLE_API_KEY)  # Replace with your actual API key
         self.user_prompts_dict = {}
         self.system_instructions_dict = {}
 
@@ -53,17 +54,15 @@ class BuildLauncher:
     def create_prompt_plan(self, config: Dict) -> PromptPlan:
         prompt_plan_params = {
             'context': config.get('context', ''),
-            # Remove 'context_file_paths' as we're now using the context directly
             'user_keys': config.get('user_keys', []),
             'thisdoc_dir': config.get('thisdoc_dir') or os.path.join(os.getcwd(), 'output'),
             'json_required': config.get('json_required', False),
             'generation_config': config.get('generation_config'),
             'system_instructions_dict_file_path': config.get('system_instructions_dict_file_path'),
-            'list_of_system_keys': config.get('list_of_system_keys'),
             'user_prompt': config.get('user_prompt', ''),
-            'user_prompt_override': config.get('user_prompt_override', False),
-            'user_prompts_dict_file_path': config.get('user_prompts_dict_file_path'),
+            'list_of_system_keys': config.get('list_of_system_keys', []),
             'list_of_user_keys_to_use': config.get('list_of_user_keys_to_use', []),
+            'user_prompt_override': config.get('user_prompt_override', False),
             'continuation_prompts': config.get('continuation_prompts', False),
             'output_file_path': config.get('output_file_path'),
             'log_level': config.get('log_level', 'INFO'),
@@ -72,7 +71,8 @@ class BuildLauncher:
             'model_name': config.get('model_name'),
             'mode': config.get('mode'),
             'use_all_user_keys': config.get('use_all_user_keys', False),
-            'add_system_prompt': config.get('add_system_prompt', '')
+            'add_system_prompt': config.get('add_system_prompt', ''),
+            'user_prompts_dict': config.get('user_prompts_dict', {})  # Add this line
         }
         # Remove None values to avoid passing unnecessary keyword arguments
         prompt_plan_params = {k: v for k, v in prompt_plan_params.items() if v is not None}
@@ -107,8 +107,7 @@ class BuildLauncher:
         logger = configure_logger(log_level)
 
         # Load prompt dictionaries
-        self.load_prompt_dictionaries()
-
+        #self.load_prompt_dictionaries()
         if isinstance(args, dict) and 'multiplan' in args:
             plans = []
             for plan_config in args['multiplan']:
@@ -116,6 +115,7 @@ class BuildLauncher:
                 if 'context_files' in plan_config:
                     plan_config['context'] += "\n".join(plan_config['context_files'].values())
                 plan_config['minimum_required_output_tokens'] = plan_config.get('minimum_required_output_tokens', 1000)
+                plan_config['user_prompts_dict'] = args.get('user_prompts_dict', {})  # Add this line
                 plans.append(self.create_prompt_plan(plan_config))
         elif isinstance(args, dict) and 'plans_json' in args:
             plans_data = args['plans_json']
