@@ -1,0 +1,781 @@
+ 
+ 
+ 
+ 
+Wargame 3-14: Implications of Events 
+in Ukraine for the U.S. Army Analysis 
+STRATEGIC WARGAMING SERIES 
+ 
+28-29 April 2014 
+ 
+UNITED STATES ARMY WAR COLLEGE  
+Center for Strategic Leadership & Development 
+650 Wright Ave 
+Carlisle Barracks, PA 17013 
+ 
+The findings contained in this report are based on the results of an academic wargame conducted at the 
+United States Army War College 28-29 April 2014. Except where expressly indicated, the ideas presented are 
+derived directly from the comments of wargame participants. The views contained in this report are intended 
+to inform senior Army leaders including, but not confined to, members of the Army Staff, Geographic 
+Combatant Commands and Army Service Component Commands. This report does not express the policies 
+or official views of the United States Government, the Department of Defense or the United States Army. 
+ 
+Scenario Development: 
+LTC Ned Ritzmann 
+ned.c.ritzmann.mil@mail.mil 
+ 
+Lead Author: 
+Dr. Richard Winslow 
+richard.l.winslow.civ@mail.mil 
+ 
+Lead Analyst: 
+Mr. Chip Cleckner 
+ r 
+william.h.cleckner.civ@mail.mil  
+Chief, Strategic Wargaming Division: 
+COL Scott Forsythe 
+scott.a.forsythe.mil@mail.mil
+ 
+ 
+ 
+ 
+ 
+ 
+1 
+United States Army War College Strategic Wargaming Series 
+Wargame 3-14: Implications of Events in Ukraine for the U.S. Army 
+Executive Summary 
+On 28-29 April 2014, the U.S. Army War College Center for Strategic Leadership and 
+Development (CSLD) conducted an unclassified strategic Tabletop Exercise (TTX) to develop 
+implications for the U.S. Army of ongoing events in Ukraine. Subject matter experts from the 
+U.S. Army War College faculty, U.S. students and International Fellows from Europe and other 
+scholars from academia and think tanks participated in the TTX. The participants were given 
+scenarios of how events in Ukraine could evolve to determine the likelihood of actions by 
+Russia, and identify reactions to those Russian actions by other stakeholders and counter-
+responses by the Russians to those reactions. The results were then analyzed to extract 
+potential requirements for Army capabilities and implications for the U.S. Army. 
+Key Findings 
+ 
+The crisis in Ukraine has evolved from a domestic political dispute into a confrontation 
+between Russia and the United States and its NATO partners over the political order in 
+Europe. 
+ 
+Understanding the Russian perspective will be critical to crisis resolution. 
+o Russian objectives regarding Ukraine almost certainly include: 
+ 
+Signaling to the West that NATO and EU expansion eastward is over and that 
+Russia will not tolerate any further accessions to either NATO or the EU of any 
+additional former Soviet Union states;  
+ 
+Maintaining its naval facilities on the Black Sea; and  
+ 
+Having a government in Kiev that is politically oriented toward Moscow, not 
+NATO, and that remains economically tied to Russia, not the European Union.  
+o Russian objectives regarding Ukraine may include dominating or controlling the near 
+abroad; if so, its aggression toward Ukraine is likely to continue and may expand 
+toward other neighbors. 
+o Because of his control over Russia, Putin has a much greater impact on the 
+country’s behavior than governments that are more accountable to the public. 
+o Putin’s perspective and personality are major factors in the Ukraine crisis. He 
+appears to be motivated by fear (of NATO/Western penetration of the near abroad, 
+seeing the Black Sea as becoming a “NATO lake”), honor (restoration of Russian 
+pride and influence) and interests (as identified above). He views relations with the 
+West as a zero-sum game,1 and values personal relationships with other world 
+leaders built on trust and mutual respect. Considering these factors, Putin is likely to 
+stop only when he has achieved his strategic objectives or when the costs become 
+too high.  
+o Rotational forces are likely to be seen by Russia as less provocative than forward 
+stationed forces; Western provision of significant weapons capabilities represents an 
+enduring and unacceptable threat to Russia. 
+ 
+Future U.S. actions should focus on reassurance of NATO allies more than deterrence 
+of Russia. 
+                                                
+1 A zero-sum game is a situation (as a game or relationship) in which a gain for one side entails a 
+corresponding loss for the other side. 
+ 
+2 
+o Each of our NATO allies and regional partners will tend to request the same 
+capabilities in all scenarios but will want greater quantities of those capabilities in 
+response to circumstances they see as more threatening (See Annex A for a 
+country-by-country list). 
+o Reassuring our allies without provoking Russia to be more aggressive will require a 
+careful balance. 
+o Actions taken by NATO as a whole are likely to be more effective than U.S. actions 
+taken alone, but NATO consensus may not be achievable quickly enough to be 
+responsive. 
+o Even when tensions between the West and Russia over Ukraine abate, there will be 
+a continuing requirement to reassure NATO allies of U.S. commitment to European 
+security. 
+ 
+Europe has been and will remain predominantly a land theater; therefore, the Army as 
+the Nation’s primary provider of Landpower can expect to provide a very large portion of 
+U.S. military support used to reassure NATO allies and deter Russia. 
+Recommendations 
+o Evaluate potential U.S. actions through Russian eyes, do not mirror image U.S. thought 
+processes. 
+o Find the right mix of FDOs that is sufficient to reassure our NATO partners and deter 
+Russia without provoking Russia to continue its aggressive behavior. 
+o Use NATO as a hub for requests for support and multilateral coordination.  
+o In addition to responding to allies’ requests, the U.S. Army should consider: 
+o demonstrating restraint in providing weapons capabilities that the Ukrainians are not 
+prepared to employ, or capabilities to allies and partners that Russia perceives as a 
+provocation to act aggressively;  
+o increasing availability of PME seats for Eastern European NATO and PfP countries; 
+o increasing the use of USAREUR’s (and FORSCOM’s) Digital Liaison Detachments 
+with our NATO allies;  
+o aligning a U.S. Corps HQ to NATO for Article V contingency planning; 
+o allowing selected Regionally Aligned Forces (RAF) rotations to count as CTC credit 
+[such as a BCT-sized NATO Response Force (NRF)]; 
+o assisting partner nations to develop niche specialties such as the water purification 
+specialty of Lithuania;  
+o providing USAREUR HQs with increased capability and capacity for security 
+cooperation, such as a larger Security Cooperation Division with more FAOs; 
+assignment of a CA Bn directly to USAREUR; PCS assignment of an officer-NCO 
+heavy “security cooperation” unit to provide more responsive capability than from 
+rotational RAF elements to support TDY teams for in-country training missions; and  
+o prepositioning battalion-sized mission- and unit-tailored equipment sets in lower risk 
+countries (Poland; Romania). 
+ 
+ 
+1 
+Report on WG 3-14: Implications of Events in Ukraine for the U.S. Army 
+Overview 
+On 28-29 April 2014, the U.S. Army War College Center for Strategic Leadership and 
+Development (CSLD) conducted an unclassified strategic Tabletop Exercise (TTX) to develop 
+insights into implications for the Army of how ongoing events in Ukraine affect the region. 
+Sixteen subject matter experts from the U.S. Army War College faculty, U.S. students and 
+International Fellows from Europe and other scholars from academia and think tanks 
+participated in the TTX. The participants were divided into two groups that were similar in 
+composition and experience. Both groups were given three scenarios of how events in Ukraine 
+could evolve and were led through discussions of each scenario to determine the scenario’s 
+likelihood, actions by Russia, reactions to Russian actions by other stakeholders, and counter-
+responses by the Russians to those reactions. The scenarios were: 
+ 
+Russia appears to stop at Crimea and deescalates (not a return to normal) 
+ 
+Russia appears to pursue expansion of the Russian Federation 
+ 
+“Bullets Fly” - Violence in Ukraine escalates in one of two ways, each of which could 
+occur in isolation or in simultaneously with the other. 
+o Direct combat between Ukrainian and Russian forces 
+o Internal factional disputes, probably ethnically based, escalate to armed violence 
+Results 
+This report will identify Army capabilities that NATO partners may request in response to 
+aggressive Russian actions in and around Ukraine and the potential impact on the Army if it 
+provides those capabilities. Before listing those capabilities, we will describe the security 
+environment in which they might be employed using the ends/ways/means paradigm. 
+Strategic Environment 
+In the course of their dialogs both groups identified some critical elements of the 
+strategic environment that contributed to the emergence of the crisis in Ukraine:  
+ 
+Europe has been and will remain predominantly a land theater; 
+ 
+EU dependency on Russian gas has, and will continue to temper partner willingness to 
+confront Russia forcefully.  
+o This dependence on Russian natural gas, much of which is supplied through 
+Ukraine, can only be reduced gradually.  
+o In the future, Russia could partially offset the revenue loss from European markets 
+by exporting its natural gas to China.2 In that case, Russian revenues would decline 
+significantly but not as much as its leverage over Europe would decline; 
+ 
+U.S. force reductions in Europe reflect the United States accepting risk in theaters 
+outside of the Asia-Pacific region and the CENTCOM AOR;  
+                                                
+2 The Institute for Energy Research reported on June 4, 2014 that China and Russia negotiated 30-year 
+$400 billion agreement to export Russian natural gas to China with exports expected to begin in 2018. 
+“China Signs Natural Gas Deal with Russia,” accessed June 5, 2014 at: 
+http://canadafreepress.com/index.php/article/63562 
+ 
+2 
+ 
+The perception in Europe that the U.S. rebalance to the Asia-Pacific region has resulted 
+in a reduction in the U.S. commitment to European security, or in its more extreme 
+expression, the abandonment of Europe; 
+ 
+The current crisis is the most recent manifestation of a long-standing dispute between 
+Russia and the United States and its NATO partners over the interpretation of the 
+Conventional Forces in Europe Treaty and NATO expansion. The Russians belief that 
+the West has violated the 2002 ‘agreement’ on NATO expansion which put Georgia and 
+Ukraine off-limits; NATO denies that any such agreement was ever reached.3 
+ 
+The crisis in Ukraine that started out in November 2013, as protests over the rampant 
+corruption and mismanagement of Yanukovich’s presidency, first evolved into a dispute 
+between Russia and the EU over Ukraine’s economic alignment and then into a 
+confrontation between Russia and the United States and its NATO partners over the 
+political order in Europe. 
+ 
+Putin is likely to stop his aggressive actions only when he has achieved his strategic 
+objectives or when the costs to Russia become too high.  
+Russian Objectives 
+The three scenarios provided a vehicle to explore possible Russian objectives behind 
+their actions. Having a common understanding of Russian objectives enabled the participants to 
+assess likely counter-responses by the Russians to NATO member reactions to Russia’s 
+aggressive behavior. The participants linked Russian willingness to deescalate after the 
+annexation of the Crimea (scenario 1) to three Russian objectives; (1) signaling to the West that 
+NATO and EU expansion eastward is over and that Russia will not tolerate any further 
+accessions to either NATO or the EU of any additional former Soviet Union states; (2) 
+maintaining its naval facilities on the Black Sea, and (3) having a government in Kiev that is 
+politically oriented toward Moscow, not NATO, and that remains economically tied to Russia, not 
+the European Union. 
+The participants believed that the second scenario in which Russia appears to pursue 
+expansion of the Russian Federation portrayed the current “real world” situation and Russian 
+                                                
+3 Negotiations that led to the Treaty on Conventional Armed Forces in Europe (CFE) began in 1989 
+before the break-up of the Soviet Union and the dissolution of the Warsaw Pact. The treaty set numerical 
+limits for five categories of conventional weapons systems within the “area of application”—the entire land 
+territory of the States Parties in Europe from the Atlantic Ocean to the Ural Mountains. The State Parties 
+were all members of NATO and the Warsaw Pact at that time and limits were aggregated into two ‘groups 
+of States Parties’—NATO members and the Warsaw Pact members. Following the break-up of the Soviet 
+Union and the dissolution of the Warsaw Pact, CFE limits continued to be adhered to by all parties but 
+differences of interpretation arose between Russia and the other parties as former Warsaw Pact states 
+such as Poland and former Soviet Union states such as the Baltic States joined NATO. Despite efforts to 
+create new cooperative mechanisms such as the NATO-Russia Council (NRC) in 2002, these differences 
+over NATO expansion have continued and intensified to the point that on November 22, 2011, the United 
+States announced that it would cease carrying out certain obligations under the CFE Treaty with regard to 
+Russia.  
+For a more complete accounting of this dispute, one should refer these sources documents: (1) 
+the CFE Treaty; (2) Victoria Nuland, Department of State Press Statement, “Implementation of the Treaty 
+on Conventional Armed Forces In Europe,” November 22, 2011, accessed June 6, 2014 at 
+http://www.state.gov/r/pa/prs/ps/2011/11/177630.htm; and (3) NATO Fact Sheet - April 2014, “Russia’s 
+accusations - setting the record straight,” accessed June 6, 2014 at: 
+http://www.nato.int/cps/en/natolive/topics_109141.htm?selectedLocale=en 
+ 
+3 
+strategy. They felt the third scenario, escalating violence in Ukraine, was unlikely in the form of 
+direct combat between Ukrainian and Russian forces. However, they foresaw increased 
+factional violence in Ukraine as increasingly likely, and they believed that internal violence could 
+spin out of control of the party that initiates it. They attributed the low risk of a clash between 
+Russian and Ukrainian forces to Ukrainian awareness that Russian forces adjacent to Ukraine 
+can overwhelm the small and poorly equipped Ukrainian forces and concluded that Ukraine 
+would attempt to avoid provoking Russia into striking a fatal blow to Ukrainian independence. 
+Furthermore, they saw many disincentives for Russia taking control of all of Ukraine, the most 
+important being that it would become responsible for Ukraine’s economic and financial woes. In 
+both of these scenarios they believed protecting ethnic Russian populations would be both a 
+Russian interest and a tool for manipulating the situation. 
+One group developed an alternative scenario in which Russia creates ‘indefinite 
+instability’ in the states on its periphery through various means when opportunities to do so 
+present themselves. For example, it may foment unrest among pro-Russia factions, primarily 
+but not exclusively ethnic Russian minorities, as a way to gain influence and leverage 
+throughout the near abroad4 much like the current situation in Ukraine, but without an invasion 
+of sovereign territory. In scenarios with a more aggressive Russia, the participants included 
+dominating or controlling the near abroad as a Russian policy objective. Neither group thought 
+that Russian objectives included integration of the entire near abroad into the Russian 
+Federation. 
+Because of his control over Russia, Putin has a much greater impact on the country’s 
+behavior than governments that are more accountable to the public. The participants also 
+considered Putin’s perspective and personality as major factors in the Ukraine crisis. They 
+believe he is motivated by fear (of NATO/Western penetration of the near abroad, seeing the 
+Black Sea as becoming a “NATO lake”), honor (restoration of Russian pride and influence) and 
+interests (as identified above). He views relations with the West as a zero-sum game,5 and 
+values personal relationships with other world leaders built on trust and mutual respect. 
+Considering these factors, the participants concluded that Putin is likely to stop only 
+when he has achieved his strategic objectives or when the costs become too high. Regarding 
+Ukraine in particular, some participants contended that the economic costs of taking all of 
+Ukraine made doing so unattractive; however, seizing all or part of Eastern Ukraine, which is 
+predominantly Russian, heavily industrialized and produces 70% of Ukrainian GDP, would be 
+advantageous to Russia. Putin will want to avoid doing anything to trigger the remilitarization of 
+NATO over further encroachments into Ukraine.6 
+U.S. Ends, Ways and Means 
+The Army’s role in ending the Ukraine crisis on terms acceptable to the United States 
+will be to provide some of the means (Army capabilities) to implement the ways (postures, 
+activities and interactions) Commander United States European Command adopts to achieve 
+                                                
+4 Near abroad refers to the newly independent republics which emerged after the dissolution of the Soviet 
+Union. It includes Estonia, Latvia, Lithuania, Belarus, Moldova, Ukraine, Armenia, Azerbaijan, Georgia 
+and the Central Asian states. 
+5 Being a situation (as a game or relationship) in which a gain for one side entails a corresponding loss for 
+the other side 
+6 The remilitarization of NATO would entail increased forward deployed U.S. forces, a halt or reversal of 
+NATO member defense budget and force structure reductions, and returning the focus of the alliance 
+from political and economic cooperation to security issues. 
+ 
+4 
+the established political ends (strategic objectives) the U.S. political leadership establishes. It is 
+assumed that this would take place in conjunction with forces provided by the other Services 
+and the employment of diplomatic, informational and economic instruments of national power, 
+working in concert with NATO allies and other partners with a stake in favorable resolution of 
+the Ukraine crisis. 
+Ends 
+Both groups agreed that the U.S. national security interests at stake are regional stability 
+and maintenance of a favorable world order. The participants identified the conditions necessary 
+to protect these interests as: all current NATO members must remain in the alliance; the threat 
+of Russian military action against NATO members in the near abroad—Estonia, Latvia and 
+Lithuania—must be reduced; and Ukraine (without Crimea) should remain independent and 
+unified. Currently, however, NATO allies in Eastern Europe contiguous to the Russian 
+Federation or Ukraine—Estonia, Latvia and Lithuania, Poland, Slovakia, Hungary and 
+Romania—fear that Russia will shift its aggressive focus from Ukraine to them and must be 
+reassured that the United States and other NATO members will honor their NATO 
+commitments. Based on these considerations, they identified U.S. policy objectives as (1) 
+reassure NATO allies (2) bolster NATO and (3) deter Russia.7  
+Not surprisingly, both groups acknowledged a significant asymmetry in the intensity of 
+Russian and U.S. national interests. Simply put Russia cares much more than the United States 
+about the political alignment and economic integration of states in the near abroad. This 
+asymmetry gives Russia considerably more leverage than the United States has. 
+Ways 
+The United States should seek to deescalate the situation in Ukraine while maintaining 
+NATO as a viable alliance. To do so it and its alliance partners must deter Russia from attacking 
+Ukraine with military forces and from destabilizing Ukraine through other means or manipulation 
+of ethnic Russians in Ukraine, and simultaneously reassure NATO members in Eastern Europe, 
+that it will honor its NATO commitments. Although acting bilaterally with individual NATO 
+members in Eastern Europe is possible and can probably be executed more quickly, acting 
+together under the NATO umbrella would send a much stronger signal to both Russia and the 
+threatened NATO partners. As is already happening, the United States will use a combination of 
+military flexible deterrent options (FDO), targeted economic sanctions and other diplomatic and 
+informational means to try to resolve the crisis on favorable terms. A clear and consistent 
+message of U.S. commitment to NATO and the desire to reduce the tension must be sent to all 
+parties. 
+Means8 
+Any deployment and employment of Army forces and other capabilities should occur in 
+conjunction with other FDOs. Host nation agreement will be required for any deployment. 
+                                                
+7 The group of very knowledgeable regional experts who participated believes this description accurately 
+portrays current U.S. policy. Some participants were extremely frustrated at the lack of clear declarative 
+public statements of this U.S. policy, asserting that the lack of clarity was contributing to Russian 
+aggressiveness and NATO partner anxiety. 
+8 Although many means were discussed, non-military means are listed but not discussed in this report. 
+ 
+ 
+5 
+Therefore, being aware of what forces or other capabilities each potential host is likely to 
+request makes it possible to match the U.S. need for deployment sites with host nation requests 
+for specific capabilities. This will be critical for quickly reaching agreements with host nations if 
+the United States must act bilaterally with individual countries. However, because actions taken 
+by NATO as a whole will be more effective than U.S. actions taken alone, we should seek a 
+NATO umbrella for all force deployments and use a NATO clearing house approach to 
+coordinate security assistance for Ukraine. However, the United States should recognize that 
+building the requisite consensus will take time that may not be available. Bilateral action outside 
+the NATO umbrella may be required. 
+Participants were quick to point out that the United States could not or should not fill all 
+of these requests bilaterally and should engage the EU and NATO on all requests. The 
+participants identified expected requests for U.S. military support from our allies and friends in 
+the region. Each of our NATO allies and regional partners will tend to request the same 
+capabilities in all scenarios but will want greater quantities of those capabilities in response to 
+circumstances they see as more threatening (See Annex A for a country-by-country list). 
+While the majority of participants did not advocate any deployment of lethal assets into 
+Ukraine, a few suggested that Ukraine might request air and missile defense assets, anti-tank 
+capabilities, a package of ground forces, fixed/rotary wing packages, cyber support and 
+assistance, CA/PSYOP forces and capabilities9. Participants with extensive knowledge of 
+Ukrainian readiness indicated that they have very little capacity to employ these capabilities and 
+regarded provision of these capabilities as having questionable utility.  Participants also 
+cautioned that Russia is likely to view introduction of lethal capabilities as an unacceptable 
+provocation.  Most participants in one group viewed professional military education and 
+ministerial-level institution building as high payoff ways to support Ukraine; however, they 
+acknowledged that the return from these programs occurs over the long-term and they have 
+very little short-term value as deterrents. The other group saw military training and institution 
+building in Ukraine as a ‘black hole’ in part because they were skeptical of Ukraine’s capacity to 
+absorb the assistance they are seeking. 
+In addition to potential requests from Ukraine, the United States should expect requests 
+for U.S. military support from NATO allies and other friends in the region that feel threatened by 
+Russia’s aggressive behavior toward Ukraine. Because they are seeking reassurance of the 
+U.S. commitment to defend NATO Europe, we should expect their desire for visible signs of that 
+commitment beyond the end of the immediate crisis over Ukraine and NATO-Russia tensions. 
+Military exercises will serve to assure allies, bolster NATO and deter Russia from future 
+aggression. Exercises that are clearly geared to practice responses to a threat that would be 
+actionable under Article 5 of the North Atlantic Treaty will be more effective than an exercise 
+that is only loosely tied to treaty obligations. The U.S. role could range from limited participation 
+in or providing support for exercises planned by others to taking the lead to plan, organize and 
+conduct exercises in which a major portion of the forces are U.S. The strength of the 
+deterrent/reassuring message sent will depend on the exercise location, U.S. participation level 
+and perceived commitment. Providing observer/controller teams to support a partner nation 
+                                                
+9 The participants knew President Obama had declared ‘no boots on the ground’ and that other senior 
+officials had stated, ‘no lethal aid;’ so the participants input may have been restrained by their awareness 
+that these options were unacceptable to the Administration. Given that it is an unacceptable option the 
+analysts saw no value in attempting to define or size this force package.  
+ 
+6 
+unilateral exercise, as an example, would be a minimal contribution with low potential payoff as 
+a deterrent.  
+If NATO partners continue to need reassurance beyond the end of the immediate crisis, 
+which is likely, and if they are willing to continue to host multilateral NATO exercises on their 
+territory, the Army should consider increasing funding for USEUCOM/USAREUR Regionally 
+Aligned Forces (RAF) to conduct more combined exercises and other security cooperation 
+activities. The participants believed the benefit of increased RAF presence is limited by the 
+amount of prepositioned equipment currently available in Europe because, given fiscal 
+constraints in place when the wargame occurred, they believe shipping equipment sets to and 
+from Europe to support an enhanced exercise program was unaffordable. A concomitant 
+increase in prepositioned battalion-sized equipment sets to support increased RAF deployments 
+could be a critical enabler. Any such increases would have to fall under CFE limitations. In 
+addition, it is significantly less likely that NATO forces would be made available to support the 
+United States for out of area missions until the Russian threat has dissipated. 
+To counter the perception in Europe that the U.S. rebalance to the Asia-Pacific region 
+has resulted in a reduction in the U.S. commitment to European security, the United States 
+should reexamine the adequacy of current and projected U.S. forces assigned or apportioned or 
+aligned to Europe. Doing so would support all three policy objectives (reassure NATO allies, 
+bolster NATO and deter Russia). Any incremental increases in force capacity will provide more 
+options. Actions required to implement this measure might include reevaluation of cuts made in 
+response to sequestration, especially the drawdown of forward stationed forces in Europe, 
+evaluating and comparing the costs, benefits and risks associated with an enhanced permanent 
+(forward stationed) or persistent rotational presence in Europe, (re)establishment of PREPO 
+sets, at least sufficient to support any rotational presence, and alignment of a U.S. Corps 
+headquarters to NATO for planning. Although both groups identified forward stationing as an 
+option neither of them advocated that over a rotational presence. That preference appeared to 
+be driven by consideration of how the Russians would view those choices, rather than a 
+financial cost, benefit analysis.  
+For the Baltic States, U.S./NATO forces on the ground in those countries would deter 
+Russia by providing a tripwire for an ‘automatic’ U.S. response. Baltic State governments would 
+see that action as a very strong signal of U.S. and NATO partner commitment to their security. 
+However, it is possible that Russia, especially Putin during an ongoing tense period in Russia-
+NATO relations, would perceive such a move as a further violation of the 2002 ‘agreement’. 
+Thus, a measure intended to deter and reduce tension could instead extend in both time and 
+space and intensify the ongoing crisis over Ukraine. 
+U.S. combined CONPLAN development with NATO members could provide a low-cost, 
+low-risk means for reassuring NATO partners that feel threatened by Russia without provoking 
+Russia. Especially with newer NATO allies in Eastern Europe, combined planning would show 
+continued commitment. Whether it would also serve to deter Russia would depend on all 
+involved parties agreeing to acknowledge development of such plans publicly. This effort would 
+primarily take place at the USEUCOM level, with USAREUR, FORSCOM and the ARSTAF 
+developing appropriate supporting plans. Developing these plans as NATO plans would send 
+stronger deterrence and reassurance signals than bilateral combined planning. 
+Other Security Cooperation measures to reassure Eastern European NATO members 
+and bolster NATO included train and equip missions to foster NATO interoperability for Eastern 
+European NATO members, specifically the Lithuanian-Polish-Ukrainian Brigade. Enhancing 
+ 
+7 
+these countries’ capability and capacity to secure their borders would raise the cost to Russia of 
+future aggression. 
+Allies in Eastern Europe should be expected to request new or additional Security 
+Assistance programs. Some will ask for Foreign Military Financing and International Military 
+Education and Training (IMET) increases to help fund their defense programs. They are likely to 
+request new Foreign Military Sales cases for both equipment purchases and training that cannot 
+be procured within their existing defense budgets and FMF/IMET funding levels. They will seek 
+both CONUS Professional Military Education (PME) and in-country training through Mobile 
+Training Teams (MTT) and other deployed training teams.10 If their list of desired equipment and 
+training is extensive, deploying Military Assessment Teams to perform needs assessments 
+would send a reassuring message in the short term to show U.S. commitment to NATO and 
+foster long-term multilateral cooperation by providing a thought-out mutually agreed, multi-year 
+plan for future security assistance program activities. In conjunction with training and education, 
+Capacity Building should focus on Institutional Reform and Defense Sector Reform. 
+Humanitarian Assistance was the only role in which the participants saw U.S. boots on 
+the ground in Ukraine as acceptable and beneficial. Providing support for internally displaced 
+Ukrainians or providing security so that other providers could safely support IDPs may be 
+necessary if the violence in Ukraine leads to population displacement. Were that to happen and 
+Ukrainians flee across borders, it may be appropriate to provide refugee support in the host 
+Eastern European countries. Other participants thought that U.S. forces might participate in an 
+international peacekeeping force in Ukraine, but only if Ukraine were partitioned into eastern 
+and western segments and if the U.S. presence were limited to the western segment with a 
+similarly sized Russian force participating in the eastern segment. The analogy to Germany 
+during the Cold War was explicitly made. 
+Some participants suggested a permanent naval presence in the Black Sea as a way of 
+deterring Russia but others thought such a presence would reinforce the perception that the 
+Black Sea has become a NATO lake and would increase Russian insecurity, thereby extending 
+and intensifying the tensions between Russia and the United States/NATO. 
+Consideration of means 
+The participants considered Russian and NATO ally responses to each of these FDOs. 
+They believed that the Russians would feel more threatened by a permanent U.S. presence 
+(forward stationing) than by a rotational presence in Eastern Europe. Provision of major 
+weapons to Eastern European NATO allies would be even more threatening to the Russians 
+than forward stationed U.S. forces because, from their perspective, it would permanently alter 
+the balance of forces unfavorably. 
+In contrast, NATO partners would be least reassured by the provision of major weapons, 
+reassured slightly more by a U.S. rotational presence and most reassured by a permanent U.S. 
+presence (forward stationing) on their territories. The United States must find the ‘sweet spot’ of 
+doing enough to reassure its allies and deter further Russian aggression, but not do so much 
+that the Russians are provoked into taking a more aggressive posture. , establishing a rotational 
+presence of U.S. forces in Eastern Europe, ideally as part of a larger NATO rotational presence, 
+appears to be the optimal choice. 
+                                                
+10  An MTT for Joint Terminal Attack Controller (JTAC) MTT was specifically mentioned as a highly 
+desired commodity. The Army does not do this type of training but the USAF, USMC and USN do. 
+ 
+8 
+Many participants believed that both the Russians and our European NATO partners 
+perceive the rebalance to the Asia-Pacific region as either an abandonment of Europe or a 
+weakening of the U.S. commitment to Europe’s defense. Either of these perceptions could have 
+emboldened Putin and increased the anxiety of our Eastern European NATO partners. 
+Many of the anticipated requests, such as ministerial level institution building and 
+Professional Military Education have little short-term payoff other than signaling U.S. 
+commitment, but do offer long-term payoff in the form of greater partner capacity for self-
+defense. 
+In conjunction with these military measures, options using other elements of national 
+power were suggested to support U.S. policy objectives. These non-military actions would be 
+part of the overall U.S. whole-of-government approach in which the military means are applied. 
+The actions suggested included: Improve strategic communication, define and communicate a 
+clear foreign policy; improve intelligence sharing; support legitimate elections in Ukraine; 
+enhance Partnership for Peace programs; coordinate multilateral support, for instance with the 
+Nordic/Baltic Block; seek opportunities to display the benefits of NATO membership; and 
+support establishment of a regional Security Cooperation council with Russia as a member.  
+  
+ 
+ 
+9 
+Conclusions 
+U.S. Army War College analysts reached the following conclusions: 
+ 
+The crisis in Ukraine that started out in November 2013 as protests over the rampant 
+corruption and mismanagement of Yanukovich’s presidency has evolved into a 
+confrontation between Russia and the United States and its NATO partners over the 
+political order in Europe. 
+ 
+Understanding the Russian perspective will be critical to crisis resolution. 
+o Russian objectives regarding Ukraine almost certainly include: 
+ 
+Signaling to the West that NATO and EU expansion eastward is over and that 
+Russia will not tolerate any further accessions to either NATO or the EU of any 
+additional former Soviet Union states;  
+ 
+Maintaining its naval facilities on the Black Sea, and  
+ 
+Having a government in Kiev that is politically oriented toward Moscow, not 
+NATO, and that remains economically tied to Russia, not the European Union.  
+o Russian objectives regarding Ukraine may include dominating or controlling the near 
+abroad; if so, its aggression toward Ukraine is likely to continue and may expand 
+toward other neighbors. 
+o Because of his control over Russia, Putin has a much greater impact on the 
+country’s behavior than governments that are more accountable to the public. 
+o Putin’s perspective and personality are major factors in the Ukraine crisis. He 
+appears to be motivated by fear (of NATO/Western penetration of the near abroad, 
+seeing the Black Sea as becoming a “NATO lake”), honor (restoration of Russian 
+pride and influence) and interests (as identified above). He views relations with the 
+West as a zero-sum game,  and values personal relationships with other world 
+leaders built on trust and mutual respect. Considering these factors, Putin is likely to 
+stop only when he has achieved his strategic objectives or when the costs become 
+too high.  
+o Rotational forces will be seen by Russia as less provocative than forward stationed 
+forces; 
+ 
+Future U.S. actions should focus on reassurance of NATO allies more than deterrence 
+of Russia. 
+ 
+Each of our NATO allies and regional partners will tend to request the same 
+capabilities in all scenarios but will want greater quantities of those capabilities in 
+response to circumstances they see as more threatening (See Annex A for a 
+country-by-country list). 
+o Reassuring our allies without provoking Russia to be more aggressive will require a 
+careful balance. 
+o Actions taken by NATO as a whole are likely to be more effective than U.S. actions 
+taken alone, but require NATO consensus that may not be achievable quickly 
+enough to be responsive. 
+o Even when tensions between the West and Russia over Ukraine abate, there will be 
+a continuing requirement to reassure NATO allies of the United States’ commitment 
+to European security. 
+ 
+Europe has been and will remain predominantly a land theater. 
+o The Army as the Nation’s primary provider of Landpower can expect to provide a 
+very large portion of U.S. military support used to deter Russia and reassure NATO 
+allies. 
+o Given the nature of the theater, an armored BCT would be a more effective 
+deterrent than other force alternatives. 
+ 
+10 
+Recommendations 
+U.S. Army War College assessment resulted in the following recommendations. 
+o Evaluate potential U.S. actions through Russian eyes, do not mirror image U.S. thought 
+processes. 
+o Find the right mix of FDOs that is sufficient to reassure our NATO partners and deter 
+Russia without provoking Russia to continue its aggressive behavior. 
+o Use NATO as a hub for requests for support and multilateral coordination. 
+o In addition to responding to allies’ requests, the U.S. Army should consider: 
+o Demonstrating restraint in providing weapons capabilities that the Ukrainians are not 
+prepared to employ, or capabilities to allies and partners that Russia perceives as a 
+provocation to act aggressively; 
+o Increasing availability of PME seats for Eastern European NATO and PfP countries; 
+o Increasing the use of USAREUR’s (and FORSCOM’s) Digital Liaison Detachments 
+which are designed for multinational interoperability;  
+o Aligning a U.S. Corps HQ to NATO for Article V contingency planning; 
+o Allowing selected Regionally Aligned Forces (RAF) rotations to count as CTC credit 
+[such as a BCT-sized NATO Response Force (NRF)]; 
+o Increasing Mission Command capacity commensurate with any increase in force 
+presence; 
+o Assisting partner nations to develop niche specialties such as the water purification 
+specialty of Lithuania;  
+o Providing USAREUR HQs with increased capability and capacity for security 
+cooperation. Such as a larger Security Cooperation Division with more FAOs; 
+assignment of a CA Bn directly to USAREUR; PCS assignment of an officer-NCO 
+heavy “security cooperation” unit to provide more responsive capability than from 
+rotational RAF elements to support TDY teams for in-country training missions; 
+o Prepositioning battalion-sized mission- and unit-tailored equipment sets in lower risk 
+countries (Poland; Romania); 
+Prevent: Each of the measures identified in this report as contributing to achieving the 
+objective of deterring Russia helps prevent the outbreak of conflict.  
+ 
+Army strategic communication must support a clear and consistent message of U.S. 
+commitment to NATO and the desire to reduce the tension must be sent to all parties.  
+ 
+To the extent possible, FDOs should be executed within a NATO framework. 
+ 
+If possible, match the U.S. need for deployment sites for theater setting capabilities with 
+host nation desires for specific capabilities. The degree to which the United States is 
+successful in achieving this alignment will significantly affect what it must do should the 
+situation evolve to requiring shaping or winning. 
+Shape: Each of the measures identified in this report as contributing to achieving the 
+objectives of reassuring NATO allies and bolstering NATO helps shape the USEUCOM theater 
+and contributes toward long-term stability in Europe. 
+ 
+To the extent possible, FDOs should be executed within a NATO framework.  
+o Seek a NATO umbrella for all force deployments.  
+o Use a NATO clearing house approach to coordinate security assistance for Ukraine. 
+ 
+Expect Eastern European NATO allies’ desire for visible signs of U.S. commitment to 
+continue beyond the end the immediate crisis over Ukraine and NATO-Russia tensions. 
+ 
+11 
+ 
+Reexamine the adequacy of current and projected U.S. forces assigned or apportioned 
+or aligned to Europe. Consider: 
+o Increasing funding for USEUCOM/USAREUR Regionally Aligned Forces (RAF) to 
+conduct more combined exercises and other security cooperation activities; 
+o (Re)establishing PREPO sets, at least sufficient to support any rotational presence; 
+o  Aligning a U.S. Corps headquarters to NATO for planning and an increase of senior 
+U.S. military personnel in NATO countries. 
+ 
+Expect allies in Eastern Europe to request new or additional Security Assistance 
+programs and higher FMF and IMET funding levels. 
+o CONUS PME 
+o Deployed training teams (Mobile Training Teams/Technical Assistance Field Teams) 
+o Capacity Building should focus on Institutional Reform and Defense Sector Reform 
+Win. All of the measures identified in this report would incrementally contribute to setting 
+the theater. Given current policy guidance of no boots on the ground in Ukraine, more 
+aggressive steps to set the theater would fail the test of acceptability.
+Annex A: Individual Ally/Partner Most Likely Capability and Mission Requests 
+A-1 
+The military capabilities, and training and education listed as likely to be desired by a 
+particular state could be provided entirely by the United States or partially by the United States 
+with contributions from other NATO members possessing the requested capability. Listing what 
+a country might request is not a recommendation to respond favorably to the request. The 
+participants also provided considerations such as limited capacity of the requesting state to 
+absorb the requested support that should be taken into account in deciding whether to respond 
+favorably to a request, should it be made.  
+UKRAINE: 
+ 
+Desired military capabilities: 
+o Air and missile defense support 
+o Anti-armor capabilities 
+o Combat forces to provide a deterrent to future Russian aggression. 
+o If partitioned:- U.S. forces’ participation in multilateral peacekeeping mission 
+ 
+Training and Education 
+o Military training support to develop capable forces to provide border security. 
+(perhaps modeled after Georgia) 
+o Support for conducting military exercises  
+o U.S. coordination of multilateral support to Ukraine 
+o U.S. State Partnership program unit support  
+o Support for the Poland-Lithuania-Ukraine Brigade 
+o Institutional building and reform, especially for Professional Military Education 
+institutions 
+ 
+Factors for consideration 
+o Ukraine does not have the institutional capacities to accept direct military support 
+on a significant scale 
+o The United States must consider all strategic implications, especially Russian 
+reactions, to any direct support to Ukraine 
+o Providing funding without control and direct supervision risks improper use of 
+funds because of rampant corruption and lack of Ukrainian internal controls 
+o President Obama has declared “no boots on the ground’ in Ukraine. 
+POLAND: 
+ 
+Capabilities 
+o Air and Missile Defense Technology & Capability 
+o Fixed and rotary wing lift platforms  
+o Offensive and defensive cyber capabilities 
+o Permanent stationing of U.S. forces – at least a Brigade Combat Team in size 
+ 
+Training and Education 
+o Establishment of security cooperation forums among countries in the region 
+o Continue annual exercises already in place 
+o Support to help facilitate the Polish military becoming a regional source of military 
+training and expertise. These potential Polish training support teams for Ukraine 
+military forces would relieve the United States of this requirement. 
+SCANDINAVIA (Finland, Sweden, Norway) 
+ 
+Factors for consideration: Participants suggested that given the current threat, Finland 
+will desire NATO membership 
+Annex A: Individual Ally/Partner Most Likely Capability and Mission Requests 
+A-2 
+BALTIC STATES: 
+ 
+Capabilities 
+o Want permanent stationing of U.S. troops on the ground to provide a deterrent to 
+Russian aggression as well as trip line that gets an automatic U.S. response 
+o Capabilities, as well as training, to give the Baltic States a greater anti-access 
+capability against Russia’s ability to project naval forces into the Baltic Sea. 
+o Sustain/reinforce air policing 
+ 
+Training and Education 
+o Use Lithuania as a training hub and integrate with TF East 
+ 
+Factor for consideration 
+o The Baltic States could provide NATO with niche specialties (water purification 
+for Lithuania as an example or cyber capabilities in general) 
+o The Baltic States perceive that they have inadequate defenses against Russia’s 
+ability to project naval power into the Baltic Sea 
+NATO in general: 
+ 
+Capabilities 
+o Provide more U.S. forward deployed forces  
+o The United States should fund regionally aligned forces (RAF) for Europe/NATO 
+and allow RAF rotations to count as Combat Training Center (CTC) credit. 
+o Stationing of prepositioned activity sets in low risk countries (Poland) 
+o Alignment of a U.S. corps headquarters to NATO for planning 
+o Maintain a permanent Black Sea naval presence and increase multilateral 
+exercises 
+ 
+Training and Education 
+o Article V training deployments 
+ 
+CONPLAN updates 
+ 
+Actual force deployments from CONUS (REFORGER) 
+ 
+Make exercise objectives based on Art 5 response 
+o Provide observer-controller teams for NATO exercises to improve interoperability 
+o Increased availability of Professional Military Education (PME) seats for NATO 
+countries 
+ 
+Factors for consideration 
+o The United States should use NATO as hub for requests for support and multi-
+lateral coordination 
+o Maintaining a permanent Black Sea naval presence would probably confirm 
+Putin’s fear of the Black Sea becoming a NATO lake and provoke more hostile 
+behavior 
+MOLDOVA: 
+ 
+Continue foreign military financing (FMF) 
+ROMANIA: 
+ 
+Training and Education 
+o Increased use of JTF East Facilities 
+ 
+Toe to heel rotation of a Brigade which could also support the troop 
+rotation in the Baltics and other areas.   
+Annex A: Individual Ally/Partner Most Likely Capability and Mission Requests 
+A-3 
+ 
+Used as training hub with combat training center (CTC) recognition 
+ 
+Factor for consideration: Romania is likely expect the United States to increase the 
+amount of FMF it receives 
+RUSSIA: 
+ 
+Keep open lines of communication with Russia by conducting military to military 
+engagements. However, this is likely to encounter significant domestic political 
+opposition 
+Other areas for support spanning multiple stakeholders: 
+ 
+Capabilities 
+o Greater Intelligence Sharing within NATO and with non-NATO friends 
+o Internally Displaced Person (IDP)/refugee support 
+o Sustain troop commitments to Poland and Baltic States 
+o Provide regional security assistance teams (both U.S. and NATO) 
+o Provide Civil Affairs/PSYOP support 
+o Provide defense planning assistance/advice especially at the ministerial level  
+o Establish a persistent rotational presence of U.S. forces on the territories of the 
+NATO members that feel most threatened 
+ 
+Training and Education 
+o Foster multilateral mil to mil efforts (Ukraine/Poland/Lithuania brigade) 
+o Extensive interoperability training with allies should be the focus of our military 
+efforts  
+o International Military Education and Training (IMET) was a tool several 
+participants (including International Fellows) thought was effective in the long 
+term 
+o Increase our training and exercise footprint. Increase levels of participation and 
+commitment, especially by the US. Change locations of exercises to include all 
+NATO partners. 
+o Mobile Training Teams (MTT) 
+o Factors for consideration: Some participants supported using NATO membership 
+as leverage; with the current threat, there are now new countries who want to 
+join; however, this would further anger Putin and probably be seen as a direct 
+challenge to Russia’s interest. It is more likely to escalatory than de-escalatory. 
+ 
