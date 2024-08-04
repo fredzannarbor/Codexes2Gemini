@@ -6,7 +6,7 @@ from importlib import resources
 from typing import Dict
 import uuid
 import google.generativeai as genai
-
+import streamlit as st
 
 from ..Builders.PartsBuilder import PartsBuilder
 from ..Builders.CodexBuilder import CodexBuilder
@@ -150,13 +150,16 @@ class BuildLauncher:
             else:
                 logger.error(f"Invalid mode specified for plan: {plan.mode}")
                 continue
-            if plan.ensure_output_limit:
+            if plan['ensure_required_output_minimum']:
+                st.info("ensuring that output is at least minumum length {minimum_required_output_tokens}")
                 result = self.parts_builder.ensure_output_limit(result, plan.minimum_required_output_tokens)
+            else:
+                st.info("not ensuring that output satisifies a minimum length requirement")
 
             results.append(result)
 
             # Generate a unique filename for each plan
-            unique_filename = f"{plan.output_file_path}_{str(uuid.uuid4())[:6]}"
+            unique_filename = f"{plan.thisdoc_dir}/{plan.output_file_path}_{str(uuid.uuid4())[:6]}"
             with open(unique_filename + ".md", 'w') as f:
                 f.write(result)
                 logger.info(f"Output written to {unique_filename}.md")

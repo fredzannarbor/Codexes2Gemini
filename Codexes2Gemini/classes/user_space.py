@@ -1,6 +1,7 @@
 # user_space.py
 
 import pickle
+import time
 from typing import Dict, List, Optional
 from datetime import datetime
 
@@ -46,6 +47,10 @@ class UserSpace:
 
     def save_prompt_plan(self, prompt_plan: Dict):
         self.prompt_plans.append(prompt_plan)
+
+    def add_result(self, key, result):
+        timestamp = time.time()  # this gives a timestamp
+        self.__dict__[key] = {"result": result, "time": timestamp}
 
 def save_user_space(user_space: UserSpace):
     with open('user_space.pkl', 'wb') as f:

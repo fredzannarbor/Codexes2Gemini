@@ -14,7 +14,7 @@ import time
 
 import Codexes2Gemini
 
-print("Codexes2Gemini location:", Codexes2Gemini.__file__)
+#print("Codexes2Gemini location:", Codexes2Gemini.__file__)
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -174,62 +174,60 @@ def multi_plan_builder(user_space: UserSpace):
             st.session_state.context_files = []
 
     user_prompts_dict = load_json_file("user_prompts_dict.json")
-    #st.write(user_prompts_dict)
     system_instructions_dict = load_json_file("system_instructions.json")
 
+    plan_name = st.text_input("Plan Name")
+    if plan_name:
+        st.session_state.current_plan.update({"name": plan_name})
 
-    # File uploader outside the form
-    st.subheader("Step 1: Context Selection")
-    uploaded_files = st.file_uploader("Upload new context files", accept_multiple_files=True,
-                                      help="May be up to 10M tokens of text or ~40MB (!)")
-    if uploaded_files:
-        st.session_state.context_files = uploaded_files
+    st.subheader("Context Selection")
+    context_choice = st.radio("Choose context source:", ["Upload New Context", "Select Saved Context", "Skip Context"])
 
-    # Form 1: Context
-    with st.form("step1-context"):
-        plan_name = st.text_input("Plan Name")
+    if context_choice == "Upload New Context":
+        with st.form("step_0"):
+            uploaded_files = st.file_uploader("Upload new context files", accept_multiple_files=True,
+                                              help="May be up to 10M tokens of text or ~40MB (!)")
+            new_context_name = st.text_input("New context name")
+            new_context_tags = st.text_input("Context tags (comma-separated, optional)")
 
-        context_filter = st.text_input("Filter saved contexts")
-        filtered_contexts = user_space.get_filtered_contexts(context_filter)
-        selected_saved_context = st.selectbox(
-            "Select a saved context",
-            options=[""] + list(filtered_contexts.keys()),
-            format_func=lambda x: f"{x}: {filtered_contexts[x].content[:50]}..." if x else "None"
-        )
+            new_context_submitted = st.form_submit_button("Save this as a new context")
+            if new_context_submitted and uploaded_files:
+                st.session_state.context_files = uploaded_files
+                context_content = "\n\n".join([read_file_content(file) for file in st.session_state.context_files])
+                user_space.save_context(new_context_name, context_content,
+                                        new_context_tags.split(',') if new_context_tags else None)
+                save_user_space(user_space)
+                st.success(f"Context '{new_context_name}' saved successfully.")
 
-        save_new_context = st.checkbox("Save this as a new context")
-        new_context_name = st.text_input("New context name", disabled=not save_new_context)
-        new_context_tags = st.text_input("Context tags (comma-separated, optional)", disabled=not save_new_context)
+                total_tokens = count_tokens(context_content)
+                total_mb = tokens_to_millions(total_tokens)
+                st.session_state.current_plan.update({
+                    "context": context_content,
+                    "context_total_tokens": total_tokens,
+                    "context_total_mb": total_mb
+                })
 
-        context_submitted = st.form_submit_button("Select This Context and Continue")
+    elif context_choice == "Select Saved Context":
+        with st.form("step_1"):
+            context_filter = st.text_input("Filter saved contexts")
+            filtered_contexts = user_space.get_filtered_contexts(context_filter)
+            selected_saved_context = st.selectbox(
+                "Select a saved context",
+                options=[""] + list(filtered_contexts.keys()),
+                format_func=lambda x: f"{x}: {filtered_contexts[x].content[:50]}..." if x else "None"
+            )
 
-    # Process form submission
-    if context_submitted:
-        context_content = ""
-        if selected_saved_context:
-            context_content = filtered_contexts[selected_saved_context].content
-
-        if st.session_state.context_files:
-            new_content = "\n\n".join([read_file_content(file) for file in st.session_state.context_files])
-            context_content += ("\n\n" + new_content) if context_content else new_content
-
-        total_tokens = count_tokens(context_content) if context_content else 0
-        total_mb = tokens_to_millions(total_tokens)
-
-        if save_new_context and new_context_name and context_content:
-            user_space.save_context(new_context_name, context_content,
-                                    new_context_tags.split(',') if new_context_tags else None)
-            save_user_space(user_space)
-            st.success(f"Context '{new_context_name}' saved successfully.")
-
-        st.session_state.current_plan.update({
-            "name": plan_name,
-            "context": context_content,
-            "context_total_tokens": total_tokens,
-            "context_total_mb": total_mb
-        })
-        st.success(
-            f"Context {new_context_name} saved to userspace.")
+            context_submitted = st.form_submit_button("Select This Context")
+            if context_submitted and selected_saved_context:
+                context_content = filtered_contexts[selected_saved_context].content
+                total_tokens = count_tokens(context_content)
+                total_mb = tokens_to_millions(total_tokens)
+                st.session_state.current_plan.update({
+                    "context": context_content,
+                    "context_total_tokens": total_tokens,
+                    "context_total_mb": total_mb
+                })
+                st.success(f"Context '{selected_saved_context}' selected successfully.")
 
     # Display current context info
     if 'context' in st.session_state.current_plan:
@@ -240,7 +238,6 @@ def multi_plan_builder(user_space: UserSpace):
         truncated_plan['context'] = truncated_plan['context'][:1000] + "..." if len(
             truncated_plan['context']) > 1000 else truncated_plan['context']
         st.json(truncated_plan)
-
 
     # Form 2: Instructions and Prompts
     with st.form("step2-instructions-prompts"):
@@ -295,6 +292,16 @@ def multi_plan_builder(user_space: UserSpace):
     with st.form("step3-output-settings"):
         st.subheader("Step 3: Output Settings")
 
+        with st.expander("Set Output Requirements"):
+            with st.container():
+                limit = st.number_input("Maximum output size in tokens", value=8000, step=500)
+                ensure_required_output_minimum = st.checkbox("Ensure Minimum Output Tokens", value=False,
+                                                             help="Enforce minimum output tokens; can reduce likelihood of successful run.")
+                minimum_required_output_tokens = st.number_input("Minimum required output tokens", value=500, step=500,
+                                                                 help="latest Gemini-1.5 max is 8192")
+                st.warning(
+                    "Important: the above limits will be applied to *all* prompts in this plan. If you need a prompt to have a different limit, it must have its own plan.")
+
         with st.expander("Set Output Destinations"):
             mode_options = [
                 "Single Part of a Book (Part)",
@@ -324,14 +331,7 @@ def multi_plan_builder(user_space: UserSpace):
 
             output_file = st.text_input("Output filename base", "output")
 
-        with st.expander("Set Output Requirements"):
-            with st.container():
-                limit = st.number_input("Maximum output size in tokens", value=8000, step=500)
-                ensure_output_limit = st.checkbox("Ensure Minimum Output Tokens", value=False)
-                minimum_required_output_tokens = st.number_input("Minimum required output tokens", value=500, step=500,
-                                                                 help="latest Gemini-1.5 max is 8192")
-                st.warning(
-                    "Important: the above limits will be applied to *all* prompts in this plan. If you need a prompt to have a different limit, it must have its own plan.")
+
 
             log_level = st.selectbox("Log level", ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
 
@@ -343,7 +343,7 @@ def multi_plan_builder(user_space: UserSpace):
             "thisdoc_dir": thisdoc_dir,
             "output_file": output_file,
             "limit": limit,
-            "ensure_output_limit": ensure_output_limit,
+            "ensure_required_output_minimum": ensure_required_output_minimum,
             "minimum_required_output_tokens": minimum_required_output_tokens,
             "log_level": log_level,
         })
@@ -370,11 +370,12 @@ def multi_plan_builder(user_space: UserSpace):
 
     # Run multiplan button
     if st.session_state.multiplan and st.button("Run Multiplan"):
-        run_multiplan(st.session_state.multiplan, user_prompts_dict)
+        run_multiplan(st.session_state.multiplan, user_prompts_dict, user_space)
         user_space.save_prompt_plan({"multiplan": st.session_state.multiplan})
-        save_user_space(user_space)
-        st.success("Multiplan saved to UserSpace")
-def run_multiplan(multiplan, user_prompts_dict):
+
+        st.success("Multiplan and results saved to your Userspace tab.")
+
+def run_multiplan(multiplan, user_prompts_dict, user_space):
     launcher = BuildLauncher()
     results = []
     for plan in multiplan:
@@ -396,19 +397,24 @@ def run_multiplan(multiplan, user_prompts_dict):
             'selected_system_instructions': plan['system_instructions'],
             'user_prompt': combined_user_prompt,
             'list_of_user_keys_to_use': plan['user_prompts'],
+            'ensure_required_output_minimum': plan['ensure_required_output_minimum'],
             'minimum_required_output_tokens': plan['minimum_required_output_tokens'],
-            'user_prompts_dict': user_prompts_dict  # Add this line
+            'user_prompts_dict': user_prompts_dict
+
         }
 
         try:
             result = launcher.main(launcher_plan)
             results.append(result)
+
         except Exception as e:
             st.error(f"Error processing plan '{plan['name']}': {str(e)}")
             st.write(traceback.format_exc())
 
     st.subheader("Multiplan Results")
-    st.write(results)
+    user_space.add_result('results', results)
+    st.write(user_space.results)
+    save_user_space(user_space)
 
 def display_full_context(context_files):
     for filename, content in context_files.items():
@@ -502,17 +508,18 @@ def user_space_app(user_space: UserSpace):
             st.rerun()
 
     st.header("Saved Results")
-    if user_space.results:
-        result_df = pd.DataFrame(
-            [(r["timestamp"], r["result"][:50] + "...") for r in user_space.results],
-            columns=["Timestamp", "Result Preview"]
-        )
-        st.table(result_df)
-        if st.button("Clear All Results"):
-            user_space.results = []
-            save_user_space(user_space)
-            st.success("All results cleared")
-            st.rerun()
+    #st.write(user_space.results)
+    # if user_space.results:
+    #     result_df = pd.DataFrame(
+    #         [(r["timestamp"], r["results"][:50] + "...") for r in user_space.results],
+    #         columns=["Timestamp", "Result Preview"]
+    #     )
+    #     st.table(result_df)
+    #     if st.button("Clear All Results"):
+    #         user_space.results = []
+    #         save_user_space(user_space)
+    #         st.success("All results cleared")
+    #         st.rerun()
 
     st.header("Saved Prompt Plans")
     if user_space.prompt_plans:
