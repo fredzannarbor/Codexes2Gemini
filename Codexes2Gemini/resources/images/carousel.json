@@ -1,0 +1,14 @@
+[
+    {
+        "title": "Codex Gigas",
+        "text": "13thC, Bohemia. A Bible with many additional parts.",
+        "img": "resources/images/codex-gigas.jpg",
+        "link": "https://www.loc.gov/item/2021667604"
+    },
+    {
+        "title": "Codex Sinaiticus",
+        "text": "4thC, Greece",
+        "img": "resources/images/Codex-Sinaiticus-Septuagint.webp",
+        "link": "https://github.com/thomasbs17/streamlit-contributions/tree/master/bootstrap_carousel"
+    }
+    ]
