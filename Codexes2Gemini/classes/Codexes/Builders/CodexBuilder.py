@@ -37,11 +37,7 @@ class CodexBuilder:
             content = content[:int(len(content) * 0.9)]  # Reduce by 10% each time
         return content
 
-    def ensure_output_limit(self, content: str, limit: int) -> str:
-        """Ensure the output is within the specified token limit."""
-        if self.count_tokens(content) <= limit:
-            return content
-        return self.truncate_to_token_limit(content, limit)
+
 
     def use_continuation_prompt(self, plan: PromptPlan, initial_content: str) -> str:
         """Use continuation prompts to extend content to desired token count."""
