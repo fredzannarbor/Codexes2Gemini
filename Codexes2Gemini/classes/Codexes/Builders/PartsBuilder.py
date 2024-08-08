@@ -20,16 +20,16 @@ class PartsBuilder:
             # Fallback to character count if tokenization fails
             return len(text)
 
-    def truncate_to_token_limit(self, content: str, limit: int) -> str:
-        while self.count_tokens(content) > limit:
+    def truncate_to_token_limit(self, content: str, maximum_output_tokens: int) -> str:
+        while self.count_tokens(content) > maximum_output_tokens:
             content = content[:int(len(content) * 0.9)]  # Reduce by 10% each time
         return content
 
-    def ensure_output_limit(self, content: str, limit: int) -> str:
+    def ensure_maximum_output_enforced(self, content: str, maximum_output_tokens: int) -> str:
         """Ensure the output is within the specified token limit."""
-        if self.count_tokens(content) <= limit:
+        if self.count_tokens(content) <= maximum_output_tokens:
             return content
-        return self.truncate_to_token_limit(content, limit)
+        return self.truncate_to_token_limit(content, maximum_output_tokens)
 
     def use_continuation_prompt(self, plan: PromptPlan, initial_content: str) -> str:
         """Use continuation prompts to extend content to desired token count."""
@@ -62,5 +62,6 @@ class PartsBuilder:
             plan.context = codex
             results.append(self.build_part(plan))
         return results
+
 
 
