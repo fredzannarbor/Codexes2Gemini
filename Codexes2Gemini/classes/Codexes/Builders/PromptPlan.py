@@ -16,11 +16,14 @@ class PromptPlan(OrderedDict):
                  thisdoc_dir: str = "", json_required: bool = False, generation_config: dict = None,
                  system_instructions_dict_file_path: str = None, list_of_system_keys: str = None,
                  user_prompt: str = "", user_prompt_override: bool = False,
-                 user_prompts_dict: Dict[str, Any] = None,  # Change this line
+                 user_prompts_dict: Dict[str, Any] = None,  #
+                 user_prompts_dict_file_path = "user_prompts.json", # Change this line
                  list_of_user_keys_to_use: List[str] = None,
                  continuation_prompts: bool = False,
                  output_file_path: str = "output", log_level: str = "INFO", number_to_run: int = 1,
-                 minimum_required_output_tokens: int = 100, ensure_output_limit=False,
+                 minimum_required_output = False,
+                 minimum_required_output_tokens: int = 100,
+                 maximum_output_tokens = 8000,
                  model_name: str = None, mode: str = "part",
                  config_file: str = None, use_all_user_keys: bool = False, add_system_prompt: str = "") -> None:
 
@@ -57,8 +60,9 @@ class PromptPlan(OrderedDict):
         self.continuation_prompts = continuation_prompts
         self.output_file_path = output_file_path
         self.number_to_run = number_to_run
-        self.ensure_output_limit = ensure_output_limit
+        self.minimum_required_output = minimum_required_output
         self.minimum_required_output_tokens = minimum_required_output_tokens
+        self.maximum_output_tokens = maximum_output_tokens
         self.model = model_name
         self.mode = mode
         self.use_all_user_keys = use_all_user_keys
