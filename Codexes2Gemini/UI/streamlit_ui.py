@@ -1,18 +1,18 @@
-import inspect
-import sys
+import base64
+import json
 import os
 import random
-import traceback
-
-import streamlit as st
-import json
-from typing import Dict, List
-import base64
-from importlib import resources
-import pandas as pd
+import sys
 import time
+import traceback
+from importlib import resources
+from typing import Dict
+from datetime import datetime
+from pprint import pprint
+import pandas as pd
+import streamlit as st
+from streamlit_carousel import carousel
 
-import Codexes2Gemini
 
 #print("Codexes2Gemini location:", Codexes2Gemini.__file__)
 
@@ -34,11 +34,20 @@ import logging
 from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space
+from Codexes2Gemini.classes.Codexes.Builders.PromptPlan import PromptPlan
 
+logger = configure_logger("DEBUG")
+logging.info("--- Began logging ---")
 user_space = load_user_space()
+logger.debug(f"user_space: {user_space}")
 
 GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
 
+
+def image_to_base64(image_path):
+    with open(image_path, "rb") as image_file:
+        import base64
+        return base64.b64encode(image_file.read()).decode()
 
 def load_json(file_path: str) -> dict:
     try:
@@ -56,6 +65,22 @@ def load_json(file_path: str) -> dict:
 def load_json_file(file_name):
     try:
         with resources.files('Codexes2Gemini.resources.prompts').joinpath(file_name).open('r') as file:
+            return json.load(file)
+    except Exception as e:
+        st.error(f"Error loading JSON file: {e}")
+        return {}
+
+def load_image_file(file_name):
+    try:
+        with resources.files('resources.images').joinpath(file_name).open('rb') as file:
+            return file.read()
+    except Exception as e:
+        st.error(f"Error loading image file: {e}")
+        return
+
+def load_json_carousel_file(file_name):
+    try:
+        with resources.files('Codexes2Gemini.resources.images').joinpath(file_name).open('r') as file:
             return json.load(file)
     except Exception as e:
         st.error(f"Error loading JSON file: {e}")
@@ -89,26 +114,27 @@ def display_tag_cloud(tag_freq, key_prefix):
     st.markdown(tag_cloud_html, unsafe_allow_html=True)
 
 
-def tab2_upload_config():
-    st.header("Upload Plan Files")
+def upload_build_plan():
+    st.header("Upload Plan File")
 
     config_file = st.file_uploader("Upload JSON configuration file", type="json")
-
     if config_file is not None:
-        config_data = json.load(config_file)
-        st.json(config_data)
+        plans = json.load(config_file)
 
-        if st.button("Run BuildLauncher with Uploaded Config"):
-            if 'multiplan' in config_data:
-                for plan in config_data['multiplan']:
-                    if 'context_files' in plan:
-                        context = "\n".join(plan['context_files'].values())
-                        plan['context'] = context
+        if 'multiplan' in plans:
+            st.subheader("Review Contents of Uploaded Plan File")
+            for index, plan in enumerate(plans['multiplan']):
+                st.write(f"**Plan {index + 1}**")
+                truncated_plan = plan.copy()
+                if 'context' in truncated_plan:
+                    truncated_plan['context'] = truncated_plan['context'][:1000] + "..." if len(
+                        truncated_plan['context']) > 1000 else truncated_plan['context']
+                st.json(truncated_plan, expanded=False)
 
-                    if 'minimum_required_output_tokens' not in plan or plan['minimum_required_output_tokens'] is None:
-                        plan['minimum_required_output_tokens'] = 1000
+            if st.button("Run Uploaded Plans"):
 
-            run_build_launcher_with_config(config_data)
+
+                run_multiplan(plans['multiplan'], user_space)
 
 
 def count_tokens(text, model='models/gemini-1.5-pro'):
@@ -158,42 +184,52 @@ def read_file_content(file):
         return ""
 
 
-def multi_plan_builder(user_space: UserSpace):
+def multiplan_builder(user_space: UserSpace):
     st.header("Multi-Prompt Codex Analyzer and Builder")
 
+    # Initialize session state variables
     if 'multiplan' not in st.session_state:
         st.session_state.multiplan = []
     if 'current_plan' not in st.session_state:
         st.session_state.current_plan = {}
     if 'name' not in st.session_state['current_plan']:
-        # string version of date stamp
-        datestamp = get_epoch_time_string()
-        st.session_state.current_plan['name'] = "New Plan" + "_" + datestamp
-
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        st.session_state.current_plan['name'] = f"New Plan_{timestamp}"
     if 'context_files' not in st.session_state:
-            st.session_state.context_files = []
+        st.session_state.context_files = []
 
     user_prompts_dict = load_json_file("user_prompts_dict.json")
     system_instructions_dict = load_json_file("system_instructions.json")
 
-    plan_name = st.text_input("Plan Name")
-    if plan_name:
-        st.session_state.current_plan.update({"name": plan_name})
+    # Display image carousel
+    with st.container():
+        st.markdown("""
+            <style>
+            .fixed-height-container { height: 250px; overflow-y: hidden; }
+            .image-container img { height: 200px; width: auto; object-fit: cover; }
+            .caption { text-align: left; margin-top: 5px; }
+            </style>
+        """, unsafe_allow_html=True)
 
-    st.subheader("Context Selection")
+        cols = st.columns(4)
+        image_info = load_json_carousel_file('image_info.json')
+        display_image_row(cols, image_info)
+
+    # Step 1: Context Selection
+    st.subheader("Step 1: Context Selection")
     context_choice = st.radio("Choose context source:", ["Upload New Context", "Select Saved Context", "Skip Context"])
 
+    context_selected = False
     if context_choice == "Upload New Context":
-        with st.form("step_0"):
-            uploaded_files = st.file_uploader("Upload new context files", accept_multiple_files=True,
-                                              help="May be up to 10M tokens of text or ~40MB (!)")
+        with st.form("step_1_upload"):
+            uploaded_files = st.file_uploader("Upload new context files", accept_multiple_files=True)
             new_context_name = st.text_input("New context name")
             new_context_tags = st.text_input("Context tags (comma-separated, optional)")
+            new_context_submitted = st.form_submit_button("Save New Context")
 
-            new_context_submitted = st.form_submit_button("Save this as a new context")
             if new_context_submitted and uploaded_files:
-                st.session_state.context_files = uploaded_files
-                context_content = "\n\n".join([read_file_content(file) for file in st.session_state.context_files])
+                # Process and save new context
+                context_content = "\n\n".join([read_file_content(file) for file in uploaded_files])
                 user_space.save_context(new_context_name, context_content,
                                         new_context_tags.split(',') if new_context_tags else None)
                 save_user_space(user_space)
@@ -206,9 +242,10 @@ def multi_plan_builder(user_space: UserSpace):
                     "context_total_tokens": total_tokens,
                     "context_total_mb": total_mb
                 })
+                context_selected = True
 
     elif context_choice == "Select Saved Context":
-        with st.form("step_1"):
+        with st.form("step_1_select"):
             context_filter = st.text_input("Filter saved contexts")
             filtered_contexts = user_space.get_filtered_contexts(context_filter)
             selected_saved_context = st.selectbox(
@@ -216,8 +253,8 @@ def multi_plan_builder(user_space: UserSpace):
                 options=[""] + list(filtered_contexts.keys()),
                 format_func=lambda x: f"{x}: {filtered_contexts[x].content[:50]}..." if x else "None"
             )
-
             context_submitted = st.form_submit_button("Select This Context")
+
             if context_submitted and selected_saved_context:
                 context_content = filtered_contexts[selected_saved_context].content
                 total_tokens = count_tokens(context_content)
@@ -228,23 +265,26 @@ def multi_plan_builder(user_space: UserSpace):
                     "context_total_mb": total_mb
                 })
                 st.success(f"Context '{selected_saved_context}' selected successfully.")
+                context_selected = True
+
+    elif context_choice == "Skip Context":
+        context_selected = True
 
     # Display current context info
-    if 'context' in st.session_state.current_plan:
+    if 'context' in st.session_state.current_plan and len(st.session_state.current_plan['context']) > 0:
         st.info(f"Current context: {st.session_state.current_plan['context_total_tokens']:,} tokens "
                 f"(approximately {st.session_state.current_plan['context_total_mb']:.3f} MB)")
         plan = st.session_state.current_plan
-        truncated_plan = plan.copy()
-        truncated_plan['context'] = truncated_plan['context'][:1000] + "..." if len(
-            truncated_plan['context']) > 1000 else truncated_plan['context']
-        st.json(truncated_plan)
+        truncate_plan_values_for_display(plan)
 
-    # Form 2: Instructions and Prompts
+    # Step 2: Instructions and Prompts
+    st.subheader("Step 2: Instructions and Prompts")
+    instruction_cols = st.columns(4)
+    instructions_images = load_json_carousel_file('instructions_info.json')
+    display_image_row(instruction_cols, instructions_images)
+
     with st.form("step2-instructions-prompts"):
-        st.subheader("Step 2: Instructions and Prompts")
-
         with st.expander("Enter System Instructions"):
-            st.subheader("System Instructions")
             system_filter = st.text_input("Filter system instructions")
             filtered_system = filter_dict(system_instructions_dict, system_filter)
             selected_system_instructions = st.multiselect(
@@ -254,101 +294,85 @@ def multi_plan_builder(user_space: UserSpace):
             )
 
         with st.expander("Enter User Prompts"):
-            st.subheader("User Prompts")
             user_filter = st.text_input("Filter user prompts")
             filtered_user = filter_dict(user_prompts_dict, user_filter)
+            selected_user_prompt = ""
             selected_user_prompts = st.multiselect(
                 "Select user prompts",
                 options=list(filtered_user.keys()),
                 format_func=lambda x: f"{x}: {filtered_user[x]['prompt'][:50]}..."
             )
-
+            for key in selected_user_prompts:
+                selected_user_prompt = selected_user_prompt + "\n" + user_prompts_dict[key]['prompt']
+                selected_user_prompt_values = user_prompts_dict[key]['prompt']
             custom_user_prompt = st.text_area("Custom User Prompt (optional)")
             user_prompt_override = st.radio("Override?",
                                             ["Override other user prompts", "Add at end of other user prompts"],
                                             index=1)
             if user_prompt_override == "Override other user prompts":
-                selected_user_prompts = [custom_user_prompt]
+                user_prompt = custom_user_prompt
+            else:
+                user_prompt = selected_user_prompt + '/n' + custom_user_prompt
 
-        instructions_submitted = st.form_submit_button("Save Instructions and Continue")
-
+        instructions_submitted = st.form_submit_button("Save Instructions and Continue",
+                                                       disabled=not context_selected)
 
     if instructions_submitted:
+
         st.session_state.current_plan.update({
             "system_instructions": selected_system_instructions,
             "user_prompts": selected_user_prompts,
-            "custom_user_prompt": custom_user_prompt
+            "selected_user_prompt": selected_user_prompt,
+            "selected_user_prompt_values": selected_user_prompt_values,
+            "custom_user_prompt": custom_user_prompt,
+            "user prompt_override": user_prompt_override,
+            "user_prompt": user_prompt,
+            "user_prompts_dict": user_prompts_dict
         })
-        st.success("Instructions and prompts saved. Please proceed to the final step.")
+        st.success("Instructions and prompts saved.")
 
-        plan = st.session_state.current_plan
-        truncated_plan = plan.copy()
-        truncated_plan['context'] = truncated_plan['context'][:1000] + "..." if len(
-            truncated_plan['context']) > 1000 else truncated_plan['context']
-        st.json(truncated_plan)
-
-
-    # Form 3: Output Settings
+    # Step 3: Output Settings
+    st.subheader("Step 3: Output Settings")
     with st.form("step3-output-settings"):
-        st.subheader("Step 3: Output Settings")
-
         with st.expander("Set Output Requirements"):
-            with st.container():
-                limit = st.number_input("Maximum output size in tokens", value=8000, step=500)
-                ensure_required_output_minimum = st.checkbox("Ensure Minimum Output Tokens", value=False,
-                                                             help="Enforce minimum output tokens; can reduce likelihood of successful run.")
-                minimum_required_output_tokens = st.number_input("Minimum required output tokens", value=500, step=500,
-                                                                 help="latest Gemini-1.5 max is 8192")
-                st.warning(
-                    "Important: the above limits will be applied to *all* prompts in this plan. If you need a prompt to have a different limit, it must have its own plan.")
-
-        with st.expander("Set Output Destinations"):
-            mode_options = [
-                "Single Part of a Book (Part)",
-                "Multiple Parts of a Book (Multi-Part)",
-                "Basic Codex (Codex)",
-                "Comprehensive Codex (Full Codex)"
-            ]
-            mode_mapping = {
-                "Single Part of a Book (Part)": 'part',
-                "Multiple Parts of a Book (Multi-Part)": 'multi_part',
-                "Basic Codex (Codex)": 'codex',
-                "Comprehensive Codex (Full Codex)": 'full_codex'
-            }
+            mode_options = ["Single Part of a Book (Part)"]
+            mode_mapping = {"Single Part of a Book (Part)": 'part'}
             selected_mode_label = st.selectbox("Create This Type of Codex Object:", mode_options)
             mode = mode_mapping[selected_mode_label]
+            maximum_output_tokens = st.number_input("Maximum output size in tokens", value=8000, step=500)
+            minimum_required_output = st.checkbox("Ensure Minimum Output", value=False)
+            minimum_required_output_tokens = st.number_input("Minimum required output tokens", value=50, step=500)
 
-            if not os.path.exists(os.path.join(os.getcwd(), 'output', 'c2g')):
-                os.makedirs(os.path.join(os.getcwd(), 'output', 'c2g'), exist_ok=True)
-
+        with st.expander("Set Output Destinations"):
             thisdoc_dir = st.text_input("Output directory", value=os.path.join(os.getcwd(), 'output', 'c2g'))
-            if not os.path.exists(thisdoc_dir):
-                try:
-                    os.makedirs(thisdoc_dir, exist_ok=True)
-                except:
-                    logging.error(f"Could not create directory {thisdoc_dir}, falling back to 'output/c2g'")
-                    thisdoc_dir = os.path.join(os.getcwd(), 'output', 'c2g')
-
             output_file = st.text_input("Output filename base", "output")
-
-
-
             log_level = st.selectbox("Log level", ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
+            plan_name = st.text_input("Plan Name", value=st.session_state.current_plan.get('name', ''))
 
-        plan_submitted = st.form_submit_button("Add Plan")
+        # Check conditions for enabling the submit button
+        context_selected = 'context' in st.session_state.current_plan or context_choice == "Skip Context"
+        instructions_selected = (
+                len(st.session_state.current_plan.get('system_instructions', [])) > 0 or
+                len(st.session_state.current_plan.get('user_prompts', [])) > 0 or
+                len(st.session_state.current_plan.get('custom_user_prompt', '')) > 0
+        )
+        submit_disabled = not (context_selected and instructions_selected)
 
-    if plan_submitted and st.session_state.current_plan:
+        plan_submitted = st.form_submit_button("Accept Output Settings", disabled=submit_disabled)
+
+    if plan_submitted:
         st.session_state.current_plan.update({
+            "name": plan_name,
             "mode": mode,
             "thisdoc_dir": thisdoc_dir,
             "output_file": output_file,
-            "limit": limit,
-            "ensure_required_output_minimum": ensure_required_output_minimum,
+            "maximum_output_tokens": maximum_output_tokens,
+            "minimum_required_output": minimum_required_output,
             "minimum_required_output_tokens": minimum_required_output_tokens,
             "log_level": log_level,
         })
         st.session_state.multiplan.append(st.session_state.current_plan)
-        st.success(f"Plan '{st.session_state.current_plan['name']}' added to multiplan")
+        st.success(f"Plan '{plan_name}' added to multiplan")
         st.session_state.current_plan = {}
 
     # Display current multiplan
@@ -356,61 +380,77 @@ def multi_plan_builder(user_space: UserSpace):
         st.subheader("Current Multiplan")
         for i, plan in enumerate(st.session_state.multiplan):
             with st.expander(f"Plan {i + 1}: {plan['name']}"):
-                truncated_plan = plan.copy()
-                truncated_plan['context'] = truncated_plan['context'][:1000] + "..." if len(truncated_plan['context']) > 1000 else truncated_plan['context']
-                st.json(truncated_plan)
+
+                truncate_plan_values_for_display(plan)
+
                 col1, col2 = st.columns(2)
                 with col1:
-                    if st.button(f"View Full Context for Plan {i + 1}"):
+                    if 'context' in plan and st.button(f"View Full Context for Plan {i + 1}"):
                         st.text_area("Full Context", value=plan['context'], height=300)
                 with col2:
                     if st.button(f"Remove Plan {i + 1}"):
                         st.session_state.multiplan.pop(i)
                         st.rerun()
 
-    # Run multiplan button
-    if st.session_state.multiplan and st.button("Run Multiplan"):
-        run_multiplan(st.session_state.multiplan, user_prompts_dict, user_space)
-        user_space.save_prompt_plan({"multiplan": st.session_state.multiplan})
+        # Run multiplan button
+        if st.button("Run Multiplans"):
+            run_multiplan(st.session_state.multiplan, user_space)
+            user_space.save_prompt_plan({"multiplan": st.session_state.multiplan})
+            st.success("Multiplan and results saved to your Userspace tab.")
 
-        st.success("Multiplan and results saved to your Userspace tab.")
 
-def run_multiplan(multiplan, user_prompts_dict, user_space):
+def truncate_plan_values_for_display(plan):
+    truncated_plan = plan.copy()
+    truncated_plan['context'] = truncated_plan['context'][:1000] + "..." if len(
+        truncated_plan['context']) > 1000 else truncated_plan['context']
+    # drop key user_prompt_dict
+    truncated_plan['user_prompts_dict'] = {"prompt": "User prompt dict passed into function, available in debug log"}
+
+    st.json(truncated_plan)
+
+
+def display_image_row(cols, image_info):
+    for col, info in zip(cols, image_info):
+        with col:
+            st.markdown(
+                f'<a href="{info["link"]}" target="_blank">'
+                f'<div class="image-container"><img src="data:image/png;base64,{image_to_base64(info["path"])}"/></div>'
+                f'</a>'
+                f'<div class="caption">{info["caption"]}</div>',
+                unsafe_allow_html=True
+            )
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+def run_multiplan(multiplan, user_space):
+    print("--- Beginning to Run Multiplan ---")
     launcher = BuildLauncher()
     results = []
+    #print(type(multiplan))
     for plan in multiplan:
-        user_prompts = []
-        for prompt_key in plan['user_prompts']:
-            if prompt_key in user_prompts_dict:
-                user_prompts.append(user_prompts_dict[prompt_key]['prompt'])
-
-        if plan['custom_user_prompt']:
-            user_prompts.append(plan['custom_user_prompt'])
-
-        combined_user_prompt = "\n".join(user_prompts)
-
+        print(plan['mode'])
         launcher_plan = {
             'mode': plan['mode'],
             'context': plan['context'],
             'output': f"output_{plan['name']}.md",
-            'limit': plan['minimum_required_output_tokens'],
             'selected_system_instructions': plan['system_instructions'],
-            'user_prompt': combined_user_prompt,
+            'user_prompt': plan['user_prompt'],
+            'selected_user_prompt_values': plan['selected_user_prompt_values'],
             'list_of_user_keys_to_use': plan['user_prompts'],
-            'ensure_required_output_minimum': plan['ensure_required_output_minimum'],
+            'maximum_output_tokens': plan['maximum_output_tokens'],
+            'minimum_required_output': plan['minimum_required_output'],
             'minimum_required_output_tokens': plan['minimum_required_output_tokens'],
-            'user_prompts_dict': user_prompts_dict
-
+            'user_prompts_dict': plan['user_prompts_dict']
         }
-
+        logger.debug(truncate_plan_values_for_display(launcher_plan))
         try:
             result = launcher.main(launcher_plan)
-            results.append(result)
-
+            st.write(f"Result for {plan['name']}")
         except Exception as e:
             st.error(f"Error processing plan '{plan['name']}': {str(e)}")
             st.write(traceback.format_exc())
-
+        results.append(result)
+        st.write(results)
     st.subheader("Multiplan Results")
     user_space.add_result('results', results)
     st.write(user_space.results)
@@ -588,13 +628,6 @@ def run_build_launcher(selected_user_prompts, selected_system_instructions, user
     return results
 
 
-def run_build_launcher_with_config(config_data):
-    launcher = BuildLauncher()
-    results = launcher.main(config_data)
-
-    st.write("Results:")
-    for result in results:
-        st.write(result)
 
 
 def apply_custom_css(css):
@@ -628,10 +661,10 @@ def run_streamlit_app():
     tab1, tab2, tab4 = st.tabs(["Multi-Prompt Codex Builder", "Run Build Plans", "UserSpace"])
 
     with tab1:
-        multi_plan_builder(user_space)
+        multiplan_builder(user_space)
 
     with tab2:
-        tab2_upload_config()
+        upload_build_plan()
 
     with tab4:
         user_space_app(user_space)
