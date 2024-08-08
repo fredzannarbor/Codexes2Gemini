@@ -1,0 +1,12 @@
+[
+            {
+                'path': 'resources/images/codex-gigas.jpg',
+                'caption': 'Codex Gigas',
+                'link': 'https://github.com/fredzannarbor/Codexes2Gemini/blob/main/README.md#codex-gigas'
+            },
+            {
+                'path': 'resources/images/getty-raggedy-closeup.jpg',
+                'caption': 'Getty Raggedy',
+                'link': 'https://github.com/fredzannarbor/Codexes2Gemini/blob/main/README.md#getty-raggedy'
+            }
+]
