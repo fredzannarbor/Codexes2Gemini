@@ -7,6 +7,8 @@ from importlib import resources
 from time import sleep
 from typing import List
 import streamlit as st
+
+
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 
 import google.generativeai as genai
@@ -14,6 +16,7 @@ import pandas as pd
 
 from ..Builders.PromptPlan import PromptPlan
 
+GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
 
 configure_logger("DEBUG")
 
@@ -79,34 +82,36 @@ class Codexes2Parts:
         self.logger.debug(f"Starting process_codex_to_book_part with plan: {plan}")
         self.make_thisdoc_dir(plan)
         context = self.read_and_prepare_context(plan)
-        self.logger.debug(f"Context prepared, length: {len(context)}")
+        self.logger.debug(f"Context prepared, length: {self.count_tokens(context)} tokens")
 
         model = self.create_model(self.model_name, self.safety_settings, plan.generation_config)
         self.logger.debug("Model created")
 
         system_prompt = self.assemble_system_prompt(plan)
-        self.logger.debug(f"System prompt assembled, length: {len(system_prompt)}")
+        self.logger.debug(f"System prompt assembled, length: {self.count_tokens(system_prompt)}")
 
         user_prompts = plan.get_prompts()
-        self.logger.debug(f"User prompts retrieved, count: {len(user_prompts)}")
+        self.logger.debug(f"User prompts retrieved: {user_prompts}")
 
         satisfactory_results = []
 
         for i, user_prompt in enumerate(user_prompts):
             self.logger.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
-            full_output = ""
+            full_output = " "
             retry_count = 0
             max_retries = 3
 
-            while len(full_output) < plan.minimum_required_output_tokens and retry_count < max_retries:
+            full_output_tokens = self.count_tokens(full_output)
+            while full_output_tokens < plan.minimum_required_output_tokens and retry_count < max_retries:
                 try:
                     response = self.gemini_get_response(plan, system_prompt, user_prompt, context, model)
-                    self.logger.debug(f"Response received, length: {len(response.text)}")
+                    self.logger.debug(f"Response received, length: {self.count_tokens(response.text)} tokens")
                     full_output += response.text
+                    full_output_tokens = self.count_tokens(full_output)
 
-                    if len(full_output) < plan.minimum_required_output_tokens:
+                    if full_output_tokens < plan.minimum_required_output_tokens:
                         self.logger.info(
-                            f"Output length ({len(full_output)}) is less than desired length ({plan.minimum_required_output_tokens}). Retrying.")
+                            f"Output length ({full_output_tokens})  tokens is less than desired length ({plan.minimum_required_output_tokens}). Retrying.")
                         retry_count += 1
                         if plan.continuation_prompts:
                             context += f"\n\n{{Work So Far}}:\n\n{full_output}"
@@ -119,19 +124,38 @@ class Codexes2Parts:
                     retry_count += 1
                     self.logger.info(f"Retrying due to error. Retry count: {retry_count}")
 
-            self.logger.info(f"Final output length for prompt {i + 1}: {len(full_output)}")
+            self.logger.info(f"Final output length for prompt {i + 1}: {full_output_tokens}")
+            st.write(f"full output tokens: {full_output_tokens}\n")
+            st.write(f"plan.minimum_required_output: {plan.minimum_required_output}")
+            st.write(f"plan.minimum_required_output_tokens: {plan.minimum_required_output_tokens}")
 
-            if len(full_output) >= plan.minimum_required_output_tokens:
+
+
+            if full_output_tokens >= plan.minimum_required_output_tokens:
                 satisfactory_results.append(full_output)
                 self.logger.info(f"Output for prompt {i + 1} meets desired length. Appending to results.")
             else:
-                self.logger.warning(f"Output for prompt {i + 1} does not meet desired length of {plan.minimum_required_output_tokens}. Discarding.")
 
-        if satisfactory_results:
-                self.logger.info(f"Returning satisfactory results of len {len(satisfactory_results)}")
-        else:
-            self.logger.warning("No satisfactory results were generated.")
-        return "\n\n".join(satisfactory_results)  # Return only satisfactory results joined together
+                self.logger.warning(
+                    f"Output for prompt {i + 1} does not meet desired length of {plan.minimum_required_output_tokens}. Discarding.")
+
+            if satisfactory_results:
+                    self.logger.info(f"Returning satisfactory results of {self.count_tokens(satisfactory_results)}")
+            else:
+                self.logger.warning("No satisfactory results were generated.")
+            return "\n\n".join(satisfactory_results)  # Return only satisfactory results joined together
+
+
+
+    def count_tokens(self, text, model='models/gemini-1.5-pro'):
+        genai.configure(api_key=GOOGLE_API_KEY)
+        model = genai.GenerativeModel(model)
+        # if text is None or empty string
+        if text is None or text == "":
+            return 0
+        response = model.count_tokens(text)
+        return response.total_tokens
+
 
     def read_and_prepare_context(self, plan):
         context_content = plan.context or ""
@@ -143,14 +167,18 @@ class Codexes2Parts:
                 try:
                     with open(file_path, "r", encoding='utf-8') as f:
                         context_content += f.read() + "\n\n"
-                        st.write(context_content)
                 except Exception as e:
                     self.logger.error(f"Error reading context file {file_path}: {e}")
-
-        context_msg = f"Uploaded context of character length {len(context_content)}"
+        token_count = self.count_tokens(context_content)
+        context_msg = f"Uploaded context of {token_count} tokens"
         self.logger.debug(context_msg)
         st.info(context_msg)
         return f"Context: {context_content.strip()}\n\n"
+
+
+
+    def tokens_to_millions(tokens):
+        return tokens / 1_000_000
 
     def assemble_system_prompt(self, plan):
         system_prompt = ''
@@ -181,7 +209,7 @@ class Codexes2Parts:
 
         prompt = [system_prompt, user_prompt, context]
 
-        prompt_stats = f"system prompt: {len(system_prompt)} {system_prompt[:64]}\nuser_prompt: {len(user_prompt)} {user_prompt[:64]}\ncontext: {len(context)} {context[:52]}"
+        prompt_stats = f"system prompt: {self.count_tokens(system_prompt)} tokens {system_prompt[:64]}\nuser_prompt: {len(user_prompt)} {user_prompt[:64]}\ncontext: {len(context)} {context[:52]}"
         print(f"{prompt_stats}")
         prompt_df = pd.DataFrame(prompt)
         prompt_df.to_json(plan.thisdoc_dir + "/prompt.json", orient="records")
@@ -236,7 +264,7 @@ if __name__ == "__main__":
         context_file_paths=args.context_file_paths,
         user_keys=[args.list_of_user_keys_to_use.split(',')[0]],
         thisdoc_dir=args.thisdoc_dir,
-        model=args.model,
+        model_name=args.model,
         json_required=args.json_required,
         generation_config=json.loads(args.generation_config),
         system_instructions_dict_file_path=args.system_instructions_dict_file_path,
