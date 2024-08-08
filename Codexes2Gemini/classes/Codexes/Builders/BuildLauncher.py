@@ -3,6 +3,7 @@ import os
 import json
 import logging
 from importlib import resources
+from pprint import pprint
 from typing import Dict
 import uuid
 import google.generativeai as genai
@@ -96,80 +97,90 @@ class BuildLauncher:
     def main(self, args=None):
         if args is None:
             args = self.parse_arguments()
-        elif isinstance(args, dict):
-            # If args is a dictionary, we'll use it as is
-            pass
-        elif not isinstance(args, argparse.Namespace):
+        elif not isinstance(args, (dict, argparse.Namespace)):
             raise TypeError("args must be either a dictionary or an argparse.Namespace object")
 
-        # Set up logging based on the provided log level
+        # Set up logging
         log_level = args.get('log_level', 'INFO') if isinstance(args, dict) else args.log_level
-        logger = configure_logger(log_level)
+        self.logger = configure_logger(log_level)
 
-        # Load prompt dictionaries
-        #self.load_prompt_dictionaries()
-        if isinstance(args, dict) and 'multiplan' in args:
-            plans = []
-            for plan_config in args['multiplan']:
-                plan_config['context'] = plan_config.get('context', '')
-                if 'context_files' in plan_config:
-                    plan_config['context'] += "\n".join(plan_config['context_files'].values())
-                plan_config['minimum_required_output_tokens'] = plan_config.get('minimum_required_output_tokens', 1000)
-                plan_config['user_prompts_dict'] = args.get('user_prompts_dict', {})  # Add this line
-                plans.append(self.create_prompt_plan(plan_config))
-        elif isinstance(args, dict) and 'plans_json' in args:
-            plans_data = args['plans_json']
-            plans = [self.create_prompt_plan(plan_config) for plan_config in plans_data['plans']]
-        elif hasattr(args, 'plans_json') and args.plans_json:
-            with open(args.plans_json, 'r') as f:
-                plans_data = json.load(f)
-            plans = [self.create_prompt_plan(plan_config) for plan_config in plans_data['plans']]
-        else:
-            # Use single plan
-            config = args if isinstance(args, dict) else vars(args)
-            plans = [self.create_prompt_plan(config)]
+        # Create plans
+        plans = self.create_plans(args)
 
+        self.logger.debug(f"Number of plans created: {len(plans)}")
         for i, plan in enumerate(plans):
             self.logger.debug(f"Plan {i + 1}: {plan}")
 
+        # Check for empty contexts
         for plan in plans:
             if not plan.context_file_paths and not plan.context:
-                logger.warning(f"Plan {plan.mode} has no context. This may affect the output quality.")
+                self.logger.warning(f"Plan {plan.mode} has no context. This may affect the output quality.")
 
+        # Process plans
         results = []
         for plan in plans:
-            if plan.mode == 'part':
-                result = self.parts_builder.build_part(plan)
-            elif plan.mode == 'multi_part':
-                result = self.parts_builder.build_multi_part(plan)
-            elif plan.mode == 'codex':
-                result = self.codex_builder.build_codex_from_plan(plan)
-            elif plan.mode == 'full_codex':
-                result = self.codex_builder.build_codex_from_multiple_plans(plans)
-                break  # Only need to run once for full_codex mode
-            else:
-                logger.error(f"Invalid mode specified for plan: {plan.mode}")
-                continue
-            if plan['ensure_required_output_minimum']:
-                st.info("ensuring that output is at least minumum length {minimum_required_output_tokens}")
-                result = self.parts_builder.ensure_output_limit(result, plan.minimum_required_output_tokens)
-            else:
-                st.info("not ensuring that output satisifies a minimum length requirement")
-
-            results.append(result)
-
-            # Generate a unique filename for each plan
-            unique_filename = f"{plan.thisdoc_dir}/{plan.output_file_path}_{str(uuid.uuid4())[:6]}"
-            with open(unique_filename + ".md", 'w') as f:
-                f.write(result)
-                logger.info(f"Output written to {unique_filename}.md")
-            with open(unique_filename + '.json', 'w') as f:
-                f.write(json.dumps(result, indent=4))
-                logger.info(f"Output written to {unique_filename}.json")
-            logger.info(f"Output length {len(result)}")
+            #st.write(plan)
+            result = self.process_plan(plan)
+            if result is not None:
+                results.append(result)
+                self.save_result(plan, result)
 
         return results
 
+    def create_plans(self, args):
+        if isinstance(args, dict) and 'multiplan' in args:
+            return self.create_plans_from_multiplan(args)
+        elif isinstance(args, dict) and 'plans_json' in args:
+            return self.create_plans_from_json(args['plans_json'])
+        elif hasattr(args, 'plans_json') and args.plans_json:
+            with open(args.plans_json, 'r') as f:
+                plans_data = json.load(f)
+            return self.create_plans_from_json(plans_data)
+        else:
+            config = args if isinstance(args, dict) else vars(args)
+            return [self.create_prompt_plan(config)]
+
+    def create_plans_from_multiplan(self, args):
+        plans = []
+        for plan_config in args['multiplan']:
+            plan_config['context'] = plan_config.get('context', '')
+            if 'context_files' in plan_config:
+                plan_config['context'] += "\n".join(plan_config['context_files'].values())
+            plan_config['minimum_required_output_tokens'] = plan_config.get('minimum_required_output_tokens', 1000)
+            plan_config['user_prompts_dict'] = args.get('user_prompts_dict', {})
+            plans.append(self.create_prompt_plan(plan_config))
+        return plans
+
+    def create_plans_from_json(self, plans_data):
+        return [self.create_prompt_plan(plan_config) for plan_config in plans_data['plans']]
+
+    def process_plan(self, plan):
+        if plan.mode == 'part':
+            return self.parts_builder.build_part(plan)
+        elif plan.mode == 'multi_part':
+            return self.parts_builder.build_multi_part(plan)
+        elif plan.mode == 'codex':
+            return self.codex_builder.build_codex_from_plan(plan)
+        elif plan.mode == 'full_codex':
+            return self.codex_builder.build_codex_from_multiple_plans([plan])
+        else:
+            self.logger.error(f"Invalid mode specified for plan: {plan.mode}")
+            return None
+
+    def save_result(self, plan, result):
+        if plan.minimum_required_output:
+            st.info(f"Ensuring that output is at least minimum length {plan.minimum_required_output_tokens}")
+            result = self.parts_builder.ensure_output_limit(result, plan.minimum_required_output_tokens)
+        else:
+            logging.info("Any output length OK.")
+
+        unique_filename = f"{plan.thisdoc_dir}/{plan.output_file_path}_{str(uuid.uuid4())[:6]}"
+        with open(unique_filename + ".md", 'w') as f:
+            f.write(result)
+        with open(unique_filename + '.json', 'w') as f:
+            json.dump(result, f, indent=4)
+        self.logger.info(f"Output written to {unique_filename}.md and {unique_filename}.json")
+        self.logger.info(f"Output length {len(result)}")
 if __name__ == "__main__":
     launcher = BuildLauncher()
     launcher.main()
