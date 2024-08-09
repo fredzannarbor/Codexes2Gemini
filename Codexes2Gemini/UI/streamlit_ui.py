@@ -647,7 +647,9 @@ def run_streamlit_app():
     st.set_page_config(layout="wide", initial_sidebar_state="expanded", page_title="Codexes2Gemini Streamlit UI Demo",
                        page_icon=":book:")
     st.title("Codexes2Gemini")
-    st.write("_Humans and large-context language models making books richer, more diverse, and more surprising._")
+    st.markdown("""
+    ## _Humans and AI working together to make books richer, more diverse, and more surprising._
+    """)
 
     user_space = load_user_space()
 
