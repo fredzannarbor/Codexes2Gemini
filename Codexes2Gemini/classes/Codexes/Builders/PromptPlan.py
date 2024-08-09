@@ -17,10 +17,12 @@ class PromptPlan(OrderedDict):
                  system_instructions_dict_file_path: str = None, list_of_system_keys: str = None,
                  user_prompt: str = "", user_prompt_override: bool = False,
                  user_prompts_dict: Dict[str, Any] = None,  #
-                 user_prompts_dict_file_path = "user_prompts.json", # Change this line
+                 user_prompts_dict_file_path = "user_prompts.json",  # Change this line
                  list_of_user_keys_to_use: List[str] = None,
                  continuation_prompts: bool = False,
-                 output_file_path: str = "output", log_level: str = "INFO", number_to_run: int = 1,
+                 output_file_base_name: str = "output",
+                 log_level: str = "INFO",
+                 number_to_run: int = 1,
                  minimum_required_output = False,
                  minimum_required_output_tokens: int = 100,
                  maximum_output_tokens = 8000,
@@ -58,7 +60,7 @@ class PromptPlan(OrderedDict):
         self.user_prompts_dict_file_path = user_prompts_dict_file_path
         self.list_of_user_keys_to_use = list_of_user_keys_to_use or []  # Initialize as an empty list
         self.continuation_prompts = continuation_prompts
-        self.output_file_path = output_file_path
+        self.output_file_path = output_file_base_name
         self.number_to_run = number_to_run
         self.minimum_required_output = minimum_required_output
         self.minimum_required_output_tokens = minimum_required_output_tokens
@@ -159,7 +161,7 @@ class PromptPlan(OrderedDict):
             "list_of_user_keys_to_use": self.list_of_user_keys_to_use,
             "user_prompts_dict": self.user_prompts_dict,
             "continuation_prompts": self.continuation_prompts,
-            "output_file_path": self.output_file_path,
+            "output_file_base_name": self.output_file_path,
             "thisdoc_dir": self.thisdoc_dir,
             "log_level": self.logger.level,
             "number_to_run": self.number_to_run,

@@ -65,7 +65,7 @@ class BuildLauncher:
             'list_of_user_keys_to_use': config.get('list_of_user_keys_to_use', []),
             'user_prompt_override': config.get('user_prompt_override', False),
             'continuation_prompts': config.get('continuation_prompts', False),
-            'output_file_path': config.get('output_file_path'),
+            'output_file_base_name': config.get('output_file_base_name'),
             'log_level': config.get('log_level', 'INFO'),
             'number_to_run': config.get('number_to_run', 1),
             'minimum_required_output_tokens': config.get('minimum_required_output_tokens'),

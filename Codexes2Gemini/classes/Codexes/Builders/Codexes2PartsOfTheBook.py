@@ -125,11 +125,9 @@ class Codexes2Parts:
                     self.logger.info(f"Retrying due to error. Retry count: {retry_count}")
 
             self.logger.info(f"Final output length for prompt {i + 1}: {full_output_tokens}")
-            st.write(f"full output tokens: {full_output_tokens}\n")
-            st.write(f"plan.minimum_required_output: {plan.minimum_required_output}")
-            st.write(f"plan.minimum_required_output_tokens: {plan.minimum_required_output_tokens}")
-
-
+            self.logger.info(f"full output tokens: {full_output_tokens}\n")
+            self.logger.info(f"plan.minimum_required_output: {plan.minimum_required_output}")
+            self.logger.info(f"plan.minimum_required_output_tokens: {plan.minimum_required_output_tokens}")
 
             if full_output_tokens >= plan.minimum_required_output_tokens:
                 satisfactory_results.append(full_output)
@@ -248,7 +246,7 @@ def parse_arguments():
     parser.add_argument('--list_of_user_keys_to_use', default="semantic_analysis,core_audience_attributes", help="Comma-separated list of user keys to use")
     parser.add_argument('--continuation_prompts', action='store_true', help="Use continuation prompts")
     parser.add_argument('--context_file_paths', nargs='+', help="Paths to context files")
-    parser.add_argument('--output_file_path', default="results.md", help="Path to output file")
+    parser.add_argument('--output_file_base_name', default="results.md", help="Path to output file")
     parser.add_argument('--thisdoc_dir', default="output/c2g/", help="Document directory")
     parser.add_argument('--log_level', default="INFO", help="Logging level")
     parser.add_argument('--number_to_run', type=int, default=3, help="Number of runs")
@@ -274,7 +272,7 @@ if __name__ == "__main__":
         user_prompts_dict_file_path=args.user_prompts_dict_file_path,
         list_of_user_keys_to_use=args.list_of_user_keys_to_use,
         continuation_prompts=args.continuation_prompts,
-        output_file_path=args.output_file_path,
+        output_file_base_name=args.output_file_path,
         log_level=args.log_level,
         number_to_run=args.number_to_run,
         minimum_required_output_tokens=args.minimum_required_output_tokens

@@ -26,7 +26,7 @@ class CSV2PromptPlan(PromptPlan):
             "user_prompts_dict_file_path": row['user_prompts_dict_file_path'],
             "list_of_user_keys_to_use": row['list_of_user_keys_to_use'],
             "continuation_prompts": row['continuation_prompts'].lower() == 'true',
-            "output_file_path": row['output_file_path'],
+            "output_file_base_name": row['output_file_base_name'],
             "log_level": row['log_level'],
             "number_to_run": int(row['number_to_run']),
             "minimum_required_output_tokens": int(row['minimum_required_output_tokens']),

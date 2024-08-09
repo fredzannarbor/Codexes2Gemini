@@ -423,10 +423,9 @@ def display_image_row(cols, image_info):
 
 
 def run_multiplan(multiplan, user_space):
-    print("--- Beginning to Run Multiplan ---")
+    st.info("--- Beginning to run {multiplan.name} ---")
     launcher = BuildLauncher()
     results = []
-    #print(type(multiplan))
     for plan in multiplan:
         print(plan['mode'])
         launcher_plan = {
@@ -445,12 +444,11 @@ def run_multiplan(multiplan, user_space):
         logger.debug(truncate_plan_values_for_display(launcher_plan))
         try:
             result = launcher.main(launcher_plan)
-            st.write(f"Result for {plan['name']}")
         except Exception as e:
             st.error(f"Error processing plan '{plan['name']}': {str(e)}")
             st.write(traceback.format_exc())
         results.append(result)
-        st.write(results)
+        #st.write(results)
     st.subheader("Multiplan Results")
     user_space.add_result('results', results)
     st.write(user_space.results)
