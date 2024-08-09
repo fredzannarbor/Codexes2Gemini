@@ -13,12 +13,12 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from ebooklib import epub
 
-import Codexes2Gemini.queued_to_add.SyntheticReaders.RatingUtilities as ru
+import Codexes2Gemini.private.SyntheticReaders.RatingUtilities as ru
 from app.utilities.docx2text import docx2txt
 from classes.Codexes.Tools.DocxCodex2Objects import DocxCodex2Objects as dx2obj
 # from pages.Send_Books_to_Reader_Panels import extract_text_from_epub
 from classes.Codexes.Tools.pdf2pages2df import pdf2text2df
-from Codexes2Gemini.queued_to_add.SyntheticReaders.ReaderPanels import ReaderPanels
+from Codexes2Gemini.private.SyntheticReaders.ReaderPanels import ReaderPanels
 
 rps = ReaderPanels()
 # Assuming the existence of utility functions for book sanity checks, and book evaluation

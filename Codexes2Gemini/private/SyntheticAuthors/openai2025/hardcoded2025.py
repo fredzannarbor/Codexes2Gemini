@@ -3,8 +3,8 @@ import json
 
 from openai import OpenAI
 
-from Codexes2Gemini.queued_to_add.SyntheticReaders import BookAnalysisPlan
-from Codexes2Gemini.queued_to_add.SyntheticReaders import Text2Gemini
+from Codexes2Gemini.private.SyntheticReaders import BookAnalysisPlan
+from Codexes2Gemini.private.SyntheticReaders import Text2Gemini
 import fitz
 import uuid
 pdf_file_path = "/Users/fred/Downloads/2025_MandateForLeadership_FULL.pdf"

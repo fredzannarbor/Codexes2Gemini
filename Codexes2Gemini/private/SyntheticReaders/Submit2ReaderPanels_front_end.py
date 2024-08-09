@@ -8,9 +8,9 @@ from app.ManageUserAPIKeys import ManageUserAPIKeys
 from classes.Utilities.utilities import (
     read_markdown_file,
     get_version_as_dict, statcounter)
-from Codexes2Gemini.queued_to_add.SyntheticReaders.RatingUtilities import rate_ideas, rate_remits, llmjson2json
+from Codexes2Gemini.private.SyntheticReaders.RatingUtilities import rate_ideas, rate_remits, llmjson2json
 # from classes.SyntheticReaders import Reader, ReaderPanels as rp, RatingUtilities as cu
-from Codexes2Gemini.queued_to_add.SyntheticReaders.ReaderPanels import ReaderPanels as rp
+from Codexes2Gemini.private.SyntheticReaders.ReaderPanels import ReaderPanels as rp
 
 api_key_manager = ManageUserAPIKeys()
 

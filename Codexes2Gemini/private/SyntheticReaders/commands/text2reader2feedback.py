@@ -4,7 +4,7 @@ from os import environ as osenv
 
 import openai
 
-from Codexes2Gemini.queued_to_add.SyntheticReaders import Reader
+from Codexes2Gemini.private.SyntheticReaders import Reader
 
 pp = pprint.PrettyPrinter(indent=4)
 openai.api_key = osenv['OPENAI_API_KEY']

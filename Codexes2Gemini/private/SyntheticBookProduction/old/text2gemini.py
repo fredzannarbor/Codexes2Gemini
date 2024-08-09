@@ -322,7 +322,7 @@ def parse_arguments():
     parser.add_argument('--task_package', help="Task package")
     parser.add_argument('--context_file_path', default="test/text/agfw.txt", help="Path to context file")
     parser.add_argument('--cache_this_context', action='store_true', help="Cache this context")
-    parser.add_argument('--output_file_path', default="results.md", help="Path to output file")
+    parser.add_argument('--output_file_base_name', default="results.md", help="Path to output file")
     parser.add_argument('--thisdoc_dir', default="output/gemini/", help="Document directory")
     parser.add_argument('--log_level', default="INFO", help="Logging level")
     parser.add_argument('--number_to_run', type=int, default=3, help="Number of runs")

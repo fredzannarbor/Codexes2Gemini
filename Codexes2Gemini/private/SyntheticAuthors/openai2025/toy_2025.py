@@ -1,7 +1,7 @@
 #  Copyright (c) 2024. Fred Zimmerman.  Personal or educational use only.  All commercial and enterprise use must be licensed, contact wfz@nimblebooks.com
 from classes.Codexes.Metadata.Metadatas import Metadatas
-from Codexes2Gemini.queued_to_add.SyntheticReaders import BookAnalysisPlan
-from Codexes2Gemini.queued_to_add.SyntheticReaders import Text2Gemini
+from Codexes2Gemini.private.SyntheticReaders import BookAnalysisPlan
+from Codexes2Gemini.private.SyntheticReaders import Text2Gemini
 import fitz
 pdf_file_path = "/Users/fred/Downloads/2025_MandateForLeadership_FULL.pdf"
 listokeys = [
