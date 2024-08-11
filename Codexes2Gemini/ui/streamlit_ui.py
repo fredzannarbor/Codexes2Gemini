@@ -176,16 +176,48 @@ def tokens_to_millions(tokens):
     return tokens / 1_000_000
 
 
+import io
+from docx import Document
+import fitz  # PyMuPDF
+import re
+
+
 def read_file_content(file):
+    file_name = file.name.lower()
+    content = ""
+
     try:
-        return file.getvalue().decode("utf-8")
-    except UnicodeDecodeError:
-        st.error(f"Error decoding file {file.name}. Make sure it's a text file.")
+        if file_name.endswith('.txt'):
+            content = file.getvalue().decode("utf-8")
+        elif file_name.endswith('.docx'):
+            doc = Document(io.BytesIO(file.getvalue()))
+            content = "\n".join([para.text for para in doc.paragraphs])
+        elif file_name.endswith('.pdf'):
+            pdf = fitz.open(stream=file.getvalue(), filetype="pdf")
+            content = ""
+            for page_num in range(len(pdf)):
+                page = pdf[page_num]
+                content += page.get_text()
+                content += f"\n\nPage {page_num + 1}\n\n"
+            pdf.close()
+        else:
+            raise ValueError("Unsupported file type")
+
+        # Add page numbers for non-PDF files
+        if not file_name.endswith('.pdf'):
+            pages = re.split(r'\n{2,}', content)
+            numbered_pages = [f"{page}\n\nPage {i + 1}" for i, page in enumerate(pages)]
+            content = "\n\n".join(numbered_pages)
+
+        return content
+
+    except Exception as e:
+        st.error(f"Error processing file {file.name}: {str(e)}")
         return ""
 
 
 def multiplan_builder(user_space: UserSpace):
-    st.header("Multi-Prompt Codex Analyzer and Builder")
+    st.header("Analyze and Build")
 
     # Initialize session state variables
     if 'multiplan' not in st.session_state:
@@ -201,7 +233,6 @@ def multiplan_builder(user_space: UserSpace):
     user_prompts_dict = load_json_file("user_prompts_dict.json")
     system_instructions_dict = load_json_file("system_instructions.json")
 
-    # Display image carousel
     with st.container():
         st.markdown("""
             <style>
@@ -217,7 +248,7 @@ def multiplan_builder(user_space: UserSpace):
 
     # Step 1: Context Selection
     st.subheader("Step 1: Context Selection")
-    context_choice = st.radio("Choose context source:", ["Upload New Context", "Select Saved Context", "Skip Context"])
+    context_choice = st.radio("Choose context source:", ["Select Saved Context", "Upload New Context","Skip Context"])
 
     context_selected = False
     if context_choice == "Upload New Context":
@@ -287,6 +318,7 @@ def multiplan_builder(user_space: UserSpace):
         with st.expander("Enter System Instructions"):
             system_filter = st.text_input("Filter system instructions")
             filtered_system = filter_dict(system_instructions_dict, system_filter)
+            #st.write(filtered_system)
             selected_system_instructions = st.multiselect(
                 "Select system instructions",
                 options=list(filtered_system.keys()),
@@ -296,12 +328,14 @@ def multiplan_builder(user_space: UserSpace):
         with st.expander("Enter User Prompts"):
             user_filter = st.text_input("Filter user prompts")
             filtered_user = filter_dict(user_prompts_dict, user_filter)
+
             selected_user_prompt = ""
             selected_user_prompts = st.multiselect(
                 "Select user prompts",
                 options=list(filtered_user.keys()),
                 format_func=lambda x: f"{x}: {filtered_user[x]['prompt'][:50]}..."
             )
+            selected_user_prompt_values = []
             for key in selected_user_prompts:
                 selected_user_prompt = selected_user_prompt + "\n" + user_prompts_dict[key]['prompt']
                 selected_user_prompt_values = user_prompts_dict[key]['prompt']
@@ -394,6 +428,8 @@ def multiplan_builder(user_space: UserSpace):
 
         # Run multiplan button
         if st.button("Run Multiplans"):
+            #print('\n\n\n','---' * 10, "RUNNING MULTIPLAN", '---' * 10, '\n\n\n')
+            st.info("running multiplan")
             run_multiplan(st.session_state.multiplan, user_space)
             user_space.save_prompt_plan({"multiplan": st.session_state.multiplan})
             st.success("Multiplan and results saved to your Userspace tab.")
@@ -425,6 +461,7 @@ def display_image_row(cols, image_info):
 def run_multiplan(multiplan, user_space):
     st.info("--- Beginning to run {multiplan.name} ---")
     launcher = BuildLauncher()
+
     results = []
     for plan in multiplan:
         print(plan['mode'])
@@ -447,11 +484,12 @@ def run_multiplan(multiplan, user_space):
         except Exception as e:
             st.error(f"Error processing plan '{plan['name']}': {str(e)}")
             st.write(traceback.format_exc())
+
         results.append(result)
         #st.write(results)
     st.subheader("Multiplan Results")
     user_space.add_result('results', results)
-    st.write(user_space.results)
+    st.write(results)
     save_user_space(user_space)
 
 def display_full_context(context_files):
@@ -483,30 +521,30 @@ def truncate_context_files(plan: Dict, max_chars=1000) -> Dict:
 
 
 def user_space_app(user_space: UserSpace):
-    st.title("UserSpace")
+    st.title(f"UserSpace: Self")
 
-    st.header("Saved Filters")
-    filter_name = st.text_input("Filter Name (optional)")
-    filter_data = st.text_area("Filter Data (JSON)")
-    if st.button("Save Filter"):
-        try:
-            user_space.save_filter(filter_name, json.loads(filter_data))
-            save_user_space(user_space)
-            st.success("Filter saved")
-        except json.JSONDecodeError:
-            st.error("Invalid JSON for filter data")
-
-    if user_space.filters:
-        filter_df = pd.DataFrame(
-            [(name, json.dumps(data)[:50] + "...") for name, data in user_space.filters.items()],
-            columns=["Name", "Data Preview"]
-        )
-        st.table(filter_df)
-        if st.button("Clear All Filters"):
-            user_space.filters = {}
-            save_user_space(user_space)
-            st.success("All filters cleared")
-            st.rerun()
+    # st.header("Saved Filters")
+    # filter_name = st.text_input("Filter Name (optional)")
+    # filter_data = st.text_area("Filter Data (JSON)")
+    # if st.button("Save Filter"):
+    #     try:
+    #         user_space.save_filter(filter_name, json.loads(filter_data))
+    #         save_user_space(user_space)
+    #         st.success("Filter saved")
+    #     except json.JSONDecodeError:
+    #         st.error("Invalid JSON for filter data")
+    #
+    # if user_space.filters:
+    #     filter_df = pd.DataFrame(
+    #         [(name, json.dumps(data)[:50] + "...") for name, data in user_space.filters.items()],
+    #         columns=["Name", "Data Preview"]
+    #     )
+    #     st.table(filter_df)
+    #     if st.button("Clear All Filters"):
+    #         user_space.filters = {}
+    #         save_user_space(user_space)
+    #         st.success("All filters cleared")
+    #         st.rerun()
 
     st.header("Saved Contexts")
     context_filter = st.text_input("Filter contexts")
@@ -525,27 +563,27 @@ def user_space_app(user_space: UserSpace):
             st.success("All contexts cleared")
             st.rerun()
 
-    st.header("Saved Prompts")
-    prompt_name = st.text_input("Prompt Name (optional)")
-    prompt = st.text_area("Prompt")
-    if st.button("Save Prompt"):
-        user_space.save_prompt(prompt_name, prompt)
-        save_user_space(user_space)
-        st.success("Prompt saved")
+    # st.header("Save Prompts")
+    # prompt_name = st.text_input("Prompt Name (optional)")
+    # prompt = st.text_area("Prompt")
+    # if st.button("Save Prompt"):
+    #     user_space.save_prompt(prompt_name, prompt)
+    #     save_user_space(user_space)
+    #     st.success("Prompt saved")
+    #
+    # if user_space.prompts:
+    #     prompt_df = pd.DataFrame(
+    #         [(name, text[:50] + "...") for name, text in user_space.prompts.items()],
+    #         columns=["Name", "Prompt Preview"]
+    #     )
+    #     st.table(prompt_df)
+    #     if st.button("Clear All Prompts"):
+    #         user_space.prompts = {}
+    #         save_user_space(user_space)
+    #         st.success("All prompts cleared")
+    #         st.rerun()
 
-    if user_space.prompts:
-        prompt_df = pd.DataFrame(
-            [(name, text[:50] + "...") for name, text in user_space.prompts.items()],
-            columns=["Name", "Prompt Preview"]
-        )
-        st.table(prompt_df)
-        if st.button("Clear All Prompts"):
-            user_space.prompts = {}
-            save_user_space(user_space)
-            st.success("All prompts cleared")
-            st.rerun()
-
-    st.header("Saved Results")
+   # st.header("Saved Results")
     #st.write(user_space.results)
     # if user_space.results:
     #     result_df = pd.DataFrame(
@@ -564,13 +602,13 @@ def user_space_app(user_space: UserSpace):
         table_header = st.columns(2)
         table_header[0].header("Plan")
         table_header[1].header("Download Link")
-
+        username = "self"
         for i, plan in enumerate(user_space.prompt_plans):
             row = st.columns(2)
-            with open(f"prompt_plan_{i}.json", "w") as f:
+            with open(f"userspaces/{username}/prompt_plan_{i}.json", "w") as f:
                 json.dump(plan, f)
             row[0].json(plan, expanded=False)
-            row[1].markdown(get_binary_file_downloader_html(f"prompt_plan_{i}.json", f"Prompt Plan {i + 1}"),
+            row[1].markdown(get_binary_file_downloader_html(f"userspaces/{username}/prompt_plan_{i}.json", f"Prompt Plan {i + 1}"),
                             unsafe_allow_html=True)
         if st.button("Clear All Prompt Plans"):
             user_space.prompt_plans = []
@@ -644,11 +682,11 @@ body {
 
 
 def run_streamlit_app():
-    st.set_page_config(layout="wide", initial_sidebar_state="expanded", page_title="Codexes2Gemini Streamlit UI Demo",
+    st.set_page_config(layout="wide", initial_sidebar_state="expanded", page_title="Codexes2Gemini Streamlit ui Demo",
                        page_icon=":book:")
     st.title("Codexes2Gemini")
     st.markdown("""
-    ## _Humans and AI working together to make books richer, more diverse, and more surprising._
+    ## _Humans and AIs working together to make books richer, more diverse, and more surprising._
     """)
 
     user_space = load_user_space()
@@ -658,7 +696,7 @@ def run_streamlit_app():
         user_space = UserSpace()
         save_user_space(user_space)
 
-    tab1, tab2, tab4 = st.tabs(["Multi-Prompt Codex Builder", "Run Build Plans", "UserSpace"])
+    tab1, tab2, tab4 = st.tabs(["Create Build Plans", "Run Saved Plans", "UserSpace"])
 
     with tab1:
         multiplan_builder(user_space)
