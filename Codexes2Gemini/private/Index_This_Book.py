@@ -6,21 +6,20 @@ from os import path
 # streamlit_analytics.start_tracking()
 import pandas as pd
 import streamlit as st
-from classes.Codexes.PartsOfTheBook.Indexes.pdf2index import search_pdf_pages_with_list_of_search_synonyms, process_index_dict_results, pdf_pages_containing_index_terms
-
-
-
 from app.utilities.utilities import (
     read_markdown_file,
     get_version_as_dict,
 )
+from classes.Codexes.PartsOfTheBook.Indexes.pdf2index import search_pdf_pages_with_list_of_search_synonyms, \
+    process_index_dict_results, pdf_pages_containing_index_terms
+
 
 # from streamlit_ace import st_ace
 
 # functions
 
 
-def file_uploader(user_docs_target_dir="app/userdocs/37/"):
+def file_uploader(user_docs_target_dir="app/userspaces/37/"):
 
     uploaded_file = None
     file_details = None
@@ -37,7 +36,7 @@ def file_uploader(user_docs_target_dir="app/userdocs/37/"):
             "FileType": uploaded_file.type,
             "FileSize": uploaded_file.size,
         }
-        user_docs_target_dir = "app/userdocs/" + str(user_id)
+        user_docs_target_dir = "app/userspaces/" + str(user_id)
         if not os.path.exists(user_docs_target_dir):
             os.makedirs(user_docs_target_dir)
 
@@ -169,7 +168,7 @@ with st.expander("Upload your file here", expanded=True):
             "FileType": uploaded_file.type,
             "FileSize": uploaded_file.size,
         }
-        user_docs_target_dir = "app/userdocs/" + str(user_id)
+        user_docs_target_dir = "app/userspaces/" + str(user_id)
         if not os.path.exists(user_docs_target_dir):
             os.makedirs(user_docs_target_dir)
 
