@@ -91,12 +91,15 @@ class Codexes2Parts:
         self.logger.debug(f"System prompt assembled, length: {self.count_tokens(system_prompt)}")
 
         user_prompts = plan.get_prompts()
-        self.logger.debug(f"User prompts retrieved: {user_prompts}")
+        self.logger.info(f"User prompts retrieved: {user_prompts}")
 
         satisfactory_results = []
-
+        #st.info('here')
+        st.write(user_prompts)
         for i, user_prompt in enumerate(user_prompts):
             self.logger.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
+            st.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
+            st.info(f"This user prompt is {user_prompt}")
             full_output = " "
             retry_count = 0
             max_retries = 3
@@ -105,6 +108,7 @@ class Codexes2Parts:
             while full_output_tokens < plan.minimum_required_output_tokens and retry_count < max_retries:
                 try:
                     response = self.gemini_get_response(plan, system_prompt, user_prompt, context, model)
+                    st.info(user_prompt)
                     self.logger.debug(f"Response received, length: {self.count_tokens(response.text)} tokens")
                     full_output += response.text
                     full_output_tokens = self.count_tokens(full_output)
@@ -141,7 +145,8 @@ class Codexes2Parts:
                     self.logger.info(f"Returning satisfactory results of {self.count_tokens(satisfactory_results)}")
             else:
                 self.logger.warning("No satisfactory results were generated.")
-            return "\n\n".join(satisfactory_results)  # Return only satisfactory results joined together
+            st.info(f"processed prompt {i + 1}")
+        return "\n\n".join(satisfactory_results)  # Return only satisfactory results joined together
 
 
 
