@@ -426,8 +426,7 @@ def multiplan_builder(user_space: UserSpace):
 
         # Run multiplan button
         if st.button("Run Multiplans"):
-            #print('\n\n\n','---' * 10, "RUNNING MULTIPLAN", '---' * 10, '\n\n\n')
-            st.info("running multiplan")
+
             run_multiplan(st.session_state.multiplan, user_space)
             user_space.save_prompt_plan({"multiplan": st.session_state.multiplan})
             st.success("Multiplan and results saved to your Userspace tab.")
@@ -458,7 +457,7 @@ def display_image_row(cols, image_info):
 
 
 def run_multiplan(multiplan, user_space):
-    st.info(f"--- Beginning to run {multiplan.name} ---")
+    st.info(f"Beginning to run multiplan")
     launcher = BuildLauncher()
 
     results = []
