@@ -1,4 +1,0 @@
-{
-  "semantic_analysis": "Please review this book manuscript. \n    1. Outline the semantic structure of the book as best you can. A typical semantic structure is Parts > {Front Matter, Body, Back Matter} => {Foreword, Chapters, Indexes} => {Scenes, Content}. Always go to scene level. Very concisely (10 words or less) identify each semantic unit and summarize it.",
-  "core_audience_attributes": "Think about the core audience for the book. Please define a set of addressable attributes that they are likely to fall under, such as:\n- age\n- gender\n- income gt $100K. These are just examples, use your judgment and i magination, as long as the attributes can feasibly be used to identify core readers."
-}

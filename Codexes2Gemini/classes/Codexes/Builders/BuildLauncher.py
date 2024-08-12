@@ -17,6 +17,7 @@ from ...Utilities.utilities import configure_logger
 
 GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
 class BuildLauncher:
+
     def __init__(self):
         self.parts_builder = PartsBuilder()
         self.codex_builder = CodexBuilder()
