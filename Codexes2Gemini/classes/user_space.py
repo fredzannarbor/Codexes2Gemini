@@ -1,10 +1,13 @@
 # user_space.py
 
+import os
 import pickle
 import time
 from datetime import datetime
 from typing import Dict, List, Optional
 
+# Define a maximum size for the pickle file (in bytes)
+MAX_PICKLE_SIZE = 100 * 1024 * 1024  # 100 MB
 
 class SavedContext:
     """
@@ -130,8 +133,19 @@ def save_user_space(user_space: UserSpace):
     Args:
         user_space (UserSpace): The UserSpace object to save.
     """
-    with open('user_space.pkl', 'wb') as f:
-        pickle.dump(user_space, f)
+    try:
+        # Check if the pickle file already exists and its size
+        if os.path.exists('user_space.pkl'):
+            file_size = os.path.getsize('user_space.pkl')
+            if file_size > MAX_PICKLE_SIZE:
+                print(f"Warning: Pickle file 'user_space.pkl' is larger than {MAX_PICKLE_SIZE} bytes. Not saving.")
+                return
+
+        # Save the UserSpace object to a pickle file
+        with open('user_space.pkl', 'wb') as f:
+            pickle.dump(user_space, f)
+    except Exception as e:
+        print(f"Error saving UserSpace: {e}")
 
 def load_user_space() -> UserSpace:
     """Loads the UserSpace object from a pickle file.
@@ -140,7 +154,26 @@ def load_user_space() -> UserSpace:
         UserSpace: The loaded UserSpace object.
     """
     try:
+        # Check if the pickle file exists and its size
+        if os.path.exists('user_space.pkl'):
+            file_size = os.path.getsize('user_space.pkl')
+            if file_size > MAX_PICKLE_SIZE:
+                print(f"Warning: Pickle file 'user_space.pkl' is larger than {MAX_PICKLE_SIZE} bytes. Not loading.")
+                return UserSpace()
+
+        # Load the UserSpace object from the pickle file
         with open('user_space.pkl', 'rb') as f:
-            return pickle.load(f)
+            loaded_object = pickle.load(f)
+
+            # Check if the loaded object is of the correct class
+            if isinstance(loaded_object, UserSpace):
+                return loaded_object
+            else:
+                print(f"Warning: Loaded object is not of type UserSpace. Returning a new UserSpace object.")
+                return UserSpace()
+
     except FileNotFoundError:
+        return UserSpace()
+    except Exception as e:
+        print(f"Error loading UserSpace: {e}")
         return UserSpace()
