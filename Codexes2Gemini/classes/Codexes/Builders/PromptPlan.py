@@ -2,33 +2,92 @@ import json
 import logging
 import os
 from collections import OrderedDict
-from importlib import resources
+from typing import List, Dict, Any
 
-import streamlit as st
 import pymupdf as fitz  # PyMuPDF
-from typing import List, Dict, Any, Union
-
 
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 
+
 class PromptPlan(OrderedDict):
+    """
+    Represents a plan for generating text using a language model.
+
+    This class encapsulates all the necessary parameters and configurations for a single text generation task.
+    It includes information about the context, prompts, model, generation settings, and output options.
+
+    Parameters:
+        context (str, optional): The initial context for the generation task. Defaults to "".
+        context_file_paths (List[str], optional): A list of paths to files containing context. Defaults to None.
+        user_keys (List[str], optional): A list of user-defined keys for selecting prompts. Defaults to None.
+        thisdoc_dir (str, optional): The directory to store output files. Defaults to "".
+        json_required (bool, optional): Whether to require JSON output. Defaults to False.
+        generation_config (dict, optional): Configuration for the generation process. Defaults to None.
+        system_instructions_dict_file_path (str, optional): Path to the system instructions dictionary file. Defaults to None.
+        list_of_system_keys (str, optional): A comma-separated list of system keys to use. Defaults to None.
+        user_prompt (str, optional): A user-provided prompt. Defaults to "".
+        user_prompt_override (bool, optional): Whether to override prompts from the dictionary. Defaults to False.
+        user_prompts_dict (Dict[str, Any], optional): A dictionary of user-defined prompts. Defaults to None.
+        user_prompts_dict_file_path (str, optional): Path to the user prompts dictionary file. Defaults to "user_prompts.json".
+        list_of_user_keys_to_use (List[str], optional): A list of user keys to use for selecting prompts. Defaults to None.
+        continuation_prompts (bool, optional): Whether to use continuation prompts. Defaults to False.
+        output_file_base_name (str, optional): The base name for output files. Defaults to "output".
+        log_level (str, optional): The logging level. Defaults to "INFO".
+        number_to_run (int, optional): The number of times to run the generation task. Defaults to 1.
+        minimum_required_output (bool, optional): Whether to enforce a minimum output length. Defaults to False.
+        minimum_required_output_tokens (int, optional): The minimum desired output length in tokens. Defaults to 100.
+        maximum_output_tokens (int, optional): The maximum desired output length in tokens. Defaults to 8000.
+        model_name (str, optional): The name of the language model to use. Defaults to None.
+        mode (str, optional): The mode of operation. Defaults to "part".
+        config_file (str, optional): Path to a JSON configuration file. Defaults to None.
+        use_all_user_keys (bool, optional): Whether to use all user keys from the dictionary. Defaults to False.
+        add_system_prompt (str, optional): Additional system prompt to append. Defaults to "".
+
+    Methods:
+        load_config(config_file: str) -> None:
+            Loads configuration from a JSON file.
+        read_contexts() -> str:
+            Reads context from files and combines them into a single string.
+        prepare_final_prompts() -> List[str]:
+            Prepares the final list of prompts based on user keys and overrides.
+        get_prompts() -> List[str]:
+            Returns the final list of prompts.
+        set_provider(provider: str, model: str) -> None:
+            Sets the provider and model for the PromptPlan.
+        to_dict() -> Dict[str, Any]:
+            Converts the PromptPlan object to a dictionary.
+        save_config(file_path: str) -> None:
+            Saves the current configuration to a JSON file.
+        update_from_dict(config: Dict[str, Any]) -> None:
+            Updates the PromptPlan object from a dictionary.
+        add_context(new_context: str) -> None:
+            Adds new context to the existing context.
+        add_prompt(new_prompt: str) -> None:
+            Adds a new prompt to the list of final prompts.
+        clear_prompts() -> None:
+            Clears all prompts.
+        __str__(self) -> str:
+            Returns a string representation of the PromptPlan object.
+        __repr__(self) -> str:
+            Returns a detailed string representation of the PromptPlan object.
+    """
+
     def __init__(self, context: str = "", context_file_paths: List[str] = None, user_keys: List[str] = None,
                  thisdoc_dir: str = "", json_required: bool = False, generation_config: dict = None,
                  system_instructions_dict_file_path: str = None, list_of_system_keys: str = None,
                  user_prompt: str = "", user_prompt_override: bool = False,
                  user_prompts_dict: Dict[str, Any] = None,  #
-                 user_prompts_dict_file_path = "user_prompts.json",  # Change this line
+                 user_prompts_dict_file_path="user_prompts.json",  # Change this line
                  list_of_user_keys_to_use: List[str] = None,
                  continuation_prompts: bool = False,
                  output_file_base_name: str = "output",
                  log_level: str = "INFO",
                  number_to_run: int = 1,
-                 minimum_required_output = False,
+                 minimum_required_output=False,
                  minimum_required_output_tokens: int = 100,
-                 maximum_output_tokens = 8000,
+                 maximum_output_tokens=8000,
                  model_name: str = None, mode: str = "part",
                  config_file: str = None, use_all_user_keys: bool = False, add_system_prompt: str = "") -> None:
-
 
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(log_level)

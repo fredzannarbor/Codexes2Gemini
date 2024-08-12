@@ -1,10 +1,29 @@
 import logging
 from typing import List
-from ..Builders.Codexes2PartsOfTheBook import Codexes2Parts
-from ..Builders.PromptPlan import PromptPlan
+
 import google.generativeai as genai
 
+from ..Builders.Codexes2PartsOfTheBook import Codexes2Parts
+from ..Builders.PromptPlan import PromptPlan
+
+
 class CodexBuilder:
+    """
+    Class to build codexes from parts and plans.
+
+    Attributes:
+    - c2p: Codexes2Parts instance
+    - logger: Logger instance
+    - model: GenerativeModel instance
+
+    Methods:
+    - build_codex_from_parts: Build a codex from multiple parts.
+    - build_codex_from_plan: Build a codex using a single PromptPlan.
+    - build_codex_from_multiple_plans: Build a codex using multiple PromptPlans.
+    - count_tokens: Count the number of tokens in a text.
+    - truncate_to_token_limit: Truncate content to match the token limit.
+    - use_continuation_prompt: Use continuation prompts to extend content to desired token count.
+    """
     def __init__(self):
         self.c2p = Codexes2Parts()
         self.logger = logging.getLogger(__name__)

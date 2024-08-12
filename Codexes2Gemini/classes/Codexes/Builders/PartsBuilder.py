@@ -1,12 +1,26 @@
 import logging
-from ..Builders.Codexes2PartsOfTheBook import Codexes2Parts
-from ..Builders.PromptPlan import PromptPlan
-import google.generativeai as genai
 from typing import List
 
+import google.generativeai as genai
+
+from ..Builders.Codexes2PartsOfTheBook import Codexes2Parts
+from ..Builders.PromptPlan import PromptPlan
+
+
 class PartsBuilder:
+    """
+    Class representing a PartsBuilder.
 
-
+    Methods:
+    - __init__(self)
+    - count_tokens(self, text: str) -> int
+    - truncate_to_token_limit(self, content: str, maximum_output_tokens: int) -> str
+    - ensure_maximum_output_enforced(self, content: str, maximum_output_tokens: int) -> str
+    - use_continuation_prompt(self, plan: PromptPlan, initial_content: str) -> str
+    - build_part(self, plan: PromptPlan) -> str
+    - build_multi_part(self, plan: PromptPlan) -> str
+    - build_parts_from_codex(self, codex: str, plans: List[PromptPlan]) -> List[str]
+    """
     def __init__(self):
         self.c2p = Codexes2Parts()
         self.logger = logging.getLogger(__name__)
