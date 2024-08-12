@@ -5,14 +5,13 @@ import random
 import sys
 import time
 import traceback
+from datetime import datetime
 from importlib import resources
 from typing import Dict
-from datetime import datetime
-from pprint import pprint
-import pandas as pd
-import streamlit as st
-from streamlit_carousel import carousel
 
+import pandas as pd
+import pypandoc
+import streamlit as st
 
 #print("Codexes2Gemini location:", Codexes2Gemini.__file__)
 
@@ -34,7 +33,6 @@ import logging
 from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space
-from Codexes2Gemini.classes.Codexes.Builders.PromptPlan import PromptPlan
 
 logger = configure_logger("DEBUG")
 logging.info("--- Began logging ---")
@@ -458,12 +456,13 @@ def display_image_row(cols, image_info):
     st.markdown('</div>', unsafe_allow_html=True)
 
 
+
 def run_multiplan(multiplan, user_space):
-    st.info("--- Beginning to run {multiplan.name} ---")
+    st.info(f"--- Beginning to run {multiplan.name} ---")
     launcher = BuildLauncher()
 
     results = []
-    for plan in multiplan:
+    for i, plan in enumerate(multiplan):
         print(plan['mode'])
         launcher_plan = {
             'mode': plan['mode'],
@@ -481,16 +480,48 @@ def run_multiplan(multiplan, user_space):
         logger.debug(truncate_plan_values_for_display(launcher_plan))
         try:
             result = launcher.main(launcher_plan)
+            results.append(result)
         except Exception as e:
             st.error(f"Error processing plan '{plan['name']}': {str(e)}")
             st.write(traceback.format_exc())
+            continue
 
-        results.append(result)
-        #st.write(results)
     st.subheader("Multiplan Results")
     user_space.add_result('results', results)
-    st.write(results)
+    # st.write(results)  # Remove this line
     save_user_space(user_space)
+
+    # Add download options for JSON, Markdown, and PDF results
+    for i, result_list in enumerate(results):  # Iterate through the list of results
+        for j, result in enumerate(result_list):  # Iterate through results for each plan
+            result_filename = f"result_{i + 1}_{j + 1}"  # Unique filename for each result
+            with open(f"{plan['thisdoc_dir']}/{result_filename}.md", 'w') as f:
+                f.write(result)
+            with open(f"{plan['thisdoc_dir']}/{result_filename}.json", 'w') as f:
+                json.dump(result, f, indent=4)
+
+            st.markdown(f"**Result {i + 1}.{j + 1}:**")
+            st.markdown(get_binary_file_downloader_html(f"{plan['thisdoc_dir']}/{result_filename}.md",
+                                                        f"Download Markdown ({result_filename}.md)"))
+            st.markdown(get_binary_file_downloader_html(f"{plan['thisdoc_dir']}/{result_filename}.json",
+                                                        f"Download JSON ({result_filename}.json)"))
+
+            # Generate PDF if pypandoc is installed
+            try:
+                pypandoc.convert_text(result, 'pdf', format='markdown',
+                                      outputfile=f"{plan['thisdoc_dir']}/{result_filename}.pdf",
+                                      extra_args=['--toc', '--toc-depth=2', '--pdf-engine=xelatex'])
+                st.markdown(get_binary_file_downloader_html(f"{plan['thisdoc_dir']}/{result_filename}.pdf",
+                                                            f"Download PDF ({result_filename}.pdf)"))
+            except FileNotFoundError:
+                st.warning("Pypandoc not found. Please install the pypandoc library to generate PDF.")
+            except Exception as e:
+                st.error(f"Error generating PDF: {str(e)}")
+                st.write(traceback.format_exc())
+
+
+
+
 
 def display_full_context(context_files):
     for filename, content in context_files.items():
