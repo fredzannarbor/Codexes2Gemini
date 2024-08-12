@@ -12,6 +12,20 @@ console = Console(record=True)
 
 
 def set_logging_level(log_level: str):
+    """
+    Sets the logging level for the application.
+
+    Args:
+        log_level (str): The desired logging level. Valid options are:
+            - DEBUG
+            - INFO
+            - WARNING
+            - ERROR
+            - CRITICAL
+
+    Raises:
+        ValueError: If an invalid log level is provided.
+    """
     numeric_level = getattr(logging, log_level.upper(), None)
     if not isinstance(numeric_level, int):
         raise ValueError(f'Invalid log level: {log_level}')
@@ -20,18 +34,43 @@ def set_logging_level(log_level: str):
 
 
 def where_am_i_running_to_dict():
+    """
+    Returns a dictionary containing the module name and function name of the current execution context.
+
+    Returns:
+        tuple: A tuple containing the module name and function name as strings.
+    """
     modulename = __name__
     functionname = inspect.currentframe().f_code.co_name
     return modulename, functionname
 
 
 def where_am_I_running_to_string(modulename, functionname):
+    """
+    Returns a string representation of the module name and function name of the current execution context.
+
+    Args:
+        modulename (str): The name of the module.
+        functionname (str): The name of the function.
+
+    Returns:
+        str: A string representation of the module name and function name.
+    """
     modulename = __name__
     functionname = inspect.currentframe().f_code.co_name
     return f"{modulename}:{functionname}"
 
 
 def create_app_log_directory(dir_path):
+    """
+    Creates a directory for application logs in the user's home directory.
+
+    Args:
+        dir_path (str): The path to the directory to create.
+
+    Returns:
+        str: The absolute path to the created directory.
+    """
     home_dir = os.path.expanduser("~")
     dir_path = os.path.join(home_dir, ".codexes2gemini", dir_path)
     print(dir_path)
@@ -43,6 +82,20 @@ def create_app_log_directory(dir_path):
     return dir_path
 
 def configure_logger(log_level):
+    """
+    Configures the application logger with the specified logging level.
+
+    Args:
+        log_level (str): The desired logging level. Valid options are:
+            - DEBUG
+            - INFO
+            - WARNING
+            - ERROR
+            - CRITICAL
+
+    Returns:
+        logging.Logger: The configured logger object.
+    """
     # create log directory in user's home directory
     logdir_path = create_app_log_directory("logs")
 
@@ -89,4 +142,3 @@ def configure_logger(log_level):
     logger.addHandler(console_handler)
 
     return logger
-

@@ -11,15 +11,30 @@ _Humans and AIs making books richer, more diverse, and more surprising._
 - The codex's power to deliver immersive sharing of experience and deep knowledge makes it one of the most beneficial technologies ever created--[and we're just getting started!](https://nimblebooks.com/A_Longform_Prospectus#:~:text=The%20immersive%20deep%20reading%20of%20high%2Dquality%20books%20must%20rank%20among%20the%20most%20beneficial%20and%20broadly%20distributed%20technologies%20ever%20invented%20(see%20inter%20alia%20McLuhan%2C%201962%3B%20McDermott%2C%202006%3B%20Boorstin%2C%201992%3B%20UNESCO%202019).)
 - "...of making many books there is no end... " ([Ecclesiastes 12:12](https://www.biblegateway.com/passage/?search=Ecclesiastes%2012&version=KJV))
 
-**Gemini** is Latin for "twins", often referring to the half-brothers Castor and Pollux in Greek mythology.  Gemini is also the name of [Google's flagship generative AI model](https://gemini.google.com/), chosen to reflect the dual nature of language models, which are able to both understand and generate human language.  Gemini is a state-of-the-art large language model whose 2-million-token context window (July 2024) makes it ideally suitable for interacting with codexes.
+A
+selective, [annotated bibliography of AI research pertinent to book publishing.](https://NimbleBooks.com/Annotated_Bibliography)
+Updated frequently.
+
+**Gemini** is Latin for "twins", often referring to the half-brothers Castor and Pollux in Greek mythology. Gemini is
+also the name of [Google's flagship generative AI model](https://gemini.google.com/), chosen to reflect the dual nature
+of language models, which are able to both understand and generate human language. Gemini is a state-of-the-art large
+language model whose 10-million-token context window for text (July 2024) makes it ideally suitable for interacting with
+codexes.
 
 
 ## Key Features
 
+### Available Now
 
 - **Metadata Generation:**  Create rich metadata for your book based on its actual content, rather than assumptions.
 - **Parts-of-the-Book Awareness**: Make your prompts and context fully aware of the inherent logical structure of codex books, known as the "parts of the book".
-- **Facts and Assumptions In Context**:
+- **Userspace with persistent, filterable contexts** from uploaded text, docx, and PDF documents.
+- **Dictionaries of system and user prompts** that accomplish important publishing goals.
+
+### Coming soon
+
+- **Facts and Assumptions In Context**: Refer to the entire context of the corpus to ensure factuality in your
+  generations.
 - **Outline Generation:** Craft detailed outlines for codex books using your chosen personas.
 - **Content Generation:**  Write entire books using a long codex as factual context for your outline.
 
@@ -94,28 +109,33 @@ args2 = {
 results = launcher.main(args2)
 ```
 
-### Streamlit Front End
+### Front Ends
 
-The library comes with an optional Streamlit front end.
+The library comes with an optional Streamlit front end. It should be emphasized that this is strictly a demonstration,
+the underlying function of the library does not depend on the choice of Streamlit. You could implement your own front
+end using another UI package such as Flask or Django and if you do so your pull request will be appreciated!
+
+#### Launch using Streamlit
+
+It can be run from the second level of the repository like so:
+
+`Codexes2Gemini> cd Codexes2Gemini
+Codexes2Gemini/Codexes2Gemini> streamlit run ui/streamlit_ui.py --server.port=1455`
+
+The server.port can be anything; 1455 is the year the Gutenberg Bible was published.
+
+#### Launch via command script
+
+The package also includes a command line script to launch the UI.
 
 At the command line, type:
 
 ```bash
 codexes2gemini-ui
 ```
-The script will launch a streamlit web server in your default web server at localhost:1455 (the year the Gutenberg Bible was printed).
 
-## Demos
+The script will launch the streamlit web server as above. In other words, this is a shortcut.
 
-1. Create a pair of twinned author personas.
-2. Write an outline for a codex book using those personas.
-3. Use a very long codex book (920 pages) as factual context to that outline.
-4. Write the book.
-5. Create metadata for the book "bottom up" (based on what its content actually is) rather than "top down" (what authors and publishers _think_ it is.)
-
-
-
-## 
 
 ## References
 

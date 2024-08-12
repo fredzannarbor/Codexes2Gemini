@@ -17,7 +17,8 @@ The history of book publishing rhymes with the history of life.
   - Changes the environment, but not as badly as feared. Printed books survive, new titles abound, e-books find their niche.
 - Long input and output context windows are the next asteroid that will strike book publishing.
 
-The big idea: very long context input and output is an *adaptive event* for the world of books.  
+This is a good place for The Big Idea: very long context input and output is an *adaptive event* for the world of books,
+something that changes everything and triggers a radiation of shape, structure, function, and style.
 
 The history of publishing rhymes with the history of life.
 

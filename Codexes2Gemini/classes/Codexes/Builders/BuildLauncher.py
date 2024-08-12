@@ -17,6 +17,47 @@ from ...Utilities.utilities import configure_logger
 
 GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
 class BuildLauncher:
+    """
+    Class representing the BuildLauncher.
+
+    Attributes:
+        parts_builder (PartsBuilder): An instance of the PartsBuilder class.
+        codex_builder (CodexBuilder): An instance of the CodexBuilder class.
+        logger (logging.Logger): A logger instance.
+        user_prompts_dict (dict): A dictionary containing user prompts.
+        system_instructions_dict (dict): A dictionary containing system instructions.
+
+    Methods:
+        parse_arguments() -> argparse.Namespace:
+            Parses the command line arguments and returns a Namespace object.
+
+        load_prompt_dictionaries() -> dict:
+            Loads the user prompts and system instructions dictionaries from JSON files.
+
+        create_prompt_plan(config: Dict) -> PromptPlan:
+            Creates a PromptPlan object based on the provided configuration.
+
+        load_plans_from_json(json_data) -> List[PromptPlan]:
+            Loads PromptPlan objects from a JSON file or dictionary.
+
+        main(args=None) -> List:
+            The main entry point of the BuildLauncher class. Executes the provided plans and returns the results.
+
+        create_plans(args) -> List[PromptPlan]:
+            Creates a list of PromptPlan objects based on the provided arguments.
+
+        create_plans_from_multiplan(args) -> List[PromptPlan]:
+            Creates PromptPlan objects from a multiplan configuration.
+
+        create_plans_from_json(plans_data) -> List[PromptPlan]:
+            Creates PromptPlan objects from a JSON data structure.
+
+        process_plan(plan: PromptPlan) -> Any:
+            Processes a PromptPlan and returns the result based on the mode.
+
+        save_result(plan: PromptPlan, result: Any) -> None:
+            Saves the result to files and logs the output paths.
+    """
     def __init__(self):
         self.parts_builder = PartsBuilder()
         self.codex_builder = CodexBuilder()

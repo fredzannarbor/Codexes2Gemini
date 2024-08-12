@@ -1,9 +1,18 @@
 import csv
-from typing import Dict, Any
+from typing import Dict
+
 from .PromptPlan import PromptPlan
 
 
 class CSV2PromptPlan(PromptPlan):
+    """
+    A class for creating CSV2PromptPlan objects from CSV data.
+
+    Example Usage:
+        plan = CSV2PromptPlan.from_csv_row(csv_row)
+        plans = CSV2PromptPlan.from_csv_file(csv_file_path)
+
+    """
     @classmethod
     def from_csv_row(cls, row: Dict[str, str]) -> 'CSV2PromptPlan':
         """Create a CSV2PromptPlan object from a CSV row."""

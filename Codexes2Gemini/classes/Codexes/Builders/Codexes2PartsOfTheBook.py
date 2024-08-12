@@ -6,14 +6,12 @@ import traceback
 from importlib import resources
 from time import sleep
 from typing import List
-import streamlit as st
-
-
-from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 
 import google.generativeai as genai
 import pandas as pd
+import streamlit as st
 
+from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 from ..Builders.PromptPlan import PromptPlan
 
 GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
@@ -22,30 +20,29 @@ configure_logger("DEBUG")
 
 class Codexes2Parts:
     """
-    Class: Codexes2Parts
-
-    The Codexes2Parts class is responsible for processing codexes and generating book parts based on a given plan. It provides methods for configuring the API, creating a model, processing the codex to book part, generating a full book, and more.
+    Class for processing Codexes to create book parts.
 
     Attributes:
-    - logger: A logger object for logging messages and debugging information.
-    - model_name: A string representing the name of the generative model.
-    - generation_config: A dictionary representing the configuration for generation.
-    - safety_settings: A list of dictionaries representing the safety settings.
-    - system_instructions_dict_file_path: A string representing the file path of the system instructions dictionary.
-    - continuation_instruction: A string representing the instruction for continuation prompts.
-    - results: A list to store the final results.
+        logger (Logger): Logger instance for logging information.
+        model_name (str): Name of the generative model to use.
+        generation_config (dict): Configuration for generation process.
+        safety_settings (list): List of safety settings for blocking harmful content.
+        system_instructions_dict_file_path (str): Path to the system instructions dictionary file.
+        continuation_instruction (str): Instruction for continuation prompts.
+        results (list): List to store the generated book parts.
+        add_system_prompt (str): Additional system prompt.
 
     Methods:
-    - configure_api(): Configures the API with the Google API key.
-    - create_model(model_name, safety_settings, generation_config): Creates a generative model based on the given parameters.
-    - process_codex_to_book_part(plan): Processes the codex to generate book parts based on the given plan.
-    - read_and_prepare_context(plan): Reads and prepares the context for processing.
-    - assemble_system_prompt(plan): Assembles the system prompt based on the plan and system instruction dictionary.
-    - generate_full_book(plans): Generates a full book based on the given plans.
-    - gemini_get_response(plan, system_prompt, user_prompt, context, model): Makes a request to the Gemini API to get a response.
-    - make_thisdoc_dir(plan): Creates a directory to store the output file.
-
-    Note: This class relies on external dependencies such as the `logging` module, `os` module, `genai` module, `json` module, `pd` module, `traceback` module, and `sleep` function.
+        configure_api(): Configures the API key.
+        create_model(model_name, safety_settings, generation_config): Creates a generative model.
+        process_codex_to_book_part(plan): Processes the Codex to generate a book part.
+        count_tokens(text, model): Counts the number of tokens in a text.
+        read_and_prepare_context(plan): Reads and prepares the context for generation.
+        tokens_to_millions(tokens): Converts the number of tokens to millions.
+        assemble_system_prompt(plan): Assembles the system prompt for generation.
+        generate_full_book(plans): Generates the full book from a list of plans.
+        gemini_get_response(plan, system_prompt, user_prompt, context, model): Calls the Gemini API to get the response.
+        make_thisdoc_dir(plan): Creates the directory for the book part output.
     """
     def __init__(self):
         super().__init__()
