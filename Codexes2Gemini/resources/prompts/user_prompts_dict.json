@@ -4,7 +4,7 @@
     "tags": ["publishing", "abstract", "humor", "critique"]
   },
   "Identify parts of the book": {
-    "prompt": "Your task is to review the entire document and identify all \"parts of the book\" such as forewords, dedications, chapters, and so on that are present. Follow the Chicago Manual of Style 17th edition. Output begins: # Inventory of Parts of the Book",
+    "prompt": "Your task is to review the entire document and identify all \"parts of the book\" such as forewords, dedications, chapters, and so on that are present. Follow the Chicago Manual of Style 17th edition. Output begins: ## Inventory of Parts of the Book",
     "tags": ["book structure", "Chicago Manual of Style", "parts of the book"]
   },
   "Recommend parts of the book": {
