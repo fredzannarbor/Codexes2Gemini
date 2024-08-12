@@ -3,6 +3,7 @@
 
 import inspect
 import logging
+import os
 import sys
 
 from rich.console import Console
@@ -30,9 +31,24 @@ def where_am_I_running_to_string(modulename, functionname):
     return f"{modulename}:{functionname}"
 
 
+def create_app_log_directory(dir_path):
+    home_dir = os.path.expanduser("~")
+    dir_path = os.path.join(home_dir, ".codexes2gemini", dir_path)
+    print(dir_path)
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+        print(f'Directory {dir_path} created.')
+    else:
+        print(f'Directory {dir_path} already exists.')
+    return dir_path
 
 def configure_logger(log_level):
+    # create log directory in user's home directory
+    logdir_path = create_app_log_directory("logs")
+
+
     # Create logger object
+
     # logger = logging.getLogger(__name__)
     logger = logging.getLogger("applications")
     # print(logger)
@@ -45,7 +61,7 @@ def configure_logger(log_level):
         logger.removeHandler(handler)
 
     # Create a file handler that handles all messages and writes them to a file
-    file_handler = logging.FileHandler('logs/applications.log')
+    file_handler = logging.FileHandler(os.path.join(logdir_path, "c2g.log"))
     file_handler.setLevel(logging.DEBUG)
 
     # Create a stream handler that handles only warning and above messages
