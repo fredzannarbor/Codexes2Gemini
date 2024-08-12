@@ -1,17 +1,18 @@
 import argparse
-import os
 import json
 import logging
-from importlib import resources
-from pprint import pprint
-from typing import Dict
+import os
 import uuid
+from importlib import resources
+from typing import Dict
+
 import google.generativeai as genai
+import pypandoc
 import streamlit as st
 
-from ..Builders.PartsBuilder import PartsBuilder
-from ..Builders.CodexBuilder import CodexBuilder
 from Codexes2Gemini.classes.Codexes.Builders.PromptPlan import PromptPlan
+from ..Builders.CodexBuilder import CodexBuilder
+from ..Builders.PartsBuilder import PartsBuilder
 from ...Utilities.utilities import configure_logger
 
 GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
@@ -180,7 +181,17 @@ class BuildLauncher:
         with open(unique_filename + '.json', 'w') as f:
             json.dump(result, f, indent=4)
         self.logger.info(f"Output written to {unique_filename}.md and {unique_filename}.json")
-        self.logger.info(f"Output length {len(result)}")
+        mainfont = 'Skolar PE'
+        extra_args = ['--toc', '--toc-depth=2', '--pdf-engine=xelatex', '-V', f'mainfont={mainfont}',
+                      '--pdf-engine=xelatex']
+        try:
+            pypandoc.convert_text(result, 'pdf', format='markdown', outputfile=unique_filename + ".pdf",
+                                  extra_args=extra_args)
+            self.logger.info(f"PDF saved to {unique_filename}.pdf")
+        except FileNotFoundError:
+            self.logger.error("Pyandoc not found. Please install the pypandoc library to generate PDF.")
+
+
 if __name__ == "__main__":
     launcher = BuildLauncher()
     launcher.main()
