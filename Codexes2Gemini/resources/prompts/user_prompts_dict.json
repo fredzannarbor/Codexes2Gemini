@@ -44,7 +44,7 @@
             "ELI5", "simple explanation", "abstract"]
   },
   "ELI complete idiot - abstract": {
-    "prompt": "Explain this to me like I am a complete idiot, someone who is both painfully stupid and willfully ignorant. Output begins: ## For Idiots Only",
+    "prompt": "Explain this to me like I am a complete idiot, someone who is both painfully stupid and willfully ignorant. Output begins: ## For Complete Idiots Only",
     "tags": ["front matter",
             "humor", "extreme simplification", "abstract"]
   },
