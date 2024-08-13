@@ -70,3 +70,4 @@ instance/
 
 Codexes2Gemini/privateodexes2Gemini/private/
 
+*.pkl
