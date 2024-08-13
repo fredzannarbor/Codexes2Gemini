@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='Codexes2Gemini',
-    version='0.2.1.1',
+    version='0.2.1.5',
     python_requires='>=3.11',
     description='Humans and AIs making books richer, more diverse, and more surprising.',
     url='https://github.com/fredzannarbor/Codexes2Gemini',
@@ -19,9 +19,9 @@ setup(
     include_package_data=True,
     package_data={
         'Codexes2Gemini': ['resources/prompts/*.json', 'resources/images/*.jpg', 'resources/images/*.png',
-                           'resources/images/*.jpeg'],
+                           'resources/images/*.jpeg', 'resources/images/*.json'],
     },
-    install_requires=['streamlit'],
+    install_requires=['streamlit', 'pymupdf', 'pypandoc', 'python-docx'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
