@@ -39,7 +39,7 @@
     "tags": ["audience analysis", "demographics", "market segmentation"]
   },
   "ELI5 - abstract": {
-    "prompt": "Explain this to me like I am five years old. Output begins: ## ELI5",
+    "prompt": "Explain this to me like I am five years old. Output begins with the string '## ELI5'",
     "tags": ["front matter",
             "ELI5", "simple explanation", "abstract"]
   },
