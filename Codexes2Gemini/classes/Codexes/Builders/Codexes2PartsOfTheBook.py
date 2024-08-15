@@ -5,7 +5,6 @@ import os
 import traceback
 from importlib import resources
 from time import sleep
-from typing import List
 
 import google.generativeai as genai
 import pandas as pd
@@ -66,6 +65,8 @@ class Codexes2Parts:
         self.continuation_instruction = "The context now includes a section called {Work So Far} which includes your work on this book project so far. Please refer to it along with the context document as you carry out the following task."
         self.results=[]
         self.add_system_prompt = ""
+        self.complete_system_instruction = ""
+
     def configure_api(self):
         api_key = os.getenv("GOOGLE_API_KEY")
         if not api_key:
@@ -75,7 +76,29 @@ class Codexes2Parts:
     def create_model(self, model_name, safety_settings, generation_config):
         return genai.GenerativeModel(model_name, safety_settings=safety_settings, generation_config=generation_config)
 
+    def create_response_dict(self, response):
+
+        response_dict = {
+            "text": response.text,
+            "prompt_feedback": response.prompt_feedback,
+            "candidates": [
+                {
+                    "content": candidate.content,
+                    "finish_reason": candidate.finish_reason,
+                    "safety_ratings": [
+                        {
+                            "category": rating.category,
+                            "probability": rating.probability
+                        } for rating in candidate.safety_ratings
+                    ]
+                } for candidate in response.candidates
+            ]
+        }
+
+        return response_dict
+
     def process_codex_to_book_part(self, plan: PromptPlan):
+
         self.logger.debug(f"Starting process_codex_to_book_part with plan: {plan}")
         self.make_thisdoc_dir(plan)
         context = self.read_and_prepare_context(plan)
@@ -88,15 +111,15 @@ class Codexes2Parts:
         self.logger.debug(f"System prompt assembled, length: {self.count_tokens(system_prompt)}")
 
         user_prompts = plan.get_prompts()
-        self.logger.info(f"User prompts retrieved: {user_prompts}")
+        self.logger.info(f"\nUser prompts retrieved: {user_prompts}")
 
         satisfactory_results = []
         #st.info('here')
-        st.write(user_prompts)
+
         for i, user_prompt in enumerate(user_prompts):
             self.logger.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
-            st.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
-            st.info(f"This user prompt is {user_prompt}")
+            # st.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
+            # st.info(f"This user prompt is {user_prompt}")
             full_output = " "
             retry_count = 0
             max_retries = 3
@@ -105,8 +128,10 @@ class Codexes2Parts:
             while full_output_tokens < plan.minimum_required_output_tokens and retry_count < max_retries:
                 try:
                     response = self.gemini_get_response(plan, system_prompt, user_prompt, context, model)
-                    st.info(user_prompt)
+                    #st.info(user_prompt)
                     self.logger.debug(f"Response received, length: {self.count_tokens(response.text)} tokens")
+                    json_response = self.create_response_dict(response)
+                    st.json(json_response, expanded=False)
                     full_output += response.text
                     full_output_tokens = self.count_tokens(full_output)
 
@@ -143,7 +168,10 @@ class Codexes2Parts:
             else:
                 self.logger.warning("No satisfactory results were generated.")
             st.info(f"processed prompt {i + 1}")
-        return "\n\n".join(satisfactory_results)  # Return only satisfactory results joined together
+
+
+return satisfactory_results
+#"\n\n".join(satisfactory_results)  # Return only satisfactory results joined together
 
 
 
@@ -181,23 +209,22 @@ class Codexes2Parts:
         return tokens / 1_000_000
 
     def assemble_system_prompt(self, plan):
-        system_prompt = ''
-        with open(self.system_instructions_dict_file_path, "r") as json_file:
-            system_instruction_dict = json.load(json_file)
-        list_of_system_keys = plan.list_of_system_keys if isinstance(plan.list_of_system_keys,
-                                                                     list) else plan.list_of_system_keys.split(',')
-        for key in list_of_system_keys:
-            key = key.strip()  # Remove any leading/trailing whitespace
-            print(system_instruction_dict[key]['prompt'])
-            try:
-                system_prompt += system_instruction_dict[key]['prompt']
-            except KeyError as e:
-                self.logger.error(f"System instruction key {key} not found: {e}")
-        if self.add_system_prompt:
-            system_prompt += self.add_system_prompt
+        if plan.complete_system_instruction:
+            system_prompt = plan.complete_system_instruction
+        else:
+            with open(self.system_instructions_dict_file_path, "r") as json_file:
+                system_instruction_dict = json.load(json_file)
+            system_prompt = ""
+            for key in plan.selected_system_instruction_keys:
+                key = key.strip()
+                try:
+                    system_prompt += system_instruction_dict[key]['prompt']
+                except KeyError as e:
+                    self.logger.error(f"System instruction key {key} not found: {e}")
+            if self.add_system_prompt:
+                system_prompt += self.add_system_prompt
 
         return system_prompt
-
     def generate_full_book(self, plans: List[PromptPlan]):
         return [self.process_codex_to_book_part(plan) for plan in plans]
 

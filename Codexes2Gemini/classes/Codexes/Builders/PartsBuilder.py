@@ -58,6 +58,7 @@ class PartsBuilder:
 
     def build_part(self, plan: PromptPlan) -> str:
         """Build a single part based on the given PromptPlan."""
+
         return self.c2p.process_codex_to_book_part(plan)
 
 

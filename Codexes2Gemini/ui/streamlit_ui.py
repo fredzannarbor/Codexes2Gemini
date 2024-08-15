@@ -7,6 +7,7 @@ import time
 import traceback
 from datetime import datetime
 from importlib import resources
+from io import BytesIO
 from typing import Dict
 
 import pandas as pd
@@ -304,7 +305,7 @@ def multiplan_builder(user_space: UserSpace):
         st.info(f"Current context: {st.session_state.current_plan['context_total_tokens']:,} tokens "
                 f"(approximately {st.session_state.current_plan['context_total_mb']:.3f} MB)")
         plan = st.session_state.current_plan
-        truncate_plan_values_for_display(plan)
+    # truncate_plan_values_for_display(plan)
 
     # Step 2: Instructions and Prompts
     st.subheader("Step 2: Instructions and Prompts")
@@ -316,52 +317,64 @@ def multiplan_builder(user_space: UserSpace):
         with st.expander("Enter System Instructions"):
             system_filter = st.text_input("Filter system instructions")
             filtered_system = filter_dict(system_instructions_dict, system_filter)
-            #st.write(filtered_system)
-            selected_system_instructions = st.multiselect(
+            selected_system_instruction_values = []
+            selected_system_instruction_keys = st.multiselect(
                 "Select system instructions",
                 options=list(filtered_system.keys()),
                 format_func=lambda x: f"{x}: {filtered_system[x]['prompt'][:50]}..."
             )
+            for key in selected_system_instruction_keys:
+                selected_system_instruction_values.append(system_instructions_dict[key]['prompt'])
+
+            complete_system_instruction = "\n".join(selected_system_instruction_values)
 
         with st.expander("Enter User Prompts"):
             user_filter = st.text_input("Filter user prompts")
             filtered_user = filter_dict(user_prompts_dict, user_filter)
 
-            selected_user_prompt = ""
-            selected_user_prompts = st.multiselect(
-                "Select user prompts",
+            selected_user_prompt_keys = st.multiselect(
+                "Select user prompt keys",
                 options=list(filtered_user.keys()),
                 format_func=lambda x: f"{x}: {filtered_user[x]['prompt'][:50]}..."
             )
-            selected_user_prompt_values = []
-            for key in selected_user_prompts:
-                selected_user_prompt = selected_user_prompt + "\n" + user_prompts_dict[key]['prompt']
-                selected_user_prompt_values = user_prompts_dict[key]['prompt']
+
+            selected_user_prompt_values = [filtered_user[key]['prompt'] for key in selected_user_prompt_keys]
+            selected_user_prompts_dict = {key: filtered_user[key]['prompt'] for key in selected_user_prompt_keys}
+
             custom_user_prompt = st.text_area("Custom User Prompt (optional)")
             user_prompt_override = st.radio("Override?",
                                             ["Override other user prompts", "Add at end of other user prompts"],
                                             index=1)
+
             if user_prompt_override == "Override other user prompts":
-                user_prompt = custom_user_prompt
+                complete_user_prompt = custom_user_prompt
             else:
-                user_prompt = selected_user_prompt + '/n' + custom_user_prompt
+                selected_user_prompt_keys.append("custom user prompt")
+                selected_user_prompt_values.append(custom_user_prompt)
+                complete_user_prompt = "\n".join(selected_user_prompt_values)
 
-        instructions_submitted = st.form_submit_button("Save Instructions and Continue",
-                                                       disabled=not context_selected)
+            user_prompt_override_bool = user_prompt_override == "Override other user prompts"
 
+            instructions_submitted = st.form_submit_button("Save Instructions and Continue",
+                                                           disabled=not context_selected)
+            #
+        
     if instructions_submitted:
-
         st.session_state.current_plan.update({
-            "system_instructions": selected_system_instructions,
-            "user_prompts": selected_user_prompts,
-            "selected_user_prompt": selected_user_prompt,
-            "selected_user_prompt_values": selected_user_prompt_values,
-            "custom_user_prompt": custom_user_prompt,
-            "user prompt_override": user_prompt_override,
-            "user_prompt": user_prompt,
-            "user_prompts_dict": user_prompts_dict
+            "selected_system_instruction_keys": selected_system_instruction_keys,
+            "selected_system_instruction_values": selected_system_instruction_values,
+            "complete_system_instruction": complete_system_instruction,
+            'selected_user_prompt_keys': selected_user_prompt_keys,
+            'selected_user_prompt_values': selected_user_prompt_values,
+            'custom_user_prompt': custom_user_prompt,
+            'user_prompt_override': user_prompt_override_bool,
+            'complete_user_prompt': complete_user_prompt,
+            'user_prompts_dict': user_prompts_dict,
+            'selected_user_prompts_dict': selected_user_prompts_dict
         })
+
         st.success("Instructions and prompts saved.")
+        # truncate_plan_values_for_display(plan)
 
     # Step 3: Output Settings
     st.subheader("Step 3: Output Settings")
@@ -384,8 +397,8 @@ def multiplan_builder(user_space: UserSpace):
         # Check conditions for enabling the submit button
         context_selected = 'context' in st.session_state.current_plan or context_choice == "Skip Context"
         instructions_selected = (
-                len(st.session_state.current_plan.get('system_instructions', [])) > 0 or
-                len(st.session_state.current_plan.get('user_prompts', [])) > 0 or
+                len(st.session_state.current_plan.get('selected_system_instruction_keys', [])) > 0 or
+                len(st.session_state.current_plan.get('selected_user_prompt_keys', [])) > 0 or
                 len(st.session_state.current_plan.get('custom_user_prompt', '')) > 0
         )
         submit_disabled = not (context_selected and instructions_selected)
@@ -411,6 +424,7 @@ def multiplan_builder(user_space: UserSpace):
     if st.session_state.multiplan:
         st.subheader("Current Multiplan")
         for i, plan in enumerate(st.session_state.multiplan):
+
             with st.expander(f"Plan {i + 1}: {plan['name']}"):
 
                 truncate_plan_values_for_display(plan)
@@ -455,70 +469,97 @@ def display_image_row(cols, image_info):
     st.markdown('</div>', unsafe_allow_html=True)
 
 
-
 def run_multiplan(multiplan, user_space):
-    st.info(f"Beginning to run multiplan")
+    st.info("Beginning to run multiplan")
     launcher = BuildLauncher()
 
     results = []
     for i, plan in enumerate(multiplan):
-        print(plan['mode'])
+
         launcher_plan = {
             'mode': plan['mode'],
             'context': plan['context'],
             'output': f"output_{plan['name']}.md",
-            'selected_system_instructions': plan['system_instructions'],
-            'user_prompt': plan['user_prompt'],
+            'selected_system_instructions': plan['selected_system_instruction_keys'],
+            'user_prompt': plan['complete_user_prompt'],
             'selected_user_prompt_values': plan['selected_user_prompt_values'],
-            'list_of_user_keys_to_use': plan['user_prompts'],
+            'list_of_user_keys_to_use': plan['selected_user_prompt_keys'],
             'maximum_output_tokens': plan['maximum_output_tokens'],
             'minimum_required_output': plan['minimum_required_output'],
             'minimum_required_output_tokens': plan['minimum_required_output_tokens'],
-            'user_prompts_dict': plan['user_prompts_dict']
+            'complete_user_prompt': plan['complete_user_prompt'],
+            'complete_system_instruction': plan['complete_system_instruction'],
+            'selected_system_instructions': plan['selected_system_instruction_keys'],
+            'selected_user_prompts_dict': plan['selected_user_prompts_dict'],
         }
-        logger.debug(truncate_plan_values_for_display(launcher_plan))
+
         try:
             result = launcher.main(launcher_plan)
+            #result = launcher.main(plan)
             results.append(result)
+            #st.write(result)
         except Exception as e:
             st.error(f"Error processing plan '{plan['name']}': {str(e)}")
-            st.write(traceback.format_exc())
+            st.code(traceback.format_exc())
             continue
 
     st.subheader("Multiplan Results")
     user_space.add_result('results', results)
-    # st.write(results)  # Remove this line
     save_user_space(user_space)
 
     # Add download options for JSON, Markdown, and PDF results
-    for i, result_list in enumerate(results):  # Iterate through the list of results
-        for j, result in enumerate(result_list):  # Iterate through results for each plan
-            result_filename = f"result_{i + 1}_{j + 1}"  # Unique filename for each result
-            with open(f"{plan['thisdoc_dir']}/{result_filename}.md", 'w') as f:
-                f.write(result)
-            with open(f"{plan['thisdoc_dir']}/{result_filename}.json", 'w') as f:
-                json.dump(result, f, indent=4)
+    for i, result_item in enumerate(results):
+        st.markdown(f"**Result {i + 1}:**")
+        display_nested_content(result_item)
 
-            st.markdown(f"**Result {i + 1}.{j + 1}:**")
-            st.markdown(get_binary_file_downloader_html(f"{plan['thisdoc_dir']}/{result_filename}.md",
-                                                        f"Download Markdown ({result_filename}.md)"))
-            st.markdown(get_binary_file_downloader_html(f"{plan['thisdoc_dir']}/{result_filename}.json",
-                                                        f"Download JSON ({result_filename}.json)"))
+    # for j, result in enumerate(result_list):
+    results_filename = f"result_{i + 1}_"
+    # markdown display
 
-            # Generate PDF if pypandoc is installed
-            try:
-                pypandoc.convert_text(result, 'pdf', format='markdown',
-                                      outputfile=f"{plan['thisdoc_dir']}/{result_filename}.pdf",
-                                      extra_args=['--toc', '--toc-depth=2', '--pdf-engine=xelatex'])
-                st.markdown(get_binary_file_downloader_html(f"{plan['thisdoc_dir']}/{result_filename}.pdf",
-                                                            f"Download PDF ({result_filename}.pdf)"))
-            except FileNotFoundError:
-                st.warning("Pypandoc not found. Please install the pypandoc library to generate PDF.")
-            except Exception as e:
-                st.error(f"Error generating PDF: {str(e)}")
-                st.write(traceback.format_exc())
+    markdown_content = json.dumps(results, indent=2)  # Convert dict to formatted string
 
+    # Markdown download
+    markdown_buffer = BytesIO(markdown_content.encode())
 
+    @st.fragment()
+    def download_markdown():
+        st.download_button(
+            label=f"Download Markdown ({results_filename}.md)",
+            data=markdown_buffer,
+            file_name=f"{results_filename}.md",
+            mime="text/markdown"
+        )
+
+    download_markdown()
+
+    @st.fragment()
+    def download_json():
+        json_buffer = BytesIO(json.dumps(result, indent=4).encode())
+        st.download_button(
+            label=f"Download JSON ({results_filename}.json)",
+            data=json_buffer,
+            file_name=f"{results_filename}.json",
+            mime="application/json"
+        )
+
+    download_json()
+    # st.write(markdown_content)
+    # try:
+    #     pdf_buffer = convert_to_pdf(markdown_content)
+    #
+    #     if pdf_buffer:
+    #         st.download_button(
+    #             label="Download PDF",
+    #             data=pdf_buffer,
+    #             file_name="result.pdf",
+    #             mime="application/pdf"
+    #         )
+    # except ValueError as ve:
+    #     st.error(str(ve))
+    # except Exception as e:
+    #     st.error(f"An error occurred: {str(e)}")
+    #
+    # return results
 
 
 
@@ -527,6 +568,27 @@ def display_full_context(context_files):
         st.subheader(f"File: {filename}")
         st.text_area("Content", value=content, height=300, disabled=True)
 
+
+def convert_to_pdf(markdown_content):
+    if not markdown_content.strip():
+        raise ValueError("Markdown content is empty")
+
+    pdf_buffer = BytesIO()
+    extra_args = ['--toc', '--toc-depth=2', '--pdf-engine=xelatex']
+
+    try:
+        pypandoc.convert_text(
+            markdown_content,
+            'pdf',
+            format='markdown',
+            outputfile=pdf_buffer,
+            extra_args=extra_args
+        )
+        pdf_buffer.seek(0)
+        return pdf_buffer
+    except Exception as e:
+        print(f"Error generating PDF: {str(e)}")
+        return None
 
 def filter_dict(dictionary, filter_text):
     return {k: v for k, v in dictionary.items() if
@@ -694,7 +756,28 @@ def run_build_launcher(selected_user_prompts, selected_system_instructions, user
     return results
 
 
-
+def display_nested_content(content):
+    if isinstance(content, list):
+        for item in content:
+            display_nested_content(item)
+    elif isinstance(content, str):
+        # Split the content into sections
+        sections = content.split('\n\n')
+        for section in sections:
+            if section.startswith('##'):
+                # This is a header
+                st.header(section.strip('# '))
+            elif section.startswith('**'):
+                # This is a bold section, probably a subheader
+                st.write(section)
+            elif section.startswith('*'):
+                # This is a bullet point
+                st.markdown(section)
+            else:
+                # This is regular text
+                st.write(section)
+    else:
+        st.write(content)
 
 def apply_custom_css(css):
     st.markdown(f'<style>{css}</style>', unsafe_allow_html=True)

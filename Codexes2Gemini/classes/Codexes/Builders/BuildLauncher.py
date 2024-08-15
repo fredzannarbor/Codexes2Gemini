@@ -115,11 +115,16 @@ class BuildLauncher:
             'mode': config.get('mode'),
             'use_all_user_keys': config.get('use_all_user_keys', False),
             'add_system_prompt': config.get('add_system_prompt', ''),
-            'user_prompts_dict': config.get('user_prompts_dict', {})  # Add this line
+            'user_prompts_dict': config.get('user_prompts_dict', {}),
+            'complete_user_prompt': config.get('complete_user_prompt', ""),
+            'selected_system_instruction_keys': config.get('selected_system_instruction_keys', []),
+            'selected_user_prompts_dict': config.get('selected_user_prompts_dict', {})
         }
         # Remove None values to avoid passing unnecessary keyword arguments
         prompt_plan_params = {k: v for k, v in prompt_plan_params.items() if v is not None}
+
         return PromptPlan(**prompt_plan_params)
+
     def load_plans_from_json(self, json_data):
         if isinstance(json_data, dict):
             # If json_data is already a dictionary, use it directly
@@ -141,7 +146,7 @@ class BuildLauncher:
             args = self.parse_arguments()
         elif not isinstance(args, (dict, argparse.Namespace)):
             raise TypeError("args must be either a dictionary or an argparse.Namespace object")
-
+        # st.write(args)
         # Set up logging
         log_level = args.get('log_level', 'INFO') if isinstance(args, dict) else args.log_level
         self.logger = configure_logger(log_level)
@@ -150,6 +155,7 @@ class BuildLauncher:
         plans = self.create_plans(args)
 
         self.logger.debug(f"Number of plans created: {len(plans)}")
+        st.info(f"Number of plans created: {len(plans)}")
         for i, plan in enumerate(plans):
             self.logger.debug(f"Plan {i + 1}: {plan}")
 
@@ -162,12 +168,14 @@ class BuildLauncher:
         results = []
         for plan in plans:
             #st.write(plan)
-            result = self.process_plan(plan)
-            if result is not None:
-                results.append(result)
-                self.save_result(plan, result)
+            plan_result = self.process_plan(plan)
+            # st.write(plan_result)
+            # st.write("plan result ^")
+            if plan_result is not None:
+                results.append(plan_result)
+                self.save_result(plan, plan_result)
 
-        return results
+            return results
 
     def create_plans(self, args):
         if isinstance(args, dict) and 'multiplan' in args:
@@ -180,6 +188,9 @@ class BuildLauncher:
             return self.create_plans_from_json(plans_data)
         else:
             config = args if isinstance(args, dict) else vars(args)
+
+            # st.write(config)
+            # st.write("config ^")
             return [self.create_prompt_plan(config)]
 
     def create_plans_from_multiplan(self, args):
@@ -217,8 +228,11 @@ class BuildLauncher:
             logging.info("Any output length OK.")
 
         unique_filename = f"{plan.thisdoc_dir}/{plan.output_file_path}_{str(uuid.uuid4())[:6]}"
+
+        # convert markdown list to string
+        md_result = "\n".join(result)
         with open(unique_filename + ".md", 'w') as f:
-            f.write(result)
+            f.write(md_result)
         with open(unique_filename + '.json', 'w') as f:
             json.dump(result, f, indent=4)
         self.logger.info(f"Output written to {unique_filename}.md and {unique_filename}.json")
@@ -226,7 +240,7 @@ class BuildLauncher:
         extra_args = ['--toc', '--toc-depth=2', '--pdf-engine=xelatex', '-V', f'mainfont={mainfont}',
                       '--pdf-engine=xelatex']
         try:
-            pypandoc.convert_text(result, 'pdf', format='markdown', outputfile=unique_filename + ".pdf",
+            pypandoc.convert_text(md_result, 'pdf', format='markdown', outputfile=unique_filename + ".pdf",
                                   extra_args=extra_args)
             self.logger.info(f"PDF saved to {unique_filename}.pdf")
         except FileNotFoundError:
