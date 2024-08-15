@@ -5,6 +5,7 @@ import os
 import traceback
 from importlib import resources
 from time import sleep
+from typing import List
 
 import google.generativeai as genai
 import pandas as pd
@@ -169,8 +170,7 @@ class Codexes2Parts:
                 self.logger.warning("No satisfactory results were generated.")
             st.info(f"processed prompt {i + 1}")
 
-
-return satisfactory_results
+        return satisfactory_results
 #"\n\n".join(satisfactory_results)  # Return only satisfactory results joined together
 
 
@@ -225,6 +225,7 @@ return satisfactory_results
                 system_prompt += self.add_system_prompt
 
         return system_prompt
+
     def generate_full_book(self, plans: List[PromptPlan]):
         return [self.process_codex_to_book_part(plan) for plan in plans]
 
