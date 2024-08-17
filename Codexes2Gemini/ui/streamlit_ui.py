@@ -305,7 +305,7 @@ def multiplan_builder(user_space: UserSpace):
         st.info(f"Current context: {st.session_state.current_plan['context_total_tokens']:,} tokens "
                 f"(approximately {st.session_state.current_plan['context_total_mb']:.3f} MB)")
         plan = st.session_state.current_plan
-    # truncate_plan_values_for_display(plan)
+
 
     # Step 2: Instructions and Prompts
     st.subheader("Step 2: Instructions and Prompts")
@@ -355,8 +355,8 @@ def multiplan_builder(user_space: UserSpace):
 
             user_prompt_override_bool = user_prompt_override == "Override other user prompts"
 
-            instructions_submitted = st.form_submit_button("Save Instructions and Continue",
-                                                           disabled=not context_selected)
+        instructions_submitted = st.form_submit_button("Save Instructions and Continue",
+                                                       disabled=not context_selected)
             #
         
     if instructions_submitted:
@@ -380,13 +380,19 @@ def multiplan_builder(user_space: UserSpace):
     st.subheader("Step 3: Output Settings")
     with st.form("step3-output-settings"):
         with st.expander("Set Output Requirements"):
-            mode_options = ["Single Part of a Book (Part)"]
-            mode_mapping = {"Single Part of a Book (Part)": 'part'}
+            mode_options = ["Single Part of a Book (Part)", "Full Codex (Codex)"]  # Add "Codex" option
+            mode_mapping = {"Single Part of a Book (Part)": 'part',
+                            "Full Codex (Codex)": 'codex'}  # Add mapping for "Codex"
             selected_mode_label = st.selectbox("Create This Type of Codex Object:", mode_options)
             mode = mode_mapping[selected_mode_label]
-            maximum_output_tokens = st.number_input("Maximum output size in tokens", value=8000, step=500)
-            minimum_required_output = st.checkbox("Ensure Minimum Output", value=False)
-            minimum_required_output_tokens = st.number_input("Minimum required output tokens", value=50, step=500)
+            if mode != 'codex':
+                maximum_output_tokens = st.number_input("Maximum output size in tokens", value=8000, step=500)
+                minimum_required_output = st.checkbox("Ensure Minimum Output", value=False)
+                minimum_required_output_tokens = st.number_input("Minimum required output tokens", value=50, step=500)
+            else:
+                maximum_output_tokens = 10000000
+                minimum_required_output = False
+                minimum_required_output_tokens = 50
 
         with st.expander("Set Output Destinations"):
             thisdoc_dir = st.text_input("Output directory", value=os.path.join(os.getcwd(), 'output', 'c2g'))
@@ -419,10 +425,9 @@ def multiplan_builder(user_space: UserSpace):
         st.session_state.multiplan.append(st.session_state.current_plan)
         st.success(f"Plan '{plan_name}' added to multiplan")
         st.session_state.current_plan = {}
-
     # Display current multiplan
     if st.session_state.multiplan:
-        st.subheader("Current Multiplan")
+        st.subheader("Current Plans")
         for i, plan in enumerate(st.session_state.multiplan):
 
             with st.expander(f"Plan {i + 1}: {plan['name']}"):
@@ -448,7 +453,7 @@ def multiplan_builder(user_space: UserSpace):
 
 def truncate_plan_values_for_display(plan):
     truncated_plan = plan.copy()
-    truncated_plan['context'] = truncated_plan['context'][:1000] + "..." if len(
+    truncated_plan['context'] = truncated_plan['context'][:500] + "..." if len(
         truncated_plan['context']) > 1000 else truncated_plan['context']
     # drop key user_prompt_dict
     truncated_plan['user_prompts_dict'] = {"prompt": "User prompt dict passed into function, available in debug log"}
