@@ -521,8 +521,25 @@ def run_multiplan(multiplan, user_space):
     results_filename = f"result_{i + 1}_"
     # markdown display
 
-    markdown_content = json.dumps(results, indent=2)  # Convert dict to formatted string
+    def flatten_and_stringify(data):
+        """Recursively flattens nested lists and converts all elements to strings."""
+        if isinstance(data, list):
+            return ''.join([flatten_and_stringify(item) for item in data])
+        else:
+            return str(data)
 
+    markdown_content = ''
+    if isinstance(results, list):
+        for result in results:
+            if isinstance(result, str):
+                markdown_content += flatten_and_stringify(result)
+            else:
+                # Handle non-string results as needed (e.g., convert to string)
+                markdown_content += str(result)
+    elif isinstance(results, str):
+        markdown_content = results
+    else:
+        st.error("Unexpected result type. Cannot generate Markdown.")
     # Markdown download
     markdown_buffer = BytesIO(markdown_content.encode())
 
