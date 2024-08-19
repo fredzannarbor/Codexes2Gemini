@@ -459,15 +459,17 @@ def truncate_plan_values_for_display(plan):
 def display_image_row(cols, image_info):
     for col, info in zip(cols, image_info):
         with col:
-            st.markdown(
-                f'<a href="{info["link"]}" target="_blank">'
-                f'<div class="image-container"><img src="data:image/png;base64,{image_to_base64(info["path"])}"/></div>'
-                f'</a>'
-                f'<div class="caption">{info["caption"]}</div>',
-                unsafe_allow_html=True
-            )
-    st.markdown('</div>', unsafe_allow_html=True)
-
+            image_extension = os.path.splitext(info["path"])[1][1:].lower()
+            # Access the image file using importlib.resources
+            image_filename = os.path.basename(info["path"])
+            with resources.path('Codexes2Gemini.resources.images', image_filename) as image_path:
+                html_content = f"""
+                <a href="{info["link"]}" target="_blank">
+                    <div class="image-container"><img src="data:image/{image_extension};base64,{image_to_base64(str(image_path))}"/></div>
+                </a>
+                <div class="caption">{info["caption"]}</div>
+                """
+                st.markdown(html_content, unsafe_allow_html=True)
 
 def run_multiplan(multiplan, user_space):
     st.info("Beginning to run multiplan")
