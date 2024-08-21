@@ -63,7 +63,7 @@ class Codexes2Parts:
             {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
         ]
         self.system_instructions_dict_file_path = resources.files('Codexes2Gemini.resources.prompts').joinpath("system_instructions.json")
-        self.continuation_instruction = "The context now includes a section called {Work So Far} which includes your work on this book project so far. Please refer to it along with the context document as you carry out the following task."
+        self.continuation_instruction = "The context now includes a section beginning {Work So Far} which includes your work on this book project so far. Your task is to continue where you left off and write the next part of the project. You are not expected to finish the whole project now. Your writing for this task should be at the same level of detail as each individul section of the context. Try to write AT MINIMUM 2000 WORDS in this response.  Remember, do NOT try to complete the entire project all at once. Your priority is doing a thorough job on the current section. However, only once the project as a whole is COMPLETELY finished, with all requirements satisfied, write IAMDONE."
         self.results=[]
         self.add_system_prompt = ""
         self.complete_system_instruction = ""
@@ -115,7 +115,6 @@ class Codexes2Parts:
         self.logger.info(f"\nUser prompts retrieved: {user_prompts}")
 
         satisfactory_results = []
-        #st.info('here')
 
         for i, user_prompt in enumerate(user_prompts):
             self.logger.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
@@ -129,7 +128,11 @@ class Codexes2Parts:
             while full_output_tokens < plan.minimum_required_output_tokens and retry_count < max_retries:
                 try:
                     response = self.gemini_get_response(plan, system_prompt, user_prompt, context, model)
-                    #st.info(user_prompt)
+                    if "The `response.text` quick accessor requires the response to contain a valid `Part`, but none were returned." in response:
+                        for candidate in response.candidates:
+                            for rating in candidate.safety_ratings:
+                                print(f"Category: {rating.category}, Probability: {rating.probability}")
+                                st.warning(f"Category: {rating.category}, Probability: {rating.probability}")
                     self.logger.debug(f"Response received, length: {self.count_tokens(response.text)} tokens")
                     json_response = self.create_response_dict(response)
                     st.json(json_response, expanded=False)
@@ -140,12 +143,6 @@ class Codexes2Parts:
                         self.logger.info(
                             f"Output length ({full_output_tokens})  tokens is less than desired length ({plan.minimum_required_output_tokens}). Retrying.")
                         retry_count += 1
-                        if plan.continuation_prompts:
-                            context += f"\n\n{{Work So Far}}:\n\n{full_output}"
-                            user_prompt = self.continuation_instruction.format(Work_So_Far=full_output)
-                            self.logger.debug("Continuation prompt prepared")
-                        else:
-                            break  # If continuation prompts are not enabled, we stop here
                 except Exception as e:
                     self.logger.error(f"Error in gemini_get_response: {e}")
                     retry_count += 1
@@ -166,14 +163,129 @@ class Codexes2Parts:
 
             if satisfactory_results:
                     self.logger.info(f"Returning satisfactory results of {self.count_tokens(satisfactory_results)}")
+
             else:
                 self.logger.warning("No satisfactory results were generated.")
+                satisfactory_results = "No satisfactory results were generated."
+                st.warning("No satisfactory results were generated.")
             st.info(f"processed prompt {i + 1}")
-
         return satisfactory_results
+
 #"\n\n".join(satisfactory_results)  # Return only satisfactory results joined together
 
+    def process_plan_to_codex(self, plan: PromptPlan):
+        """
+        Handler for mode == "codex"
+        Assumes normal plan object, only difference is mode
+        Can have multiple prompts
+        Custom user prompt should describe the output codex
+        """
+        self.logger.debug(f"Starting to create a codex using plan: {plan}")
+        self.make_thisdoc_dir(plan)
+        context = self.read_and_prepare_context(plan)
+        self.logger.debug(f"Context prepared, length: {self.count_tokens(context)} tokens")
 
+        model = self.create_model(self.model_name, self.safety_settings, plan.generation_config)
+        self.logger.debug("Model created")
+
+        system_prompt = self.assemble_system_prompt(plan)
+        self.logger.debug(f"System prompt assembled, length: {self.count_tokens(system_prompt)}")
+
+        user_prompts = plan.get_prompts()
+        self.logger.info(f"\nUser prompts retrieved: {user_prompts}")
+        # adding continuation prompt to user prompts
+        user_prompts.append(self.continuation_instruction)
+        st.write(user_prompts)
+        st.write("user prompts ^")
+
+        full_output = []
+        repsmax = 5
+        while 'IAMDONE' not in full_output:
+
+            for i, user_prompt in enumerate(user_prompts):
+                self.logger.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
+                retry_count = 0
+                max_retries = 3
+                st.write(context[:1000])
+                st.write("context ^")
+                response = self.gemini_get_response(plan, system_prompt, user_prompt, context, model)
+
+                self.logger.debug(f"Response received, length: {self.count_tokens(response.text)} tokens")
+                json_response = self.create_response_dict(response)
+                st.json(json_response, expanded=False)
+                full_output += response.text
+                full_output_tokens = self.count_tokens(full_output)
+                context += response.text
+
+            st.info(f"processed prompt {i + 1}")
+            if 'IAMDONE' in full_output:
+                break
+        st.info("found IAMDONE")
+        st.write(full_output)
+
+        return full_output
+
+    def process_plan_to_codex_chunked(self, plan: PromptPlan):
+        """
+        Handler for mode == "codex"
+        Assumes normal plan object, only difference is mode
+        Can have multiple prompts
+        Custom user prompt should describe the output codex
+        """
+        self.logger.debug(f"Starting to create a codex using plan: {plan}")
+        self.make_thisdoc_dir(plan)
+        context = self.read_and_prepare_context(plan)
+        self.logger.debug(f"Context prepared, length: {self.count_tokens(context)} tokens")
+
+        model = self.create_model(self.model_name, self.safety_settings, plan.generation_config)
+        self.logger.debug("Model created")
+
+        system_prompt = self.assemble_system_prompt(plan)
+        self.logger.debug(f"System prompt assembled, length: {self.count_tokens(system_prompt)}")
+
+        user_prompts = plan.get_prompts()
+        self.logger.info(f"\nUser prompts retrieved: {user_prompts}")
+        # adding continuation prompt to user prompts
+        user_prompts.append(self.continuation_instruction)
+
+        full_output = []
+        max_chunk_size = plan.maximum_output_tokens // 2  # Aim for half the max output per chunk
+        current_chunk = ""
+
+        while 'IAMDONE' not in current_chunk:
+            for i, user_prompt in enumerate(user_prompts):
+                self.logger.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
+                retry_count = 0
+                max_retries = 3
+
+                while retry_count < max_retries:
+                    try:
+                        response = self.gemini_get_response(plan, system_prompt, user_prompt, context, model)
+                        self.logger.debug(f"Response received, length: {self.count_tokens(response.text)} tokens")
+
+                        # Append response to current chunk
+                        current_chunk += response.text
+
+                        # Check if chunk size limit is reached
+                        if self.count_tokens(current_chunk) >= max_chunk_size:
+                            full_output.append(current_chunk)
+                            current_chunk = ""  # Reset current chunk
+                            context = ""  # Reset context for new chunk
+
+                        break  # Exit retry loop if successful
+                    except Exception as e:
+                        self.logger.error(f"Error in gemini_get_response: {e}")
+                        retry_count += 1
+                        self.logger.info(f"Retrying due to error. Retry count: {retry_count}")
+
+                if 'IAMDONE' in current_chunk:
+                    break  # Exit outer loop if IAMDONE is found
+
+            # Append any remaining text in current_chunk
+            if current_chunk:
+                full_output.append(current_chunk)
+
+        return full_output
 
     def count_tokens(self, text, model='models/gemini-1.5-pro'):
         genai.configure(api_key=GOOGLE_API_KEY)
@@ -282,6 +394,41 @@ def parse_arguments():
     parser.add_argument('--number_to_run', type=int, default=3, help="Number of runs")
     parser.add_argument('--minimum_required_output_tokens', "-do", type=int, default=1000, help="Desired output length in characters")
     return parser.parse_args()
+
+
+class Codex2Codex(Codexes2Parts):
+    """
+    Class for processing Codex to create another Codex.
+
+    Attributes:
+        logger (Logger): Logger instance for logging information.
+        model_name (str): Name of the generative model to use.
+        generation_config (dict): Configuration for generation process.
+        safety_settings (list): List of safety settings for blocking harmful content.
+        system_instructions_dict_file_path (str): Path to the system instructions dictionary file.
+        continuation_instruction (str): Instruction for continuation prompts.
+        results (list): List to store the generated book parts.
+        add_system_prompt (str): Additional system prompt.
+
+    Methods:
+        configure_api(): Configures the API key.
+        create_model(model_name, safety_settings, generation_config): Creates a generative model.
+        process_codex_to_book_part(plan): Processes the Codex to generate a book part.
+        count_tokens(text, model): Counts the number of tokens in a text.
+        read_and_prepare_context(plan): Reads and prepares the context for generation.
+        tokens_to_millions(tokens): Converts the number of tokens to millions.
+        assemble_system_prompt(plan): Assembles the system prompt for generation.
+        generate_full_book(plans): Generates the full book from a list of plans.
+        gemini_get_response(plan, system_prompt, user_prompt, context, model): Calls the Gemini API to get the response.
+        make_thisdoc_dir(plan): Creates the directory for the book part output.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def process_codex_to_codex(self, plan: PromptPlan):
+        return
+
 
 if __name__ == "__main__":
     args = parse_arguments()
