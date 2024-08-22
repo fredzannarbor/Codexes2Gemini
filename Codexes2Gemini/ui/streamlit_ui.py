@@ -1,4 +1,5 @@
 import base64
+import io
 import json
 import os
 import random
@@ -10,9 +11,13 @@ from importlib import resources
 from io import BytesIO
 from typing import Dict
 
+import chardet
+import docx2txt
+import fitz  # PyMuPDF
 import pandas as pd
 import pypandoc
 import streamlit as st
+from docx import Document
 
 #print("Codexes2Gemini location:", Codexes2Gemini.__file__)
 
@@ -175,45 +180,60 @@ def tokens_to_millions(tokens):
     return tokens / 1_000_000
 
 
-import io
-from docx import Document
-import fitz  # PyMuPDF
-import re
-
+import tempfile
 
 def read_file_content(file):
     file_name = file.name.lower()
     content = ""
-
+    st.write(file_name)
     try:
         if file_name.endswith('.txt'):
-            content = file.getvalue().decode("utf-8")
-        elif file_name.endswith('.docx'):
-            doc = Document(io.BytesIO(file.getvalue()))
-            content = "\n".join([para.text for para in doc.paragraphs])
-        elif file_name.endswith('.pdf'):
-            pdf = fitz.open(stream=file.getvalue(), filetype="pdf")
-            content = ""
-            for page_num in range(len(pdf)):
-                page = pdf[page_num]
-                content += page.get_text()
-                content += f"\n\nPage {page_num + 1}\n\n"
-            pdf.close()
-        else:
-            raise ValueError("Unsupported file type")
+            raw_data = file.getvalue()
+            encoding_result = chardet.detect(raw_data)
+            encoding = encoding_result['encoding'] or 'utf-8'
+            content = raw_data.decode(encoding)
 
-        # Add page numbers for non-PDF files
-        if not file_name.endswith('.pdf'):
-            pages = re.split(r'\n{2,}', content)
-            numbered_pages = [f"{page}\n\nPage {i + 1}" for i, page in enumerate(pages)]
-            content = "\n\n".join(numbered_pages)
+        elif file_name.endswith('.doc'):
+            with tempfile.NamedTemporaryFile(suffix=".doc") as temp_doc:
+                temp_doc.write(file.getvalue())
+                temp_doc.flush()
+                try:
+                    docx2txt.process(temp_doc.name, "temp_docx.docx")
+                    with open("temp_docx.docx", "r") as docx_file:
+                        content = docx_file.read()
+                    os.remove("temp_docx.docx")
+                except Exception as e:
+                    st.error(f"Error converting .doc to .docx: {str(e)}")
+
+        elif file_name.endswith('.docx'):
+            try:
+                doc = Document(io.BytesIO(file.getvalue()))
+                content = "\n".join([para.text for para in doc.paragraphs])
+            except Exception as e:
+                st.error(f"Error processing .docx file: {str(e)}")
+
+        elif file_name.endswith('.pdf'):
+            try:
+                pdf = fitz.open(stream=file.getvalue(), filetype="pdf")
+                content = ""
+                for page_num in range(len(pdf)):
+                    page = pdf[page_num]
+                    page_text = page.get_text()
+                    if page_text.strip():
+                        content += page_text
+                        content += f"\n\nPage {page_num + 1}\n\n"
+                pdf.close()
+            except Exception as e:
+                st.error(f"Error processing .pdf file: {str(e)}")
+
+        else:
+            st.error("Unsupported file type")
 
         return content
 
     except Exception as e:
         st.error(f"Error processing file {file.name}: {str(e)}")
         return ""
-
 
 def multiplan_builder(user_space: UserSpace):
     st.header("Analyze and Build")
@@ -264,7 +284,7 @@ def multiplan_builder(user_space: UserSpace):
                                         new_context_tags.split(',') if new_context_tags else None)
                 save_user_space(user_space)
                 st.success(f"Context '{new_context_name}' saved successfully.")
-
+                # st.write(context_content)
                 total_tokens = count_tokens(context_content)
                 total_mb = tokens_to_millions(total_tokens)
                 st.session_state.current_plan.update({
@@ -500,14 +520,19 @@ def run_multiplan(multiplan, user_space):
 
         try:
             result = launcher.main(launcher_plan)
-            #result = launcher.main(plan)
             results.append(result)
-            #st.write(result)
         except Exception as e:
-            st.error(f"Error processing plan '{plan['name']}': {str(e)}")
-            st.code(traceback.format_exc())
+            if "Invalid operation: The `response.parts` quick accessor requires a single candidate" in str(e):
+                st.error(f"Error processing plan '{plan['name']}': {str(e)}")
+                try:
+                    # Assuming 'result' is accessible here and contains the response object
+                    st.write("Prompt Feedback:", result.prompt_feedback)
+                except Exception as feedback_error:
+                    st.error(f"Error accessing prompt feedback: {feedback_error}")
+            else:
+                st.error(f"Error processing plan '{plan['name']}': {str(e)}")
+                st.code(traceback.format_exc())
             continue
-
     st.subheader("Multiplan Results")
     user_space.add_result('results', results)
     save_user_space(user_space)
