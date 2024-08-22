@@ -1,4 +1,5 @@
 import base64
+import io
 import json
 import os
 import random
@@ -10,9 +11,13 @@ from importlib import resources
 from io import BytesIO
 from typing import Dict
 
+import chardet
+import docx2txt
+import fitz  # PyMuPDF
 import pandas as pd
 import pypandoc
 import streamlit as st
+from docx import Document
 
 #print("Codexes2Gemini location:", Codexes2Gemini.__file__)
 
@@ -175,45 +180,60 @@ def tokens_to_millions(tokens):
     return tokens / 1_000_000
 
 
-import io
-from docx import Document
-import fitz  # PyMuPDF
-import re
-
+import tempfile
 
 def read_file_content(file):
     file_name = file.name.lower()
     content = ""
-
+    st.write(file_name)
     try:
         if file_name.endswith('.txt'):
-            content = file.getvalue().decode("utf-8")
-        elif file_name.endswith('.docx'):
-            doc = Document(io.BytesIO(file.getvalue()))
-            content = "\n".join([para.text for para in doc.paragraphs])
-        elif file_name.endswith('.pdf'):
-            pdf = fitz.open(stream=file.getvalue(), filetype="pdf")
-            content = ""
-            for page_num in range(len(pdf)):
-                page = pdf[page_num]
-                content += page.get_text()
-                content += f"\n\nPage {page_num + 1}\n\n"
-            pdf.close()
-        else:
-            raise ValueError("Unsupported file type")
+            raw_data = file.getvalue()
+            encoding_result = chardet.detect(raw_data)
+            encoding = encoding_result['encoding'] or 'utf-8'
+            content = raw_data.decode(encoding)
 
-        # Add page numbers for non-PDF files
-        if not file_name.endswith('.pdf'):
-            pages = re.split(r'\n{2,}', content)
-            numbered_pages = [f"{page}\n\nPage {i + 1}" for i, page in enumerate(pages)]
-            content = "\n\n".join(numbered_pages)
+        elif file_name.endswith('.doc'):
+            with tempfile.NamedTemporaryFile(suffix=".doc") as temp_doc:
+                temp_doc.write(file.getvalue())
+                temp_doc.flush()
+                try:
+                    docx2txt.process(temp_doc.name, "temp_docx.docx")
+                    with open("temp_docx.docx", "r") as docx_file:
+                        content = docx_file.read()
+                    os.remove("temp_docx.docx")
+                except Exception as e:
+                    st.error(f"Error converting .doc to .docx: {str(e)}")
+
+        elif file_name.endswith('.docx'):
+            try:
+                doc = Document(io.BytesIO(file.getvalue()))
+                content = "\n".join([para.text for para in doc.paragraphs])
+            except Exception as e:
+                st.error(f"Error processing .docx file: {str(e)}")
+
+        elif file_name.endswith('.pdf'):
+            try:
+                pdf = fitz.open(stream=file.getvalue(), filetype="pdf")
+                content = ""
+                for page_num in range(len(pdf)):
+                    page = pdf[page_num]
+                    page_text = page.get_text()
+                    if page_text.strip():
+                        content += page_text
+                        content += f"\n\nPage {page_num + 1}\n\n"
+                pdf.close()
+            except Exception as e:
+                st.error(f"Error processing .pdf file: {str(e)}")
+
+        else:
+            st.error("Unsupported file type")
 
         return content
 
     except Exception as e:
         st.error(f"Error processing file {file.name}: {str(e)}")
         return ""
-
 
 def multiplan_builder(user_space: UserSpace):
     st.header("Analyze and Build")
@@ -264,7 +284,7 @@ def multiplan_builder(user_space: UserSpace):
                                         new_context_tags.split(',') if new_context_tags else None)
                 save_user_space(user_space)
                 st.success(f"Context '{new_context_name}' saved successfully.")
-
+                # st.write(context_content)
                 total_tokens = count_tokens(context_content)
                 total_mb = tokens_to_millions(total_tokens)
                 st.session_state.current_plan.update({
@@ -305,7 +325,7 @@ def multiplan_builder(user_space: UserSpace):
         st.info(f"Current context: {st.session_state.current_plan['context_total_tokens']:,} tokens "
                 f"(approximately {st.session_state.current_plan['context_total_mb']:.3f} MB)")
         plan = st.session_state.current_plan
-    # truncate_plan_values_for_display(plan)
+
 
     # Step 2: Instructions and Prompts
     st.subheader("Step 2: Instructions and Prompts")
@@ -355,8 +375,8 @@ def multiplan_builder(user_space: UserSpace):
 
             user_prompt_override_bool = user_prompt_override == "Override other user prompts"
 
-            instructions_submitted = st.form_submit_button("Save Instructions and Continue",
-                                                           disabled=not context_selected)
+        instructions_submitted = st.form_submit_button("Save Instructions and Continue",
+                                                       disabled=not context_selected)
             #
         
     if instructions_submitted:
@@ -380,13 +400,19 @@ def multiplan_builder(user_space: UserSpace):
     st.subheader("Step 3: Output Settings")
     with st.form("step3-output-settings"):
         with st.expander("Set Output Requirements"):
-            mode_options = ["Single Part of a Book (Part)"]
-            mode_mapping = {"Single Part of a Book (Part)": 'part'}
+            mode_options = ["Single Part of a Book (Part)", "Full Codex (Codex)"]  # Add "Codex" option
+            mode_mapping = {"Single Part of a Book (Part)": 'part',
+                            "Full Codex (Codex)": 'codex'}  # Add mapping for "Codex"
             selected_mode_label = st.selectbox("Create This Type of Codex Object:", mode_options)
             mode = mode_mapping[selected_mode_label]
-            maximum_output_tokens = st.number_input("Maximum output size in tokens", value=8000, step=500)
-            minimum_required_output = st.checkbox("Ensure Minimum Output", value=False)
-            minimum_required_output_tokens = st.number_input("Minimum required output tokens", value=50, step=500)
+            if mode != 'codex':
+                maximum_output_tokens = st.number_input("Maximum output size in tokens", value=8000, step=500)
+                minimum_required_output = st.checkbox("Ensure Minimum Output", value=False)
+                minimum_required_output_tokens = st.number_input("Minimum required output tokens", value=50, step=500)
+            else:
+                maximum_output_tokens = 10000000
+                minimum_required_output = False
+                minimum_required_output_tokens = 50
 
         with st.expander("Set Output Destinations"):
             thisdoc_dir = st.text_input("Output directory", value=os.path.join(os.getcwd(), 'output', 'c2g'))
@@ -419,10 +445,9 @@ def multiplan_builder(user_space: UserSpace):
         st.session_state.multiplan.append(st.session_state.current_plan)
         st.success(f"Plan '{plan_name}' added to multiplan")
         st.session_state.current_plan = {}
-
     # Display current multiplan
     if st.session_state.multiplan:
-        st.subheader("Current Multiplan")
+        st.subheader("Current Plans")
         for i, plan in enumerate(st.session_state.multiplan):
 
             with st.expander(f"Plan {i + 1}: {plan['name']}"):
@@ -448,7 +473,7 @@ def multiplan_builder(user_space: UserSpace):
 
 def truncate_plan_values_for_display(plan):
     truncated_plan = plan.copy()
-    truncated_plan['context'] = truncated_plan['context'][:1000] + "..." if len(
+    truncated_plan['context'] = truncated_plan['context'][:500] + "..." if len(
         truncated_plan['context']) > 1000 else truncated_plan['context']
     # drop key user_prompt_dict
     truncated_plan['user_prompts_dict'] = {"prompt": "User prompt dict passed into function, available in debug log"}
@@ -497,14 +522,19 @@ def run_multiplan(multiplan, user_space):
 
         try:
             result = launcher.main(launcher_plan)
-            #result = launcher.main(plan)
             results.append(result)
-            #st.write(result)
         except Exception as e:
-            st.error(f"Error processing plan '{plan['name']}': {str(e)}")
-            st.code(traceback.format_exc())
+            if "Invalid operation: The `response.parts` quick accessor requires a single candidate" in str(e):
+                st.error(f"Error processing plan '{plan['name']}': {str(e)}")
+                try:
+                    # Assuming 'result' is accessible here and contains the response object
+                    st.write("Prompt Feedback:", result.prompt_feedback)
+                except Exception as feedback_error:
+                    st.error(f"Error accessing prompt feedback: {feedback_error}")
+            else:
+                st.error(f"Error processing plan '{plan['name']}': {str(e)}")
+                st.code(traceback.format_exc())
             continue
-
     st.subheader("Multiplan Results")
     user_space.add_result('results', results)
     save_user_space(user_space)
@@ -518,8 +548,25 @@ def run_multiplan(multiplan, user_space):
     results_filename = f"result_{i + 1}_"
     # markdown display
 
-    markdown_content = json.dumps(results, indent=2)  # Convert dict to formatted string
+    def flatten_and_stringify(data):
+        """Recursively flattens nested lists and converts all elements to strings."""
+        if isinstance(data, list):
+            return ''.join([flatten_and_stringify(item) for item in data])
+        else:
+            return str(data)
 
+    markdown_content = ''
+    if isinstance(results, list):
+        for result in results:
+            if isinstance(result, str):
+                markdown_content += flatten_and_stringify(result)
+            else:
+                # Handle non-string results as needed (e.g., convert to string)
+                markdown_content += str(result)
+    elif isinstance(results, str):
+        markdown_content = results
+    else:
+        st.error("Unexpected result type. Cannot generate Markdown.")
     # Markdown download
     markdown_buffer = BytesIO(markdown_content.encode())
 

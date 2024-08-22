@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import Dict
 
 import google.generativeai as genai
 
@@ -29,18 +29,43 @@ class CodexBuilder:
         self.logger = logging.getLogger(__name__)
         self.model = genai.GenerativeModel('gemini-pro')
 
-    def build_codex_from_parts(self, parts: List[str]) -> str:
-        """Build a codex from multiple parts."""
-        return "\n\n".join(parts)
+    def build_parts_from_codex(self, plan: PromptPlan) -> str:
+        """Build parts of the book using a single PromptPlan."""
+        return self.c2p.process_codex_to_book_part(plan)
+
+    # def build_codex_from_parts(self, parts: List[str]) -> str:
+    #     """
+    #     Build a codex from multiple parts.
+    #     Example: assemble front matter, body, and back matter
+    #     """
+    #     return "\n\n".join(parts)
+
+    def assemble_parts_of_a_codex_per_cmos18(self, tagged_parts: Dict[str, str]):
+        """
+        function that uses CMOS rules to put the parts of the book in their proper order
+
+        1) is this an easily recognized part? -- Foreword, Glodssary, Index, etc?
+        2) Use lookup table of order rules to put it in the right slot
+        3) if it's not an easily recognized part of the book -- something new or unusual -- ask the model to make an additional call and resolve the issue
+        """
+        # logic to create sorted_parts
+        """
+
+        Args:
+            tagged_parts (object): 
+        """
+        return
+
+
 
     def build_codex_from_plan(self, plan: PromptPlan) -> str:
         """Build a codex using a single PromptPlan."""
-        return self.c2p.process_codex_to_book_part(plan)
+        return self.c2p.process_plan_to_codex(plan)
 
-    def build_codex_from_multiple_plans(self, plans: List[PromptPlan]) -> str:
-        """Build a codex using multiple PromptPlans."""
-        results = self.c2p.generate_full_book(plans)
-        return self.build_codex_from_parts(results)
+    # def build_codex_from_multiple_plans(self, plans: List[PromptPlan]) -> str:
+    #     """Build a codex using multiple PromptPlans."""
+    #     results = self.c2p.generate_full_book(plans)
+    #     return self.build_codex_from_parts(results)
 
 
     def count_tokens(self, text: str) -> int:

@@ -210,12 +210,12 @@ class BuildLauncher:
     def process_plan(self, plan):
         if plan.mode == 'part':
             return self.parts_builder.build_part(plan)
-        elif plan.mode == 'multi_part':
-            return self.parts_builder.build_multi_part(plan)
+        # elif plan.mode == 'multi_part':
+        #     return self.parts_builder.build_multi_part(plan)
         elif plan.mode == 'codex':
             return self.codex_builder.build_codex_from_plan(plan)
-        elif plan.mode == 'full_codex':
-            return self.codex_builder.build_codex_from_multiple_plans([plan])
+        # elif plan.mode == 'full_codex':
+        #     return self.codex_builder.build_codex_from_multiple_plans([plan])
         else:
             self.logger.error(f"Invalid mode specified for plan: {plan.mode}")
             return None
