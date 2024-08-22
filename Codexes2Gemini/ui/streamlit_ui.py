@@ -22,28 +22,23 @@ from docx import Document
 #print("Codexes2Gemini location:", Codexes2Gemini.__file__)
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-
 # Get the parent directory
 parent_dir = os.path.dirname(current_dir)
 
-# Get the directory above the parent
-grandparent_dir = os.path.dirname(parent_dir)
-
-# Append both directories to the Python path
-sys.path.append(parent_dir)
-sys.path.append(grandparent_dir)
-
+# st.write(sys.path)
 import google.generativeai as genai
 import logging
 
 from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space
+from Codexes2Gemini import __version__, __announcements__
+
 
 logger = configure_logger("DEBUG")
 logging.info("--- Began logging ---")
 user_space = load_user_space()
-logger.debug(f"user_space: {user_space}")
+#logger.debug(f"user_space: {user_space}")
 
 GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
 
@@ -73,6 +68,7 @@ def load_json_file(file_name):
     except Exception as e:
         st.error(f"Error loading JSON file: {e}")
         return {}
+
 
 def load_image_file(file_name):
     try:
@@ -485,12 +481,14 @@ def display_image_row(cols, image_info):
     for col, info in zip(cols, image_info):
         with col:
             image_extension = os.path.splitext(info["path"])[1][1:].lower()
-            # Access the image file using importlib.resources
-            image_filename = os.path.basename(info["path"])
-            with resources.path('Codexes2Gemini.resources.images', image_filename) as image_path:
+            # Correctly construct the resource path
+            image_resource_path = resources.files('Codexes2Gemini.resources.images').joinpath(
+                os.path.basename(info["path"]))
+            with open(image_resource_path, 'rb') as image_file:
+                encoded_image = base64.b64encode(image_file.read()).decode()
                 html_content = f"""
                 <a href="{info["link"]}" target="_blank">
-                    <div class="image-container"><img src="data:image/{image_extension};base64,{image_to_base64(str(image_path))}"/></div>
+                    <div class="image-container"><img src="data:image/{image_extension};base64,{encoded_image}"/></div>
                 </a>
                 <div class="caption">{info["caption"]}</div>
                 """
@@ -850,6 +848,8 @@ def run_streamlit_app():
     st.markdown("""
     ## _Humans and AIs working together to make books richer, more diverse, and more surprising._
     """)
+    with st.expander("About", expanded=False):
+        st.caption(f"Version {__version__}:  {__announcements__}")
 
     user_space = load_user_space()
 
