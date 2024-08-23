@@ -139,7 +139,7 @@ At the command line, type:
 codexes2gemini-ui
 ```
 
-The script will launch the streamlit web server as above. In other words, this is a shortcut.
+The script will launch the streamlit web server as above. In other words, this is a useful shortcut.  It is the way I usually launch my production script.
 
 
 ## References
