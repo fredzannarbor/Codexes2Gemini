@@ -21,6 +21,9 @@ of language models, which are able to both understand and generate human languag
 language model whose 10-million-token context window for text (July 2024) makes it ideally suitable for interacting with
 codexes.
 
+Video I submitted to **Gemini API Developer Competition**:
+
+https://github.com/user-attachments/assets/2da88d80-9173-4e57-b710-1711cda136ef
 
 ## Key Features
 
@@ -134,7 +137,8 @@ At the command line, type:
 codexes2gemini-ui
 ```
 
-The script will launch the streamlit web server as above. In other words, this is a shortcut.
+The script will launch the streamlit web server as above. In other words, this is a useful shortcut. It is the way I
+usually launch my production script.
 
 
 ## References
