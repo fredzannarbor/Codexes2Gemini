@@ -25,7 +25,13 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 # Get the parent directory
 parent_dir = os.path.dirname(current_dir)
 
-# st.write(sys.path)
+# Get the directory above the parent
+grandparent_dir = os.path.dirname(parent_dir)
+
+# Append both directories to the Python path
+sys.path.append(parent_dir)
+sys.path.append(grandparent_dir)
+
 import google.generativeai as genai
 import logging
 
@@ -221,6 +227,13 @@ def read_file_content(file):
                 pdf.close()
             except Exception as e:
                 st.error(f"Error processing .pdf file: {str(e)}")
+        elif file_name.endswith('.json'):
+            try:
+                data = json.load(file)
+                # Extract text from the JSON object
+                content = extract_text_from_json(data)
+            except Exception as e:
+                st.error(f"Error processing .json file: {str(e)}")
 
         else:
             st.error("Unsupported file type")
@@ -230,6 +243,32 @@ def read_file_content(file):
     except Exception as e:
         st.error(f"Error processing file {file.name}: {str(e)}")
         return ""
+
+    except Exception as e:
+        st.error(f"Error processing file {file.name}: {str(e)}")
+        return ""
+
+
+def extract_text_from_json(data):
+    """
+    Extracts text from a JSON object.
+
+    Args:
+        data: The JSON object.
+
+    Returns:
+        str: The extracted text.
+    """
+    text = ""
+    if isinstance(data, dict):
+        for key, value in data.items():
+            text += f"{key}: {extract_text_from_json(value)}\n"
+    elif isinstance(data, list):
+        for item in data:
+            text += f"{extract_text_from_json(item)}\n"
+    else:
+        text = str(data)
+    return text
 
 def multiplan_builder(user_space: UserSpace):
     st.header("Analyze and Build")
@@ -268,7 +307,8 @@ def multiplan_builder(user_space: UserSpace):
     context_selected = False
     if context_choice == "Upload New Context":
         with st.form("step_1_upload"):
-            uploaded_files = st.file_uploader("Upload new context files", accept_multiple_files=True)
+            uploaded_files = st.file_uploader("Upload new context files", accept_multiple_files=True,
+                                              help="'.txt', '.pdf', '.docx', '.doc', '.json' are supported")
             new_context_name = st.text_input("New context name")
             new_context_tags = st.text_input("Context tags (comma-separated, optional)")
             new_context_submitted = st.form_submit_button("Save New Context")
