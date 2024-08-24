@@ -12,7 +12,7 @@ import pandas as pd
 import streamlit as st
 
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
-from ..Builders.PromptPlan import PromptPlan
+from ..Builders.PromptGroups import PromptGroups
 
 GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
 
@@ -98,7 +98,7 @@ class Codexes2Parts:
 
         return response_dict
 
-    def process_codex_to_book_part(self, plan: PromptPlan):
+    def process_codex_to_book_part(self, plan: PromptGroups):
 
         self.logger.debug(f"Starting process_codex_to_book_part with plan: {plan}")
         self.make_thisdoc_dir(plan)
@@ -173,7 +173,7 @@ class Codexes2Parts:
 
 #"\n\n".join(satisfactory_results)  # Return only satisfactory results joined together
 
-    def process_plan_to_codex(self, plan: PromptPlan):
+    def process_plan_to_codex(self, plan: PromptGroups):
         """
         Handler for mode == "codex"
         Assumes normal plan object, only difference is mode
@@ -225,7 +225,7 @@ class Codexes2Parts:
 
         return full_output
 
-    def process_plan_to_codex_chunked(self, plan: PromptPlan):
+    def process_plan_to_codex_chunked(self, plan: PromptGroups):
         """
         Handler for mode == "codex"
         Assumes normal plan object, only difference is mode
@@ -338,7 +338,7 @@ class Codexes2Parts:
 
         return system_prompt
 
-    def generate_full_book(self, plans: List[PromptPlan]):
+    def generate_full_book(self, plans: List[PromptGroups]):
         return [self.process_codex_to_book_part(plan) for plan in plans]
 
 
@@ -426,7 +426,7 @@ class Codex2Codex(Codexes2Parts):
     def __init__(self):
         super().__init__()
 
-    def process_codex_to_codex(self, plan: PromptPlan):
+    def process_codex_to_codex(self, plan: PromptGroups):
         return
 
 
@@ -435,7 +435,7 @@ if __name__ == "__main__":
 
     c2b = Codexes2Parts()
 
-    plan = PromptPlan(
+    plan = PromptGroups(
         context_file_paths=args.context_file_paths,
         user_keys=[args.list_of_user_keys_to_use.split(',')[0]],
         thisdoc_dir=args.thisdoc_dir,

@@ -10,7 +10,7 @@ import google.generativeai as genai
 import pypandoc
 import streamlit as st
 
-from Codexes2Gemini.classes.Codexes.Builders.PromptPlan import PromptPlan
+from Codexes2Gemini.classes.Codexes.Builders.PromptGroups import PromptGroups
 from ..Builders.CodexBuilder import CodexBuilder
 from ..Builders.PartsBuilder import PartsBuilder
 from ...Utilities.utilities import configure_logger
@@ -34,28 +34,28 @@ class BuildLauncher:
         load_prompt_dictionaries() -> dict:
             Loads the user prompts and system instructions dictionaries from JSON files.
 
-        create_prompt_plan(config: Dict) -> PromptPlan:
-            Creates a PromptPlan object based on the provided configuration.
+        create_prompt_plan(config: Dict) -> PromptGroups:
+            Creates a PromptGroups object based on the provided configuration.
 
-        load_plans_from_json(json_data) -> List[PromptPlan]:
-            Loads PromptPlan objects from a JSON file or dictionary.
+        load_plans_from_json(json_data) -> List[PromptGroups]:
+            Loads PromptGroups objects from a JSON file or dictionary.
 
         main(args=None) -> List:
             The main entry point of the BuildLauncher class. Executes the provided plans and returns the results.
 
-        create_plans(args) -> List[PromptPlan]:
-            Creates a list of PromptPlan objects based on the provided arguments.
+        create_plans(args) -> List[PromptGroups]:
+            Creates a list of PromptGroups objects based on the provided arguments.
 
-        create_plans_from_multiplan(args) -> List[PromptPlan]:
-            Creates PromptPlan objects from a multiplan configuration.
+        create_plans_from_multiplan(args) -> List[PromptGroups]:
+            Creates PromptGroups objects from a multiplan configuration.
 
-        create_plans_from_json(plans_data) -> List[PromptPlan]:
-            Creates PromptPlan objects from a JSON data structure.
+        create_plans_from_json(plans_data) -> List[PromptGroups]:
+            Creates PromptGroups objects from a JSON data structure.
 
-        process_plan(plan: PromptPlan) -> Any:
-            Processes a PromptPlan and returns the result based on the mode.
+        process_plan(plan: PromptGroups) -> Any:
+            Processes a PromptGroups and returns the result based on the mode.
 
-        save_result(plan: PromptPlan, result: Any) -> None:
+        save_result(plan: PromptGroups, result: Any) -> None:
             Saves the result to files and logs the output paths.
     """
     def __init__(self):
@@ -94,7 +94,7 @@ class BuildLauncher:
                 logging.error(f"Error loading JSON file {file_name}: {e}")
                 return {}
 
-    def create_prompt_plan(self, config: Dict) -> PromptPlan:
+    def create_prompt_plan(self, config: Dict) -> PromptGroups:
         prompt_plan_params = {
             'context': config.get('context', ''),
             'user_keys': config.get('user_keys', []),
@@ -123,7 +123,7 @@ class BuildLauncher:
         # Remove None values to avoid passing unnecessary keyword arguments
         prompt_plan_params = {k: v for k, v in prompt_plan_params.items() if v is not None}
 
-        return PromptPlan(**prompt_plan_params)
+        return PromptGroups(**prompt_plan_params)
 
     def load_plans_from_json(self, json_data):
         if isinstance(json_data, dict):

@@ -8,7 +8,9 @@ import pymupdf as fitz  # PyMuPDF
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 
 
-class PromptPlan:
+class PromptGroups:
+
+
     def __init__(self, context: str = "", context_file_paths: List[str] = None, user_keys: List[str] = None,
                  thisdoc_dir: str = "", json_required: bool = False, generation_config: dict = None,
                  system_instructions_dict_file_path: str = None, list_of_system_keys: str = None,
@@ -79,7 +81,7 @@ class PromptPlan:
         self.final_prompts = self.prepare_final_user_prompts()
 
         # Log the initialization
-        self.logger.info("PromptPlan initialized with the following attributes:")
+        self.logger.info("PromptGroups initialized with the following attributes:")
         for attr, value in self.__dict__.items():
             self.logger.info(f"{attr}: {value}")
 
@@ -145,7 +147,7 @@ class PromptPlan:
         return self.final_prompts
 
     def set_provider(self, provider: str, model: str) -> None:
-        """Set the provider and model for the PromptPlan."""
+        """Set the provider and model for the PromptGroups."""
         self.provider = provider
         self.model = model
         if "gpt" in model:
@@ -154,7 +156,7 @@ class PromptPlan:
             self.max_output_tokens = 8192
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert the PromptPlan object to a dictionary."""
+        """Convert the PromptGroups object to a dictionary."""
         return {
             "context": self.context,
             "context_file_paths": self.context_file_paths,
@@ -192,7 +194,7 @@ class PromptPlan:
             self.logger.error(f"Error saving configuration: {e}")
 
     def update_from_dict(self, config: Dict[str, Any]) -> None:
-        """Update the PromptPlan object from a dictionary."""
+        """Update the PromptGroups object from a dictionary."""
         for key, value in config.items():
             if hasattr(self, key):
                 setattr(self, key, value)
@@ -211,12 +213,12 @@ class PromptPlan:
         self.final_prompts = []
 
     def __str__(self) -> str:
-        """String representation of the PromptPlan object."""
-        return f"PromptPlan(mode={self.mode}, model={self.model}, prompts={len(self.final_prompts)})"
+        """String representation of the PromptGroups object."""
+        return f"PromptGroups(mode={self.mode}, model={self.model}, prompts={len(self.final_prompts)})"
 
     def __repr__(self) -> str:
-        """Detailed string representation of the PromptPlan object."""
-        return f"PromptPlan({self.to_dict()})"
+        """Detailed string representation of the PromptGroups object."""
+        return f"PromptGroups({self.to_dict()})"
 
     # def load_json_file(self, file_name):
     #     try:

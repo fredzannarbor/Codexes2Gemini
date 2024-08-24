@@ -4,7 +4,7 @@ from typing import List
 import google.generativeai as genai
 
 from ..Builders.Codexes2PartsOfTheBook import Codexes2Parts
-from ..Builders.PromptPlan import PromptPlan
+from ..Builders.PromptGroups import PromptGroups
 
 
 class PartsBuilder:
@@ -16,10 +16,10 @@ class PartsBuilder:
     - count_tokens(self, text: str) -> int
     - truncate_to_token_limit(self, content: str, maximum_output_tokens: int) -> str
     - ensure_maximum_output_enforced(self, content: str, maximum_output_tokens: int) -> str
-    - use_continuation_prompt(self, plan: PromptPlan, initial_content: str) -> str
-    - build_part(self, plan: PromptPlan) -> str
-    - build_multi_part(self, plan: PromptPlan) -> str
-    - build_parts_from_codex(self, codex: str, plans: List[PromptPlan]) -> List[str]
+    - use_continuation_prompt(self, plan: PromptGroups, initial_content: str) -> str
+    - build_part(self, plan: PromptGroups) -> str
+    - build_multi_part(self, plan: PromptGroups) -> str
+    - build_parts_from_codex(self, codex: str, plans: List[PromptGroups]) -> List[str]
     """
     def __init__(self):
         self.c2p = Codexes2Parts()
@@ -45,7 +45,7 @@ class PartsBuilder:
             return content
         return self.truncate_to_token_limit(content, maximum_output_tokens)
 
-    def use_continuation_prompt(self, plan: PromptPlan, initial_content: str) -> str:
+    def use_continuation_prompt(self, plan: PromptGroups, initial_content: str) -> str:
         """Use continuation prompts to extend content to desired token count."""
         full_content = initial_content
         while self.count_tokens(full_content) < plan.minimum_required_output_tokens:
@@ -56,21 +56,21 @@ class PartsBuilder:
 
         # ... (rest of the class remains the same)
 
-    def build_part(self, plan: PromptPlan) -> str:
-        """Build a single part based on the given PromptPlan."""
+    def build_part(self, plan: PromptGroups) -> str:
+        """Build a single part based on the given PromptGroups."""
 
         return self.c2p.process_codex_to_book_part(plan)
 
-
-    def build_multi_part(self, plan: PromptPlan) -> str:
-        """Build multiple parts within a single PromptPlan."""
+    def build_multi_part(self, plan: PromptGroups) -> str:
+        """Build multiple parts within a single PromptGroups."""
         self.logger.info(f"Total prompts to process: {len(plan.get_prompts())}")
 
         result = self.c2p.process_codex_to_book_part(plan)
 
         self.logger.info(f"Completed processing all prompts")
         return result
-    def build_parts_from_codex(self, codex: str, plans: List[PromptPlan]) -> List[str]:
+
+    def build_parts_from_codex(self, codex: str, plans: List[PromptGroups]) -> List[str]:
         """Build multiple parts from a single codex using multiple PromptPlans."""
         results = []
         for plan in plans:

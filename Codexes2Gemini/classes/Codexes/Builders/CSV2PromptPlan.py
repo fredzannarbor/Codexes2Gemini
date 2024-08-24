@@ -1,22 +1,22 @@
 import csv
 from typing import Dict
 
-from .PromptPlan import PromptPlan
+from .PromptGroups import PromptGroups
 
 
-class CSV2PromptPlan(PromptPlan):
+class CSV2PromptGroups(PromptGroups):
     """
-    A class for creating CSV2PromptPlan objects from CSV data.
+    A class for creating CSV2PromptGroups objects from CSV data.
 
     Example Usage:
-        plan = CSV2PromptPlan.from_csv_row(csv_row)
-        plans = CSV2PromptPlan.from_csv_file(csv_file_path)
+        plan = CSV2PromptGroups.from_csv_row(csv_row)
+        plans = CSV2PromptGroups.from_csv_file(csv_file_path)
 
     """
     @classmethod
-    def from_csv_row(cls, row: Dict[str, str]) -> 'CSV2PromptPlan':
-        """Create a CSV2PromptPlan object from a CSV row."""
-        # Convert CSV row data types to match PromptPlan's expected types
+    def from_csv_row(cls, row: Dict[str, str]) -> 'CSV2PromptGroups':
+        """Create a CSV2PromptGroups object from a CSV row."""
+        # Convert CSV row data types to match PromptGroups's expected types
         data = {
             "context_file_paths": [row['context_file_path']],
             "user_keys": row['user_keys'].split(',') if row['user_keys'] else [],
@@ -45,8 +45,8 @@ class CSV2PromptPlan(PromptPlan):
         return cls(**data)
 
     @classmethod
-    def from_csv_file(cls, csv_file_path: str) -> Dict[str, List['CSV2PromptPlan']]:
-        """Create CSV2PromptPlan objects from a CSV file."""
+    def from_csv_file(cls, csv_file_path: str) -> Dict[str, List['CSV2PromptGroups']]:
+        """Create CSV2PromptGroups objects from a CSV file."""
         plans = {}
         with open(csv_file_path, 'r') as csv_file:
             reader = csv.DictReader(csv_file)
@@ -60,19 +60,19 @@ class CSV2PromptPlan(PromptPlan):
 
 
 def create_prompt_plan_files(csv_file_path: str, output_dir: str):
-    """Create PromptPlan JSON files from a CSV file."""
-    plans = CSV2PromptPlan.from_csv_file(csv_file_path)
+    """Create PromptGroups JSON files from a CSV file."""
+    plans = CSV2PromptGroups.from_csv_file(csv_file_path)
 
     for file_name, prompt_plans in plans.items():
         output_path = os.path.join(output_dir, file_name)
         with open(output_path, 'w') as json_file:
             json.dump({"plans": [plan.to_dict() for plan in prompt_plans]}, json_file, indent=2)
 
-    print(f"Created {len(plans)} PromptPlan JSON file(s) in {output_dir}")
+    print(f"Created {len(plans)} PromptGroups JSON file(s) in {output_dir}")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Create PromptPlan JSON files from a CSV file.")
+    parser = argparse.ArgumentParser(description="Create PromptGroups JSON files from a CSV file.")
     parser.add_argument('-i', '--input', required=True, help="Path to the input CSV file")
     parser.add_argument('-o', '--output', required=True, help="Path to the output directory for JSON files")
     args = parser.parse_args()

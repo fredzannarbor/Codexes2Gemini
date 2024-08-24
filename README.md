@@ -87,7 +87,7 @@ args1 = {
 results = launcher.main(args1)
 ```
 
-2. Create a JSON format PromptPlan object.
+2. Create a JSON format PromptGroups object.
 
 ```import json
 
