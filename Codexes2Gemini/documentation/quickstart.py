@@ -1,7 +1,5 @@
 from Codexes2Gemini.classes.Codexes.Builders import BuildLauncher
 
-import json
-
 # Create a BuildLauncher instance
 launcher = BuildLauncher()
 

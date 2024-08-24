@@ -3,9 +3,9 @@
 
 import inspect
 import logging
-import os
 import sys
 
+import pip
 from rich.console import Console
 
 console = Console(record=True)
@@ -73,12 +73,12 @@ def create_app_log_directory(dir_path):
     """
     home_dir = os.path.expanduser("~")
     dir_path = os.path.join(home_dir, ".codexes2gemini", dir_path)
-    print(dir_path)
+    # print(dir_path)
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
-        print(f'Directory {dir_path} created.')
+        logging.warning(f'Logging directory {dir_path} created.')
     else:
-        print(f'Directory {dir_path} already exists.')
+        logging.info(f'Directory {dir_path} already exists.')
     return dir_path
 
 def configure_logger(log_level):
@@ -134,11 +134,65 @@ def configure_logger(log_level):
     # Convert numeric level to string
     level_name = logging.getLevelName(numeric_level)
 
-    print(f"The level of the console handler is: {level_name}")
-    print(f"the formatter string is {formatter_string}")
+    logging.info(f"The level of the console handler is: {level_name}")
+    logging.info(f"the formatter string is {formatter_string}")
 
     # Add both handlers to the logger
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
 
     return logger
+
+
+def get_pip_version():
+    try:
+        pip_version = pip.__version__
+        logging.info(f"Pip Version: {pip_version}")
+        return pip_version
+    except AttributeError:
+        logging.info("Pip version not found.")
+
+
+def get_commit_messages():
+    """Fetches commit messages from the main branch in reverse chronological order."""
+    try:
+        # Execute the git command and capture the output
+        output = subprocess.check_output(['git', 'log', '--pretty=format:- %s (%h) <br>', 'main'],
+                                         stderr=subprocess.STDOUT)
+        # Decode the output from bytes to string
+        commit_messages = output.decode('utf-8')
+        return commit_messages
+    except subprocess.CalledProcessError as e:
+        print(f"Error: {e.output.decode('utf-8')}")
+        return ""
+
+
+import os
+import subprocess
+
+
+def get_commit_messages():
+    """Fetches commit messages from the main branch in reverse chronological order."""
+    try:
+        # Execute the git command and capture the output
+        output = subprocess.check_output(['git', 'log', '--pretty=format:- %s (%h) <br>', 'main'],
+                                         stderr=subprocess.STDOUT)
+        # Decode the output from bytes to string
+        commit_messages = output.decode('utf-8')
+        return commit_messages
+    except subprocess.CalledProcessError as e:
+        print(f"Error: {e.output.decode('utf-8')}")
+        return ""
+
+
+def write_commit_messages_to_file(filename="Commit History.md"):
+    """Writes the commit messages to a file."""
+    # Get the absolute path of the directory containing setup.py
+    setup_py_dir = os.path.dirname(os.path.abspath(__file__))
+    # Construct the full path to the output file
+    filepath = os.path.join(setup_py_dir, filename)
+
+    commit_messages_md = get_commit_messages()
+    with open(filepath, "w") as f:
+        f.write(commit_messages_md)
+    print(f"Commit messages written to: {filepath}")
