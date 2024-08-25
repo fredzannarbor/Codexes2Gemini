@@ -1,6 +1,8 @@
 # ui/multi_context_page.py
 import os
+import shutil
 import sys
+import tempfile
 
 import streamlit as st
 
@@ -22,6 +24,7 @@ import os
 class MultiContextUI:
     def __init__(self, user_space):
         self.user_space = user_space
+        self.temp_dir = ""
 
     def render(self):
         st.header("Process Multiple Contexts")
@@ -32,12 +35,26 @@ class MultiContextUI:
         if 'current_plan' not in st.session_state:
             st.session_state.current_plan = {}
 
+        selected_prompt_group = None
+
         context_groups = {}
         group_name = st.text_input("Enter a name for this group of contexts:")
         uploaded_files = st.file_uploader("Upload context files", accept_multiple_files=True)
 
         if uploaded_files:
-            context_groups[group_name] = [file.name for file in uploaded_files]
+            if self.temp_dir is None:  # Create temp dir only once
+                self.temp_dir = tempfile.mkdtemp()
+
+            context_groups[group_name] = []
+            for uploaded_file in uploaded_files:
+                file_path = os.path.join(self.temp_dir, uploaded_file.name)
+                with open(file_path, "wb") as f:
+                    f.write(uploaded_file.read())
+                context_groups[group_name].append(file_path)
+                st.write(context_groups[group_name])
+
+            if st.button("Proceed"):
+                st.info(f"Proceeding with files saved to {context_groups}")
 
         # --- Prompt Group Configuration (Reusing from multiplan_builder) ---
 
@@ -90,11 +107,12 @@ class MultiContextUI:
             if st.form_submit_button("Save Instructions and Prompts"):
                 # Create a PromptGroup object (assuming your PromptGroups class constructor
                 # takes the selected keys/values as arguments)
-                selected_prompt_group = PromptGroups(
+                st.session_state.selected_prompt_group = PromptGroups(
                     selected_system_instruction_keys=selected_system_instruction_keys,
                     selected_user_prompt_keys=selected_user_prompt_keys,
                     complete_user_prompt=complete_user_prompt
                 )
+                st.write(st.session_state.selected_prompt_group)
 
         st.subheader("Step 3: Output Settings")
         with st.form("step3-output-settings"):
@@ -121,21 +139,29 @@ class MultiContextUI:
                 plan_name = st.text_input("Plan Name", value=st.session_state.current_plan.get('name', ''))
 
             if st.form_submit_button("Save Output Settings"):
-                selected_output_group = PromptGroups(thisdoc_dir, output_file, log_level, mode, maximum_output_tokens,
+                st.session_state.selected_output_group = PromptGroups(thisdoc_dir, output_file, log_level, mode,
+                                                                      maximum_output_tokens,
                                                      minimum_required_output, minimum_required_output_tokens)
 
-                st.session_state.multiplan.append(st.session_state.current_plan)
+                # st.session_state.current_plan.append(selected_output_group)
+                # st.session_state.multiplan.append(st.session_state.current_plan)
                 st.success(f"Plan '{plan_name}' added to multiplan")
-                st.session_state.current_plan = {}
+                # st.session_state.current_plan = {}
 
         with st.form("process-contexts"):
+            st.write(context_groups)
+            st.write(st.session_state.selected_prompt_group)
+
             if st.form_submit_button("Process Contexts"):
                 if not context_groups or not group_name:
                     st.warning("Please upload files and provide a group name.")
-                elif not hasattr(selected_prompt_group, 'process'):  # Check if PromptGroup is configured
+                elif not st.session_state.selected_prompt_group:
                     st.warning("Please configure and submit the Prompt Group settings.")
+                elif not st.session_state.selected_output_group:
+                    st.warning("Please configure and submit the Output settings.")
                 else:
-                    processor = MultiContextProcessor(context_groups, selected_prompt_group, selected_output_group)
+                    processor = MultiContextProcessor(context_groups, st.session_state.selected_prompt_group,
+                                                      st.session_state.selected_output_group)
                     results = processor.process_contexts()
                     processor.save_results(results)
 
@@ -144,3 +170,7 @@ class MultiContextUI:
                         with st.expander(group_name):
                             for file_result in group_results:
                                 st.markdown(file_result, unsafe_allow_html=True)
+
+                    if self.temp_dir:
+                        shutil.rmtree(self.temp_dir)
+                        self.temp_dir = None
