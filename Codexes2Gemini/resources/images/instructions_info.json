@@ -1,27 +1,22 @@
 [
             {
-        "path": "resources/images/image_fx_schematic_illustration_of_a_codex_book_laying.jpg",
+              "path": "usability_ppl.jpg",
         "caption": "500+ years of usability learnings.",
         "link": "https://github.com/fredzannarbor/Codexes2Gemini/#References"
     },
     {
-                "path": "resources/images/image_fx_make_number_larger__in_hundreds_of_millions.jpg",
+      "path": "pub2kindle.jpg",
         "caption": "From artisanal to high tech.",
                 "link": "https://github.com/fredzannarbor/Codexes2Gemini/#References"
             },
     {
-                "path": "resources/images/image_fx_illustration_of_a_tree_styled_taxonomy_of_co.jpg",
-                "caption": "There are many, many types of codexes.",
+      "path": "image_mkt.jpg",
+      "caption": "People will always love books.",
                 "link": "https://gemini.google.com/share/57d3f2b1b163"
             },
     {
-        "path": "resources/images/image_fx_ideas_and_stories_from_various_cultures_emerg.jpg",
-        "caption": "One of the most beneficial innovations in human history.",
+      "path": "imagenet.jpg",
+      "caption": "Even as books evolve.",
         "link": "https://nimblebooks.com/A_Longform_Prospectus"
-    },
-    {
-        "path": "resources/images/",
-        "caption": "",
-        "link": ""
     }
 ]
