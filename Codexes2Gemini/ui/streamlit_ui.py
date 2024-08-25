@@ -39,6 +39,7 @@ from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space
 from Codexes2Gemini import __version__, __announcements__
+from Codexes2Gemini.ui.multi_context_page import MultiContextUI as MCU
 
 
 logger = configure_logger("DEBUG")
@@ -449,6 +450,7 @@ def multiplan_builder(user_space: UserSpace):
                 maximum_output_tokens = 10000000
                 minimum_required_output = False
                 minimum_required_output_tokens = 50
+            require_json_output = st.checkbox("Require JSON Output", value=False)
 
         with st.expander("Set Output Destinations"):
             thisdoc_dir = st.text_input("Output directory", value=os.path.join(os.getcwd(), 'output', 'c2g'))
@@ -477,6 +479,7 @@ def multiplan_builder(user_space: UserSpace):
             "minimum_required_output": minimum_required_output,
             "minimum_required_output_tokens": minimum_required_output_tokens,
             "log_level": log_level,
+            "require_json_output": require_json_output
         })
         st.session_state.multiplan.append(st.session_state.current_plan)
         st.success(f"Plan '{plan_name}' added to multiplan")
@@ -556,6 +559,9 @@ def run_multiplan(multiplan, user_space):
             'complete_system_instruction': plan['complete_system_instruction'],
             'selected_system_instructions': plan['selected_system_instruction_keys'],
             'selected_user_prompts_dict': plan['selected_user_prompts_dict'],
+            'user_prompts_dict': plan['user_prompts_dict'],
+            'log_level': plan['log_level'],
+            'require_json_output': plan['require_json_output'],
         }
 
         try:
@@ -898,15 +904,19 @@ def run_streamlit_app():
         user_space = UserSpace()
         save_user_space(user_space)
 
-    tab1, tab2, tab4 = st.tabs(["Create Build Plans", "Run Saved Plans", "UserSpace"])
-
-    with tab1:
+        # Create pages using st.sidebar.selectbox
+    page = st.sidebar.selectbox(
+        "Select a page",
+        ["Create Build Plans", "Run Saved Plans", "Multi-Context Processing", "UserSpace"],
+    )
+    if page == "Create Build Plans":
         multiplan_builder(user_space)
-
-    with tab2:
+    elif page == "Run Saved Plans":
         upload_build_plan()
-
-    with tab4:
+    elif page == "Multi-Context Processing":
+        multi_context_app = MCU(user_space)
+        multi_context_app.render()
+    elif page == "UserSpace":
         user_space_app(user_space)
 
 

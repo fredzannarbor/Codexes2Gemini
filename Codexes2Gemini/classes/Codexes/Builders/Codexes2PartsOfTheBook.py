@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import traceback
+import uuid
 from importlib import resources
 from time import sleep
 from typing import List
@@ -162,8 +163,19 @@ class Codexes2Parts:
                     f"Output for prompt {i + 1} does not meet desired length of {plan.minimum_required_output_tokens}. Discarding.")
 
             if satisfactory_results:
-                    self.logger.info(f"Returning satisfactory results of {self.count_tokens(satisfactory_results)}")
+                self.logger.info(f"Returning satisfactory results of {self.count_tokens(satisfactory_results)}")
 
+                if plan.require_json_output:
+                    output_data = {
+                        "text": response.text,
+                        "prompt_feedback": response.prompt_feedback,
+                        # ... (Add other relevant data to the dictionary) ...
+                    }
+                    json_output_path = f"{plan.thisdoc_dir}/{plan.output_file_path}_{str(uuid.uuid4())[:6]}.json"
+                    with open(json_output_path, 'w') as json_file:
+                        json.dump(output_data, json_file, indent=4)
+                    self.logger.info(f"JSON output saved to {json_output_path}")
+                    st.info(f"JSON output saved to {json_output_path}")
             else:
                 self.logger.warning("No satisfactory results were generated.")
                 satisfactory_results = "No satisfactory results were generated."

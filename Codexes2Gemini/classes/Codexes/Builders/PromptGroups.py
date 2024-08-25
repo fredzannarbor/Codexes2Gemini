@@ -31,7 +31,8 @@ class PromptGroups:
                  selected_system_instruction_keys: List[str] = None,
                  selected_user_prompt_values: List[str] = None,
                  selected_user_prompts_dict: Dict[str, Any] = None,
-                 config_file: str = None, use_all_user_keys: bool = False, add_system_prompt: str = "") -> None:
+                 config_file: str = None, use_all_user_keys: bool = False, add_system_prompt: str = "",
+                 require_json_output=False) -> None:
 
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(log_level)
@@ -59,6 +60,7 @@ class PromptGroups:
         self.list_of_user_keys_to_use = list_of_user_keys_to_use or []
         self.continuation_prompts = continuation_prompts
         self.output_file_path = output_file_base_name
+        self.require_json_output = require_json_output
         self.number_to_run = number_to_run
         self.minimum_required_output = minimum_required_output
         self.minimum_required_output_tokens = minimum_required_output_tokens
