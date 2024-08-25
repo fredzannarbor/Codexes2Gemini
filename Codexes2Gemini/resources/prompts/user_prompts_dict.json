@@ -187,14 +187,15 @@
     ]
   },
   "outline2prompts": {
-    "prompt": "Expand this outline for a book into the following objects:\n) A document that may be used as context for model requests.  This contains factual information about plot, characters, themes and other elements that will help ensure continuity.\n2) System instructions to guide the model in how to create responses.\n3) A series of user prompts which each generate a chapter in the book.  Each prompt can be expanded additional details and specific actions for each character. You can also introduce new characters or locations as the story progresses. Remember to maintain consistency with the themes, plot twists, and overall tone of the book.",
+    "prompt": "Expand this outline for a book into the following objects:\n1) A document that may be used as context for model requests.  This contains factual information about plot, characters, themes and other elements that will help ensure continuity.\n2) System instructions to guide the model in how to create responses.\n3) A series of user prompts which each generate a chapter in the book.  Each prompt can be expanded additional details and specific actions for each character. You can also introduce new characters or locations as the story progresses. Remember to maintain consistency with the themes, plot twists, and overall tone of the book. \n\n Output should be valid JSON with keys 'new_context', 'new_system_instructions', and 'new_prompts'.",
     "tags": [
       "book outline",
       "AI writing",
       "style",
       "prompts"
     ]
-  },
+  }
+}
   "page_by_page_analysis": {
     "prompt": "Now do a page-by-page analysis of the uploaded manuscript. Award +1 for each positive, -1 for each negative, calculate totals and net.",
     "tags": [

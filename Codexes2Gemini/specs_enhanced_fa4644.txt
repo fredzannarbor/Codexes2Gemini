@@ -1,0 +1,108 @@
+short_title	title	series	Idea	genre	author_voice	protagonist	antagonist	good_guys	bad_guys	locations	themes	revelations	character_arcs	mcguffins	plot_twists	special_instructions	num_chapters	num_scenes_per_chapter	num_tokens_total	select	model	book_plan
+Sky Shadow	Sky Shadow: The Secret of Area 51	series: Sky Shadow Chronicles	Teenagers living near Area 51 discover the existence of the AQUILINE project and get caught up in a dangerous conspiracy.	YA Sci-Fi Thriller	First-person, present tense, alternating between two main characters	16-year-old Alex, a curious and tech-savvy outsider, and 17-year-old Sarah, a popular girl whose father works at Area 51	A shadowy government organization trying to weaponize the AQUILINE technology	Alex, Sarah, and their group of friends	Corrupt government officials, scientists, and military personnel	Area 51, the Nevada desert, Las Vegas	Themes of government secrecy, the ethics of technology, friendship, and courage	The true purpose of the AQUILINE project and the extent of the government's cover-up	Alex overcomes his insecurities and becomes a leader, while Sarah learns to question authority and stand up for what's right	The AQUILINE drones and their advanced technology	The teenagers discover a mole within their group, and Sarah's father is not who he seems	Focus on creating a sense of mystery and suspense. Explore the moral dilemmas faced by the characters.	8.0	5.0	20000.0	True	gpt-3.5-turbo	"1. Alex stumbles upon a mysterious drone in the Nevada desert while exploring with his friends.
+2. Sarah attends a high-level meeting with her father at Area 51 and overhears something she shouldn't have.
+3. The teenagers meet up to discuss their strange discoveries and decide to investigate further.
+4. Alex hacks into a secure government database to find information on the drone, putting himself at risk.
+5. Sarah confronts her father about the secrets she uncovered, leading to tension between them.
+
+Chapter 2 Prompt:
+
+1. The group sneaks into Area 51 to gather more evidence on the AQUILINE project.
+2. Alex and Sarah face obstacles as they try to navigate the underground facility undetected.
+3. A mysterious figure follows the teenagers, raising suspicions about a possible mole.
+4. Sarah's father warns her to stay away from the project, but she refuses to back down.
+5. The teenagers uncover shocking information about the true nature of the AQUILINE technology.
+
+Chapter 3 Prompt:
+
+1. Alex and Sarah's group is ambushed by government agents while trying to escape Area 51.
+2. The teenagers are separated during the chaos, leaving them vulnerable and on the run.
+3. Alex must use his tech skills to evade capture and reunite with the others.
+4. Sarah learns more about her father's involvement in the project and struggles with conflicting emotions.
+5. The group seeks refuge in a hidden safe house in the Nevada desert, but danger is never far behind.
+
+Chapter 4 Prompt:
+
+1. The teenagers regroup and plan their next move to expose the government's secrets.
+2. Alex and Sarah bond over their shared experiences and develop a deeper connection.
+3. The group uncovers evidence of government corruption and attempts to leak it to the media.
+4. A betrayal within their ranks threatens to derail their plans and puts everyone at risk.
+5. Sarah's father makes a surprising confession that changes everything they thought they knew.
+
+Chapter 5 Prompt:
+
+1. The teenagers launch a daring mission to retrieve more information on the AQUILINE project.
+2. Alex and Sarah must use all their skills to outsmart the government agents hot on their trail.
+3. The group faces a moral dilemma when they discover the potential consequences of the AQUILINE technology.
+4. Sarah takes a stand against her father and the corrupt officials, risking everything for the truth.
+5. The teenagers uncover a shocking plot to weaponize the AQUILINE drones and must stop it before it's too late.
+
+Chapter 6 Prompt:
+
+1. The group infiltrates a top-secret government facility in Las Vegas to confront the masterminds behind the AQUILINE project.
+2. Alex and Sarah face off against the shadowy organization and their powerful allies.
+3. The teenagers must use all their wits and courage to overcome the odds and save the day.
+4. Sarah's father reveals his true intentions and joins forces with his daughter to take down the corrupt officials.
+5. The final showdown between the teenagers and the government forces reveals the extent of the conspiracy and its far-reaching implications.
+
+Chapter 7 Prompt:
+
+1. Alex and Sarah reflect on their journey and the lessons they've learned along the way.
+2. The group celebrates their victory but knows that the fight against government secrecy is far from over.
+3. Alex embraces his newfound confidence and leadership skills, ready to face whatever challenges come their way.
+4. Sarah comes to terms with her father's betrayal and finds strength in standing up for what she believes in.
+5. The teenagers vow to continue their fight for justice and transparency, no matter the risks involved.
+
+Chapter 8 Prompt:
+
+1. The epilogue reveals the aftermath of the teenagers' actions and the impact they've had on the world.
+2. Alex and Sarah look towards the future with hope and determination, knowing that they have the power to make a difference.
+3. The group's friendship is stronger than ever as they embark on new adventures together.
+4. The AQUILINE project is shut down, but the government's secrets still loom large in the background.
+5. The teenagers' bravery and resilience serve as a beacon of light in a world shrouded in darkness and deception."
+Iron Birds	Iron Birds: A Cold War Mystery	series: Iron Birds Chronicles	During the Cold War, a young woman working as a translator for the CIA gets involved in the AQUILINE project and uncovers a dangerous plot.	YA Historical Thriller	Third-person, past tense, focusing on the protagonist's perspective	22-year-old Anya, a talented linguist with a sharp mind and a passion for justice	A rogue KGB agent who will stop at nothing to sabotage the AQUILINE project and steal its secrets	Anya, her CIA handler, and a group of scientists and engineers working on the AQUILINE project	The KGB agent and his network of spies	CIA headquarters in Langley, Virginia, secret testing facilities in Nevada and California, Moscow	Themes of espionage, loyalty, betrayal, and the Cold War	Anya discovers a double agent within the CIA, and her own past is shrouded in mystery	Anya transforms from a naive young woman into a courageous and resourceful spy	The AQUILINE technology and the intelligence it gathers	Anya's trust in her handler is shattered, and she must decide where her true loyalties lie	Incorporate historical details of the Cold War and the culture of espionage.	8.0	5.0	20000.0	True	gpt-3.5-turbo	"Anya's first day at the CIA headquarters in Langley, Virginia, where she meets her handler and is briefed on the AQUILINE project.
+
+Chapter 2 Prompt:
+
+Anya is sent to a secret testing facility in Nevada to assist with translating documents related to the AQUILINE project.
+
+Chapter 3 Prompt:
+
+While in Nevada, Anya overhears a suspicious conversation that hints at a potential security breach within the CIA.
+
+Chapter 4 Prompt:
+
+Anya travels to California with her handler to meet with the scientists and engineers working on the AQUILINE project, but she can't shake the feeling that someone is watching her.
+
+Chapter 5 Prompt:
+
+Back in Langley, Anya uncovers evidence of a double agent within the CIA, leading her to question who she can trust.
+
+Chapter 6 Prompt:
+
+Anya's past is revealed to be more complex than she realized, and she must confront her own secrets while trying to navigate the dangerous world of espionage.
+
+Chapter 7 Prompt:
+
+As the rogue KGB agent's plot to sabotage the AQUILINE project intensifies, Anya must make a difficult decision that could jeopardize her own safety.
+
+Chapter 8 Prompt:
+
+In a thrilling conclusion, Anya is faced with a choice between loyalty to the CIA and following her own moral compass, ultimately proving herself to be a brave and resourceful spy."
+Dragonfly	Dragonfly: Mission to Moscow	series: Dragonfly Chronicles	A teenage girl with exceptional piloting skills is recruited for a covert mission using an advanced AQUILINE drone to gather intelligence in Moscow.	YA Spy Adventure	First-person, present tense, from the protagonist's perspective	17-year-old Maya, a fearless and skilled drone pilot with a rebellious streak	A high-ranking Russian official who is secretly selling state secrets to the highest bidder	Maya, her CIA handler, and a team of tech specialists supporting the mission	The Russian official and his network of corrupt associates	CIA training facility, Moscow, the Russian wilderness	Themes of trust, deception, risk-taking, and international intrigue	Maya discovers a personal connection to the Russian official, and her mission takes an unexpected turn	Maya learns the importance of teamwork and following orders, while also staying true to her own sense of justice	The advanced AQUILINE drone with its stealth and surveillance capabilities	The mission goes awry, and Maya must improvise to escape Russia with the vital intelligence	Create a fast-paced and action-packed story with high stakes and thrilling escapes.	8.0	5.0	20000.0	True	gpt-3.5-turbo	"Chapter 1: Maya is recruited by the CIA for a top-secret mission involving the use of the advanced AQUILINE drone. 
+
+Chapter 2: Maya undergoes intense training at the CIA facility to prepare for her mission to Moscow. 
+
+Chapter 3: Maya arrives in Moscow and begins her surveillance mission, facing unexpected challenges. 
+
+Chapter 4: Maya uncovers evidence of the Russian official's involvement in selling state secrets. 
+
+Chapter 5: Maya's drone is detected, and she must evade capture while still gathering crucial intelligence. 
+
+Chapter 6: Maya discovers a personal connection to the Russian official, adding a new layer of complexity to her mission. 
+
+Chapter 7: As Maya's mission spirals out of control, she must make split-second decisions to survive. 
+
+Chapter 8: In a thrilling escape from Russia, Maya successfully delivers the vital intelligence to her CIA handlers."
+M Go Bachelorette	Title: Love and Basketball: A Wolverine's Romance	Sports Romance By Sports Fans	A Michigan basketball fan lotteries off her season tickets in a quest for romance.	Sports romance	Woman who knows sports	plucky Wolverine	antagonist: Rival basketball fans	good_guys: Michigan Wolverines	Ohio U., Sparty	Ann Arbor	victory	revelations: The protagonist discovers that true love may be found in the most unexpected places, and that victory on the court is not the only kind of triumph worth celebrating.	character_arcs: The protagonist goes from being solely focused on basketball to opening herself up to the possibility of finding love, ultimately learning that there is more to life than just sports.	mcguffins: The protagonist's season tickets	plot_twists: plot_twists: The protagonist discovers that one of the rival basketball fans she despises is actually a former Michigan player who shares her love for the team, leading to a surprising love connection.	special_instructions: Incorporate elements of basketball games and fan culture to bring the story to life and create a sense of authenticity for sports fans. Make sure to highlight the intense rivalry between Michigan and Ohio U., as well as the friendly competition with Sparty. Additionally, emphasize the importance of community and camaraderie among sports fans in Ann Arbor.	0.0	0.0	0.0	True	gpt-3.5-turbo	
+No Child Left Behind			YA novel for chinese market about american and chinese girls who are both suffering from abuse & bond to protect		friendly to both cultures		harsh relatives			rural China/rural US							8.0	5.0	20000.0	True	gpt-3.5-turbo	

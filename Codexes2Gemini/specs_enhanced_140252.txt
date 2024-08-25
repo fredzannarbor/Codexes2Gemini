@@ -1,0 +1,114 @@
+short_title	title	series	Idea	genre	author_voice	protagonist	antagonist	good_guys	bad_guys	locations	themes	revelations	character_arcs	mcguffins	plot_twists	special_instructions	num_chapters	num_scenes_per_chapter	num_tokens_total	select	model	book_plan
+Sky Shadow	Sky Shadow: The Secret of Area 51	series: Sky Shadow Series	Teenagers living near Area 51 discover the existence of the AQUILINE project and get caught up in a dangerous conspiracy.	YA Sci-Fi Thriller	First-person, present tense, alternating between two main characters	16-year-old Alex, a curious and tech-savvy outsider, and 17-year-old Sarah, a popular girl whose father works at Area 51	A shadowy government organization trying to weaponize the AQUILINE technology	Alex, Sarah, and their group of friends	Corrupt government officials, scientists, and military personnel	Area 51, the Nevada desert, Las Vegas	Themes of government secrecy, the ethics of technology, friendship, and courage	The true purpose of the AQUILINE project and the extent of the government's cover-up	Alex overcomes his insecurities and becomes a leader, while Sarah learns to question authority and stand up for what's right	The AQUILINE drones and their advanced technology	The teenagers discover a mole within their group, and Sarah's father is not who he seems	Focus on creating a sense of mystery and suspense. Explore the moral dilemmas faced by the characters.	8.0	5.0	20000.0	True	gpt-3.5-turbo	"1. Alex, a tech-savvy outsider, stumbles upon strange drone activity near Area 51.
+2. Sarah, a popular girl with a secretive father, witnesses a suspicious meeting at her house.
+3. The teenagers meet up and share their findings, deciding to investigate further.
+4. They sneak into Area 51 and discover the AQUILINE project's existence.
+5. The group narrowly escapes capture but realizes they're in over their heads.
+
+Chapter 2 Prompt:
+
+1. Alex and Sarah try to make sense of the AQUILINE project and its potential dangers.
+2. The teenagers recruit more friends to help uncover the truth about the project.
+3. They face obstacles as they gather more information, drawing the attention of the authorities.
+4. Sarah's father warns her to stay away from their investigations, raising suspicions.
+5. The group finds a hidden message hinting at a mole within their midst.
+
+Chapter 3 Prompt:
+
+1. The teenagers struggle to trust each other as the possibility of a traitor looms over them.
+2. Alex and Sarah confront their feelings of fear and uncertainty about their mission.
+3. They receive a mysterious tip that leads them to a secret location in the Nevada desert.
+4. The group uncovers shocking evidence of the government's true intentions with the AQUILINE technology.
+5. A close call with government agents forces the teenagers to go into hiding.
+
+Chapter 4 Prompt:
+
+1. Alex and Sarah bond over their shared experiences and fears, strengthening their resolve.
+2. The group devises a plan to expose the AQUILINE project to the public and stop its misuse.
+3. They face internal conflicts as doubts about their abilities and loyalties arise.
+4. Sarah's father's involvement in the project puts her in a difficult position.
+5. The teenagers prepare for a risky mission to retrieve crucial evidence from Area 51.
+
+Chapter 5 Prompt:
+
+1. The group successfully infiltrates a secure facility within Area 51 to gather evidence.
+2. Alex and Sarah discover the extent of the government's cover-up and manipulation of the technology.
+3. They must evade capture and escape with the evidence before it's too late.
+4. The teenagers confront the bad guys behind the AQUILINE project, leading to a dangerous showdown.
+5. The group's actions have unintended consequences, putting their lives in jeopardy.
+
+Chapter 6 Prompt:
+
+1. Alex takes charge and leads the group in a daring escape from the government's clutches.
+2. Sarah's father reveals his true allegiance, forcing her to make a difficult decision.
+3. The teenagers receive unexpected help from a former government insider sympathetic to their cause.
+4. They race against time to expose the truth about the AQUILINE project before it's too late.
+5. The group faces betrayal from within, testing their friendship and loyalty.
+
+Chapter 7 Prompt:
+
+1. Alex and Sarah confront the shadowy organization behind the AQUILINE project in a final showdown.
+2. The teenagers use their wits and courage to outsmart the bad guys and protect the technology.
+3. They uncover a shocking revelation about the AQUILINE drones' true purpose and potential.
+4. The group's actions lead to a public scandal that exposes the government's corruption.
+5. Alex and Sarah reflect on their journey and the lessons they've learned about friendship and courage.
+
+Chapter 8 Prompt:
+
+1. The teenagers return to their normal lives, forever changed by their experiences at Area 51.
+2. Alex embraces his newfound confidence and leadership skills, becoming a role model for his friends.
+3. Sarah stands up to authority and fights for justice, inspired by her father's sacrifice.
+4. The group comes together one last time to commemorate their adventure and friendship.
+5. The teenagers look to the future with hope and determination, ready to face whatever challenges come their way."
+Iron Birds	Iron Birds: A Cold War Mystery	series: Iron Birds Series	During the Cold War, a young woman working as a translator for the CIA gets involved in the AQUILINE project and uncovers a dangerous plot.	YA Historical Thriller	Third-person, past tense, focusing on the protagonist's perspective	22-year-old Anya, a talented linguist with a sharp mind and a passion for justice	A rogue KGB agent who will stop at nothing to sabotage the AQUILINE project and steal its secrets	Anya, her CIA handler, and a group of scientists and engineers working on the AQUILINE project	The KGB agent and his network of spies	CIA headquarters in Langley, Virginia, secret testing facilities in Nevada and California, Moscow	Themes of espionage, loyalty, betrayal, and the Cold War	Anya discovers a double agent within the CIA, and her own past is shrouded in mystery	Anya transforms from a naive young woman into a courageous and resourceful spy	The AQUILINE technology and the intelligence it gathers	Anya's trust in her handler is shattered, and she must decide where her true loyalties lie	Incorporate historical details of the Cold War and the culture of espionage.	8.0	5.0	20000.0	True	gpt-3.5-turbo	Anya arrives at CIA headquarters and is recruited for a mysterious project.
+Dragonfly	Dragonfly: Mission to Moscow	series: Dragonfly Chronicles	A teenage girl with exceptional piloting skills is recruited for a covert mission using an advanced AQUILINE drone to gather intelligence in Moscow.	YA Spy Adventure	First-person, present tense, from the protagonist's perspective	17-year-old Maya, a fearless and skilled drone pilot with a rebellious streak	A high-ranking Russian official who is secretly selling state secrets to the highest bidder	Maya, her CIA handler, and a team of tech specialists supporting the mission	The Russian official and his network of corrupt associates	CIA training facility, Moscow, the Russian wilderness	Themes of trust, deception, risk-taking, and international intrigue	Maya discovers a personal connection to the Russian official, and her mission takes an unexpected turn	Maya learns the importance of teamwork and following orders, while also staying true to her own sense of justice	The advanced AQUILINE drone with its stealth and surveillance capabilities	The mission goes awry, and Maya must improvise to escape Russia with the vital intelligence	Create a fast-paced and action-packed story with high stakes and thrilling escapes.	8.0	5.0	20000.0	True	gpt-3.5-turbo	Maya is recruited by the CIA for a top-secret mission to Moscow using the advanced AQUILINE drone.
+M Go Bachelorette	Title: Hoops and Heartstrings	Sports Romance By Sports Fans	A Michigan basketball fan lotteries off her season tickets in a quest for romance.	Sports romance	Woman who knows sports	plucky Wolverine	antagonist: Buckeyes	good_guys: Wolverines	Ohio U., Sparty	Ann Arbor	victory	revelations: Unexpected connections between love and basketball	character_arcs: The protagonist learns to balance her love for basketball with her desire for romance, discovering that victory can come in many forms both on and off the court. She also realizes that unexpected connections between love and basketball can lead to personal growth and fulfillment.	mcguffins: The protagonist's lucky basketball charm and a mysterious note left with the season tickets.	plot_twists: The protagonist discovers that the mysterious note left with the season tickets leads her to a former player who holds the key to her heart and the team's success. As she navigates the world of sports and romance, she uncovers a shocking betrayal that threatens to tear apart everything she holds dear.	special_instructions: Incorporate detailed descriptions of basketball games and the excitement of being a dedicated fan, as well as the tension and rivalry between Michigan and Ohio State. Emphasize the emotional connections that can be formed through a shared love of sports.	13.0	7.0	80000.0	True	gpt-3.5-turbo	"1. The protagonist, a die-hard Michigan basketball fan, decides to lottery off her season tickets in a desperate attempt to find love.
+
+Chapter 2 Prompt:
+
+2. The protagonist meets a charming stranger at the first game of the season, but soon discovers he's a fan of rival Ohio U.
+
+Chapter 3 Prompt:
+
+3. Despite the rivalry, the protagonist and the Ohio U. fan bond over their shared love of basketball.
+
+Chapter 4 Prompt:
+
+4. The protagonist's loyalty to Michigan is tested when she starts falling for the Ohio U. fan.
+
+Chapter 5 Prompt:
+
+5. The tension between the protagonist and her rival fan love interest grows as Michigan and Ohio U. face off in a crucial game.
+
+Chapter 6 Prompt:
+
+6. The protagonist's friendship with a fellow Michigan fan is strained when they both realize they have feelings for the same person.
+
+Chapter 7 Prompt:
+
+7. An unexpected twist forces the protagonist to reevaluate her priorities and decide where her true loyalty lies.
+
+Chapter 8 Prompt:
+
+8. The protagonist must confront the bad guys from Ohio U. and Sparty who are determined to sabotage her relationship.
+
+Chapter 9 Prompt:
+
+9. As the basketball season reaches its climax, the protagonist must make a difficult decision that will impact her future.
+
+Chapter 10 Prompt:
+
+10. The protagonist's faith in victory is tested as she faces obstacles on and off the court.
+
+Chapter 11 Prompt:
+
+11. With the support of her friends and fellow fans, the protagonist finds the strength to fight for what she believes in.
+
+Chapter 12 Prompt:
+
+12. In a heart-pounding final game, the protagonist discovers the true meaning of victory and love.
+
+Chapter 13 Prompt:
+
+13. The protagonist's journey comes full circle as she realizes that sometimes the greatest victories come from unexpected places."
+No Child Left Behind	Title: Bound by Silence	series: No Child Left Behind Series	YA novel for chinese market about american and chinese girls who are both suffering from abuse & bond to protect	genre: Young Adult Contemporary Fiction	friendly to both cultures	protagonist: American and Chinese girls, Lily and Mei, who form a strong bond to protect each other from their harsh relatives and the abuse they face.	harsh relatives	good_guys: Lily and Mei's friends and allies who support them in their journey to overcome their abusive situations and protect each other.	bad_guys: abusive family members and individuals who seek to harm Lily and Mei.	rural China/rural US	themes: themes: friendship, resilience, overcoming adversity, cultural differences, the power of unity	revelations: Lily and Mei uncover shocking truths about their families and themselves as they navigate their abusive situations and bond together for protection.	character_arcs: Lily and Mei's character arcs focus on their growth from victims of abuse to survivors who find strength in their friendship and unity. They learn to stand up for themselves, confront their abusers, and ultimately break free from the cycle of abuse.	mcguffins: The mcguffins in this story are the personal journals that Lily and Mei discover, which hold secrets about their families and the abuse they have endured. These journals play a crucial role in the girls' journey towards uncovering the truth and finding the strength to overcome their circumstances.	plot_twists: As Lily and Mei delve deeper into their family secrets, they uncover a shocking plot twist revealing a hidden connection between their abusive relatives. This revelation forces them to reevaluate everything they thought they knew about their pasts and pushes them to confront their abusers head-on.	special_instructions: The author should pay close attention to cultural nuances and sensitivities when portraying the American and Chinese characters and their respective backgrounds. Research on the topic of abuse and its impact on individuals from different cultural backgrounds is recommended to ensure an accurate and respectful representation of the characters' experiences. Additionally, the story should emphasize the importance of friendship, unity, and resilience in overcoming adversity and should highlight the power of standing up against abuse.	8.0	5.0	20000.0	True	gpt-3.5-turbo	
