@@ -1,5 +1,8 @@
 import os
 import sys
+import traceback
+
+import streamlit as st
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 # Get the parent directory
@@ -16,6 +19,7 @@ from Codexes2Gemini.classes.Codexes.Builders.PromptGroups import PromptGroups
 from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
 
 
+
 class MultiContextProcessor:
     def __init__(self, context_groups, selected_prompt_group, selected_output_group):
         self.context_groups = context_groups
@@ -24,18 +28,20 @@ class MultiContextProcessor:
 
     def process_contexts(self):
         results = {}
-        for group_name, file_names in self.context_groups.items():
+        for group_name, file_paths in self.context_groups.items():  # Access file_paths directly
             group_results = []
-            for file_name in file_names:
-                # Assuming you have a way to access the content of the uploaded files
-                # For example, if you store the files temporarily:
-                file_path = os.path.join("temp_upload_dir", file_name)  # Replace with your actual file storage
-                with open(file_path, 'r') as file:
-                    context = file.read()
+            for file_path in file_paths:
+                st.write(file_path)
+                try:
+                    with open(file_path, 'r') as file:
+                        context = file.read()
 
-                # Process the context with the selected prompt group
-                result = self.process_single_context(context)
-                group_results.append(result)
+                    # Process the context with the selected prompt group
+                    result = self.process_single_context(context)
+                    group_results.append(result)
+                except Exception as e:
+                    print(f"Error processing file {file_path}: {e}")
+                    st.error(traceback.format_exc())
             results[group_name] = group_results
         return results
 
@@ -48,7 +54,7 @@ class MultiContextProcessor:
         )
 
         # Build the prompt
-        prompt = prompt_builder.build_prompt(context)
+        # prompt = prompt_builder.build_prompt(context)
 
         # Create a BuildLauncher instance
         launcher = BuildLauncher()
@@ -77,9 +83,16 @@ class MultiContextProcessor:
         return result
 
     def save_results(self, results):
+
         for group_name, group_results in results.items():
             for i, result in enumerate(group_results):
+
                 # Assuming you want to save each result as a separate file
                 file_name = f"{group_name}_result_{i + 1}.txt"
                 with open(file_name, 'w') as file:
-                    file.write(result)
+                    try:
+                        file.write(result[0][0])
+                    except Exception as e:
+                        st.error(traceback.format_exc())
+                    st.info(f"Saved result to {file_name}")
+                    st.write(result[0][0])

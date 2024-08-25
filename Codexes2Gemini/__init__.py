@@ -1,4 +1,16 @@
 import os
+import sys
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# Get the parent directory
+parent_dir = os.path.dirname(current_dir)
+
+# Get the directory above the parent
+grandparent_dir = os.path.dirname(parent_dir)
+
+# Append both directories to the Python path
+sys.path.append(parent_dir)
+sys.path.append(grandparent_dir)
 
 
 def ensure_directory_exists(directory_path):
@@ -14,8 +26,7 @@ ensure_directory_exists("logs")
 ensure_directory_exists("userspaces")
 ensure_directory_exists("userspaces/self")
 
-__version__ = "0.2.3.0"
+__version__ = "0.2.3.2"
 __announcements__ = """
-- PromptPlans are refactored to PromptGroups to make function more clear.
-- Simple JSON objects may now be updated and their text tokenized.
+
 """
