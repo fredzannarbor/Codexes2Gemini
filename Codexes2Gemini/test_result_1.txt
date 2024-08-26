@@ -1,117 +1,40 @@
- ## "The Catcher in the Rye" - Book Expansion
-
-**1. Context Document:**
-
-**Title:** The Catcher in the Rye
-
-**Series:** Modern Classics
-
-**Idea:** The story follows Holden Caulfield, a teenage boy expelled from yet another prestigious boarding school, as he navigates the complexities of adolescence and grapples with his feelings of alienation and disillusionment with the "phony" adult world. 
-
-**Genre:** Coming-of-age fiction
-
-**Author Voice:** The narration is first-person, cynical, and deeply personal, mirroring Holden's internal struggles and often unreliable perspective. The voice is raw, honest, and imbued with a sense of adolescent angst and frustration. 
-
-**Protagonist:** Holden Caulfield - a cynical, introspective, and sensitive teenager struggling to find his place in a world he perceives as superficial and hypocritical. He is intelligent, observant, and deeply compassionate, yet struggles to express these qualities due to his emotional turmoil. 
-
-**Antagonist:** Society - The antagonist isn't a single character, but the societal norms and expectations that Holden views as phony and suffocating. He rebels against the pressures to conform and longs for authenticity and genuine connection. 
-
-**Good Guys:** 
-
-* **Phoebe Caulfield:** Holden's younger sister, who represents innocence, love, and genuine connection for him. She offers him comfort and understanding during his emotional turmoil. 
-* **Jane Gallagher:** A childhood friend who symbolizes purity, innocence, and Holden's idealized image of love. 
-
-**Bad Guys:**
-
-* **Adults in authority:**  Holden often perceives adults as hypocritical and shallow, particularly his teachers and classmates' parents. 
-* **"Phonies":**  Holden applies this label to anyone he perceives as inauthentic or conforming to societal expectations. 
-
-**Locations:**
-
-* **New York City:**  The backdrop for most of the story, showcasing the bustling, yet alienating aspects of urban life. 
-* **Pennsylvania:** Where Holden's boarding school is located. 
-* **Various hotels and bars:** Places Holden frequents during his journey, symbolizing his temporary escapes and yearning for connection. 
-
-**Themes:**
-
-* **Loss of Innocence:**  Holden's journey explores the complexities of transitioning from childhood to adulthood and the struggles of navigating a world that seems to have lost its innocence.
-* **Search for Authenticity:** Holden yearns for genuine connections and rejects the superficiality he perceives in society.
-* **Struggle with Identity:**  He grapples with questions of who he is, what he wants to be, and his place in the world.
-* **Alienation:**  Holden's loneliness and feelings of isolation stem from his inability to connect with others and his rejection of societal norms. 
-* **Conflict between Individuality and Societal Expectations:**  Holden's rebellious nature clashes with the pressures of conforming to societal expectations, leading to his struggles. 
-
-**Revelations:**
-
-* **The complexities of adulthood:** Holden's journey reveals the challenges and disappointments of entering adulthood, as well as the importance of finding personal meaning amidst societal pressures.
-* **The importance of human connection:** Holden's longing for genuine connection highlights the fundamental need for love, support, and understanding in life.
-* **The need for personal growth and acceptance:** Holden's journey ultimately leads him to acknowledge his own flaws and vulnerabilities, paving the way for potential personal growth. 
-
-**Character Arcs:**
-
-* **Holden Caulfield:**  His arc focuses on his emotional journey as he confronts his inner turmoil, faces the harsh realities of adulthood, and eventually starts to see the possibility of finding meaning and connection in the world.  
-
-**McGuffins:**
-
-* **The red hunting hat:**  This object symbolizes Holden's desire to stand out and be different from the "phony" world. It represents his individuality and serves as a source of comfort and protection during his journey.
-
-**Plot Twists:**
-
-* **Holden's mental health:** The novel's unreliable narration suggests that Holden's perspective is skewed by his internal struggles and potential mental health issues. This adds complexity and ambiguity to the story, prompting readers to question his reliability and the nature of reality itself. 
-
-**Special Instructions:**
-
-* **Embrace the unreliable narrator:**  The story should be told from Holden's perspective, reflecting his unique voice and sometimes distorted perception of events.  
-* **Explore the themes of loss of innocence and societal critique:**  The story should delve into Holden's journey of disillusionment with the adult world and his yearning for authenticity. 
-* **Use symbolism to enhance the narrative:**  The red hunting hat and other objects can be used to symbolize deeper themes and meanings within the story.
-
-**2. System Instructions:**
-
-* **Maintain the first-person perspective:** The story should always be told from Holden's point of view. 
-* **Use the author's voice:**  Incorporate the distinct, cynical, and introspective voice of the protagonist, capturing his emotional turmoil and unique perspective.
-* **Develop the characters:**  Create a complex and relatable protagonist, along with supporting characters that contribute to the story's themes and conflicts.
-* **Explore the themes:**  Delve into the themes of loss of innocence, authenticity, identity, and alienation, reflecting the struggles and experiences of adolescence. 
-* **Create a compelling narrative:** Craft a captivating story that engages the reader, explores the complexities of human relationships, and offers insights into the human condition.
-
-**3. User Prompts for Chapters:**
-
-**Chapter 1:** 
-
-* **Prompt:**  Holden Caulfield is expelled from Pencey Prep.  He leaves the school in a state of emotional turmoil, feeling alienated and disillusioned. He begins his journey to New York City, reflecting on his experiences and struggles. 
-* **Actions:** Holden packs his suitcase, reflects on his expulsion, and boards a train to New York City. He encounters a classmate on the train and briefly interacts with him.
-
-**Chapter 2:** 
-
-* **Prompt:** Holden arrives in New York City and checks into a hotel.  He tries to connect with an old friend, but encounters disappointment and further alienation.  He reflects on his relationships and the superficiality he perceives in society.
-* **Actions:** Holden calls an old friend, Sally Hayes, but she is unavailable. He experiences loneliness and struggles to find companionship. He visits a bar and observes the interactions of others, feeling further isolated.
-
-**Chapter 3:** 
-
-* **Prompt:** Holden visits his former teacher, Mr. Antolini, seeking advice and guidance. Mr. Antolini delivers a prophetic warning about the dangers of the "phony" adult world and encourages Holden to find his own path.  
-* **Actions:** Holden visits Mr. Antolini's apartment, they discuss life and Holden's struggles.  Mr. Antolini offers advice, but his actions leave Holden confused and troubled. 
-
-**Chapter 4:** 
-
-* **Prompt:**  Holden runs into an old acquaintance, Sunny, and goes to a bar with her. The encounter reinforces his feelings of disillusionment and despair as he witnesses the superficiality of the "phony" adult world.  
-* **Actions:** Holden goes out with Sunny, a prostitute, and experiences further disillusionment and emotional turmoil. He feels a sense of disconnect and loneliness. 
-
-**Chapter 5:** 
-
-* **Prompt:**  Holden becomes increasingly restless and isolated.  He decides to run away, searching for a place of refuge and connection. He ends up at a museum, finding solace in its familiar and unchanging nature.  
-* **Actions:** Holden checks out of his hotel and wanders around New York City. He reflects on his situation and yearns for escape. He finds solace in a museum, seeking comfort in the unchanging nature of art.
-
-**Chapter 6:** 
-
-* **Prompt:**  Holden finally contacts his younger sister, Phoebe, who is waiting for him at home. He pours out his heart to her, sharing his anxieties and feelings about the world.  
-* **Actions:** Holden calls Phoebe, they meet at home. He tells Phoebe about his struggles and his desire to "catch" children before they fall into the "phony" adult world.  
-
-**Chapter 7:** 
-
-* **Prompt:**  Holden's meeting with Phoebe deepens his emotional turmoil and makes him realize the importance of genuine connection. He vows to change and find a way to live a meaningful life.
-* **Actions:**  Holden and Phoebe share a meaningful conversation, their bond strengthening. He feels inspired to change his ways and find a purpose in life.
-
-**Chapter 8:** 
-
-* **Prompt:**  Holden's journey concludes with a sense of uncertainty, but also with a glimmer of hope for the future. He acknowledges his own flaws and the need for personal growth, embracing the possibility of change. 
-* **Actions:** Holden begins to heal and reflect on his experiences. He realizes the importance of connecting with others and the need for personal growth. The ending leaves the reader with a sense of hope for his future. 
-
-**Note:** These prompts provide a framework for each chapter.  You can expand on them with specific details, dialogues, and events to create a rich and engaging story, maintaining consistency with the established themes, characters, and overall tone of "The Catcher in the Rye." 
+ ```json
+{
+  "new_context": {
+    "short_title": "No Child Left Behind",
+    "title": "Bound by Silence",
+    "series": "Voices Unheard",
+    "Idea": "YA novel for the Chinese market about American and Chinese girls who are both suffering from abuse & bond to protect",
+    "genre": "Young Adult Contemporary",
+    "author_voice": "friendly to both cultures",
+    "protagonist": "protagonist: Mei and Emily",
+    "antagonist": "harsh relatives",
+    "good_guys": "good_guys: supportive friends and teachers",
+    "bad_guys": "bad_guys: abusive family members",
+    "locations": "rural China/rural US",
+    "themes": "themes: resilience, friendship, cultural understanding, overcoming adversity, empowerment",
+    "revelations": "revelations: Mei discovers her passion for art as a means of expression and healing; Emily learns about her Chinese heritage and finds strength in her cultural roots; both girls uncover hidden family secrets that lead to their empowerment and the courage to seek help.",
+    "character_arcs": "character_arcs: Mei starts as a shy and reserved girl, struggling with the trauma of her abusive home life. Through her friendship with Emily and the discovery of her passion for art, she gains confidence and learns to use her voice to seek help and inspire others. Emily begins as a rebellious and confused teenager, disconnected from her cultural identity and weighed down by her own abusive experiences. As she learns more about her Chinese heritage and bonds with Mei, she finds inner strength and clarity, ultimately standing up to her abusers and embracing her cultural roots. Both girls grow into empowered young women who support each other and advocate for change in their communities.",
+    "mcguffins": "mcguffins: Mei's sketchbook and Emily's jade pendant",
+    "plot_twists": "plot_twists: Mei's sketchbook reveals hidden messages from her late grandmother that guide her to uncover family secrets; Emily's jade pendant turns out to be a key to a family heirloom that holds significant cultural importance; a supportive teacher is revealed to have a personal connection to Mei's family, providing unexpected help; the girls discover that their abusers are connected through a dark past, leading to a climactic confrontation that forces both families to face their histories and seek redemption.",
+    "special_instructions": "special_instructions: Ensure cultural sensitivity and accuracy by consulting with cultural advisors from both American and Chinese backgrounds. Highlight the importance of mental health and the availability of support resources. Use dual narratives to provide equal weight to Mei and Emily's experiences, maintaining a balance between their individual growth and their shared journey. Include trigger warnings for scenes depicting abuse. Emphasize the positive impact of friendship and community support.",
+    "num_chapters": 8.0,
+    "num_scenes_per_chapter": 5.0,
+    "num_tokens_total": 20000.0,
+    "select": true,
+    "model": NaN,
+    "book_plan": "**Chapter 1:**\n\nIn rural China, Mei struggles with the harshness of her daily life under her abusive relatives, yearning for a way to escape.\n\n**Chapter 2:**\n\nIn rural America, Emily endures similar hardships with her strict family, finding solace in her secret letters to a pen pal in China.\n\n**Chapter 3:**\n\nMei and Emily discover each other's existence through their pen pal relationship and begin sharing their stories and struggles, finding comfort in their newfound friendship.\n\n**Chapter 4:**\n\nAs their bond deepens, both girls start to dream of a way to break free from their oppressive environments, drawing strength from each other's resilience.\n\n**Chapter 5:**\n\nMei faces increasing pressure and punishment from her relatives, leading her to take a courageous step towards change, inspired by Emily's support.\n\n**Chapter 6:**\n\nEmily's situation worsens when her relatives discover her correspondence with Mei, but she remains determined to protect their friendship and find a solution for both of them.\n\n**Chapter 7:**\n\nThe girls devise a daring plan to meet in person and escape their abusive homes, relying on their trust and empathy to navigate the challenges ahead.\n\n**Chapter 8:**\n\nMei and Emily finally come together, their friendship proving stronger than the adversities they faced, as they embark on a journey towards a brighter future, free from their pasts."
+  },
+  "new_system_instructions": "You are a helpful and creative writer, tasked with generating chapters for a young adult contemporary novel set in rural China and rural America. The story focuses on two girls, Mei and Emily, who are both suffering from abuse and find solace in their friendship.  You should use dual narratives, ensuring that each girl's story receives equal attention. When writing, please keep the following in mind:\n\n* Maintain a tone that is friendly and relatable to both Chinese and American readers.\n*  Include elements of cultural understanding, highlighting the unique experiences of each girl within their respective cultures.\n*  Focus on themes of resilience, friendship, overcoming adversity, and empowerment.\n*  Incorporate plot twists that involve Mei's sketchbook and Emily's jade pendant.\n*  Ensure cultural sensitivity and accuracy by consulting with cultural advisors from both American and Chinese backgrounds. \n*  Highlight the importance of mental health and the availability of support resources.\n*  Include trigger warnings for scenes depicting abuse. \n*  Emphasize the positive impact of friendship and community support.\n\nRemember to keep the chapter lengths concise and engaging. Aim for 5 scenes per chapter. " ,
+  "new_prompts": [
+    "Write a chapter that begins with Mei in her rural Chinese village, sketching in her notebook as a way to cope with her difficult home life. Describe the specific details of her environment and the nature of her abuse.  Incorporate subtle hints about the hidden messages in her sketchbook that she's unaware of.  End the chapter with Mei finding a letter addressed to her,  and this letter is from a girl named Emily in rural America, detailing her own struggles.",
+    "Start this chapter from Emily's perspective in rural America. She is writing a letter to her pen pal, Mei, describing her life, including her dysfunctional family and the challenges she faces. She shares her dream of visiting China one day.  Introduce a scene where Emily discovers a jade pendant,  which is a family heirloom with a special meaning that she doesn't fully understand. End the chapter with Emily receiving a response from Mei, revealing the depth of their shared experiences and sparking a hope for connection.",
+    "Focus on the growing friendship between Mei and Emily as they exchange letters. Detail the emotional support they offer each other, sharing their vulnerabilities and dreams. Highlight how their letters become a source of strength and a way to escape their realities.  Incorporate scenes where Mei discovers a new passion for art and begins expressing her emotions through her drawings, while Emily starts to learn more about Chinese culture through Mei's descriptions. End the chapter with the girls deciding to meet in person,  driven by their longing for genuine connection and a shared desire for change.",
+    "This chapter should follow Mei's journey as she prepares for a secret meeting with Emily. She faces increasing pressure and punishment from her family.  Highlight her growing courage and determination, fueled by her friendship with Emily.  Incorporate a scene where Mei's aunt discovers the letters and threatens to punish her severely.  End the chapter with Mei finding an old photograph that reveals a surprising connection between her family and Emily's family.",
+    "Begin this chapter with Emily dealing with the consequences of her family discovering her letters to Mei. She faces increased scrutiny and restrictions, but her resolve to protect their friendship remains strong.  Introduce a scene where Emily discovers that the jade pendant she found is actually a key to a hidden family heirloom, and she believes it holds a vital clue to her family's past.  End the chapter with Emily devising a plan to run away, driven by her desire to be with Mei and to seek the truth about her family.",
+    "This chapter focuses on the journey of Mei and Emily as they meet in person.  Describe their initial awkwardness as they navigate the differences in their cultures,  followed by the realization that they share a deep understanding and empathy.  Incorporate a scene where Mei shows Emily her drawings,  revealing her hidden talent and a message from her late grandmother that guides them to uncover a family secret. End the chapter with the girls deciding to seek help from a trusted teacher who has a personal connection to Mei's family, adding a layer of complexity to the story.",
+    "This chapter should focus on the discovery of a hidden connection between the girls' families and the dark past that has fueled the abuse they both suffered.  Explore the truth behind the family secrets, using the sketchbook and the jade pendant as key pieces of evidence. Include scenes where Mei and Emily learn about the importance of speaking up and seeking justice. End the chapter with the girls facing a difficult decision: whether to confront their abusers directly or to seek help from authorities.",
+    "This chapter concludes the story with Mei and Emily standing up to their abusers,  supported by a network of friends, teachers, and community members.  Highlight the courage and resilience they've gained throughout their journey.  Incorporate a scene where they share their stories and inspire others to break the silence and seek support.  End the chapter with Mei and Emily finding solace and hope in their shared experiences, embarking on a new chapter in their lives, free from the shadows of their past."
+  ]
+}
+```
