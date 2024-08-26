@@ -50,8 +50,15 @@ class MultiContextUI:
                 file_path = os.path.join(self.temp_dir, uploaded_file.name)
                 with open(file_path, "wb") as f:
                     f.write(uploaded_file.read())
+
+                # Open the file in read mode to get the content
+                with open(file_path, "r") as f:
+                    file_content = f.read()
+                st.json([file_content[0:500]])
                 context_groups[group_name].append(file_path)
-                st.write(context_groups[group_name])
+            st.json(context_groups[group_name], expanded=False)
+            st.json([file_content[0:500]])
+
 
             if st.button("Proceed"):
                 st.info(f"Proceeding with files saved to {context_groups}")
@@ -112,7 +119,9 @@ class MultiContextUI:
                     selected_user_prompt_keys=selected_user_prompt_keys,
                     complete_user_prompt=complete_user_prompt
                 )
-                st.write(st.session_state.selected_prompt_group)
+                selected_prompts_for_display = [complete_system_instruction, complete_user_prompt]
+                st.caption("Submitted prompts:")
+                st.json(selected_prompts_for_display, expanded=False)
 
         st.subheader("Step 3: Output Settings")
         with st.form("step3-output-settings"):
@@ -131,6 +140,7 @@ class MultiContextUI:
                     maximum_output_tokens = 10000000
                     minimum_required_output = False
                     minimum_required_output_tokens = 50
+                require_json_output = st.checkbox("Require JSON Output", value=False)
 
             with st.expander("Set Output Destinations"):
                 thisdoc_dir = st.text_input("Output directory", value=os.path.join(os.getcwd(), 'output', 'c2g'))
@@ -139,19 +149,27 @@ class MultiContextUI:
                 plan_name = st.text_input("Plan Name", value=st.session_state.current_plan.get('name', ''))
 
             if st.form_submit_button("Save Output Settings"):
-                st.session_state.selected_output_group = PromptGroups(thisdoc_dir, output_file, log_level, mode,
-                                                                      maximum_output_tokens,
-                                                     minimum_required_output, minimum_required_output_tokens)
+                st.session_state.selected_prompt_group = PromptGroups(
+                    selected_system_instruction_keys=selected_system_instruction_keys,
+                    selected_user_prompt_keys=selected_user_prompt_keys,
+                    complete_user_prompt=complete_user_prompt,
+                    thisdoc_dir=thisdoc_dir,
+                    output_file=output_file,
+                    log_level=log_level,
+                    mode=mode,
+                    maximum_output_tokens=maximum_output_tokens,
+                    minimum_required_output=minimum_required_output,
+                    minimum_required_output_tokens=minimum_required_output_tokens,
+                    require_json_output=require_json_output
+                )
 
-                # st.session_state.current_plan.append(selected_output_group)
-                # st.session_state.multiplan.append(st.session_state.current_plan)
                 st.success(f"Plan '{plan_name}' added to multiplan")
-                # st.session_state.current_plan = {}
 
         with st.form("process-contexts"):
             st.write(context_groups)
+            # st.write(st.session_state.selected_prompt_group)
             st.write(st.session_state.selected_prompt_group)
-
+            st.write(st.session_state.selected_output_group)
             if st.form_submit_button("Process Contexts"):
                 if not context_groups or not group_name:
                     st.warning("Please upload files and provide a group name.")
@@ -160,8 +178,7 @@ class MultiContextUI:
                 elif not st.session_state.selected_output_group:
                     st.warning("Please configure and submit the Output settings.")
                 else:
-                    processor = MultiContextProcessor(context_groups, st.session_state.selected_prompt_group,
-                                                      st.session_state.selected_output_group)
+                    processor = MultiContextProcessor(context_groups, st.session_state.selected_prompt_group)
                     results = processor.process_contexts()
                     processor.save_results(results)
 

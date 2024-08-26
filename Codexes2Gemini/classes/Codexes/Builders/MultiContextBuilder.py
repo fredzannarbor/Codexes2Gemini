@@ -15,16 +15,14 @@ grandparent_dir = os.path.dirname(parent_dir)
 sys.path.append(parent_dir)
 sys.path.append(grandparent_dir)
 
-from Codexes2Gemini.classes.Codexes.Builders.PromptGroups import PromptGroups
 from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
 
 
 
 class MultiContextProcessor:
-    def __init__(self, context_groups, selected_prompt_group, selected_output_group):
+    def __init__(self, context_groups, prompt_group):
         self.context_groups = context_groups
-        self.selected_prompt_group = selected_prompt_group
-        self.selected_output_group = selected_output_group
+        self.prompt_group = prompt_group
 
     def process_contexts(self):
         results = {}
@@ -47,34 +45,27 @@ class MultiContextProcessor:
 
     def process_single_context(self, context):
         # Create a PromptBuilder instance
-        prompt_builder = PromptGroups(
-            self.selected_prompt_group.selected_system_instruction_keys,
-            self.selected_prompt_group.selected_user_prompt_keys,
-            self.selected_prompt_group.complete_user_prompt
-        )
 
-        # Build the prompt
-        # prompt = prompt_builder.build_prompt(context)
 
         # Create a BuildLauncher instance
         launcher = BuildLauncher()
 
         # Prepare the arguments for BuildLauncher
         args = {
-            'mode': self.selected_output_group.mode,
+            'mode': self.prompt_group.mode,
             'context': context,
-            'output': self.selected_output_group.output_file,
-            'selected_system_instructions': self.selected_prompt_group.selected_system_instruction_keys,
-            'user_prompt': self.selected_prompt_group.complete_user_prompt,
-            'selected_user_prompt_values': self.selected_prompt_group.selected_user_prompt_values,
-            'list_of_user_keys_to_use': self.selected_prompt_group.selected_user_prompt_keys,
-            'maximum_output_tokens': self.selected_output_group.maximum_output_tokens,
-            'minimum_required_output': self.selected_output_group.minimum_required_output,
-            'minimum_required_output_tokens': self.selected_output_group.minimum_required_output_tokens,
-            'complete_user_prompt': self.selected_prompt_group.complete_user_prompt,
-            'complete_system_instruction': self.selected_prompt_group.complete_system_instruction,
-            'selected_system_instructions': self.selected_prompt_group.selected_system_instruction_keys,
-            'selected_user_prompts_dict': self.selected_prompt_group.selected_user_prompts_dict,
+            'output': self.prompt_group.output_file,
+            'selected_system_instructions': self.prompt_group.selected_system_instruction_keys,
+            'user_prompt': self.prompt_group.complete_user_prompt,
+            'selected_user_prompt_values': self.prompt_group.selected_user_prompt_values,
+            'list_of_user_keys_to_use': self.prompt_group.selected_user_prompt_keys,
+            'maximum_output_tokens': self.prompt_group.maximum_output_tokens,
+            'minimum_required_output': self.prompt_group.minimum_required_output,
+            'minimum_required_output_tokens': self.prompt_group.minimum_required_output_tokens,
+            'complete_user_prompt': self.prompt_group.complete_user_prompt,
+            'complete_system_instruction': self.prompt_group.complete_system_instruction,
+            'selected_system_instructions': self.prompt_group.selected_system_instruction_keys,
+            'selected_user_prompts_dict': self.prompt_group.selected_user_prompts_dict,
         }
 
         # Run the BuildLauncher
@@ -83,12 +74,16 @@ class MultiContextProcessor:
         return result
 
     def save_results(self, results):
+        thisdoc_dir = self.prompt_group.thisdoc_dir
+        output_file_name = self.prompt_group.output_file
+        st.write(thisdoc_dir, output_file_name)
+        st.write(results)
 
         for group_name, group_results in results.items():
             for i, result in enumerate(group_results):
 
                 # Assuming you want to save each result as a separate file
-                file_name = f"{group_name}_result_{i + 1}.txt"
+                file_name = f"{thisdoc_dir}/{group_name}_{output_file_name}_{i + 1}.txt"
                 with open(file_name, 'w') as file:
                     try:
                         file.write(result[0][0])

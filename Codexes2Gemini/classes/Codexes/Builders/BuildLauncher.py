@@ -227,7 +227,7 @@ class BuildLauncher:
         else:
             logging.info("Any output length OK.")
 
-        unique_filename = f"{plan.thisdoc_dir}/{plan.output_file_path}_{str(uuid.uuid4())[:6]}"
+        unique_filename = f"{plan.thisdoc_dir}/{plan.output_file}_{str(uuid.uuid4())[:6]}"
 
         # convert markdown list to string
         md_result = "\n".join(result)
