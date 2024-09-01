@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='Codexes2Gemini',
-    version='0.2.2.19',
+    version='0.2.5.0',
     python_requires='>=3.11',
     description='Humans and AIs making books richer, more diverse, and more surprising.',
     url='https://github.com/fredzannarbor/Codexes2Gemini',
@@ -15,14 +15,20 @@ setup(
     author='Fred_Zimmerman',
     author_email='wfz@nimblebooks.com',
     license='MIT',
-    packages=find_packages(),
+    packages=find_packages(include=[
+        'Codexes2Gemini',
+        'Codexes2Gemini.classes',
+        'Codexes2Gemini.classes.Codexes',
+        'Codexes2Gemini.classes.Codexes.CodexPeopleRoles',
+        'Codexes2Gemini.classes.Codexes.CodexPeopleRoles.leo_bloom_core',
+        'Codexes2Gemini.classes.Codexes.CodexPeopleRoles.leo_bloom_core.*']),
     include_package_data=True,
     package_data={
         'Codexes2Gemini': ['resources/prompts/*.json', 'resources/images/*.jpg', 'resources/images/*.png',
                            'resources/images/*.jpeg', 'resources/images/*.json'],
     },
     install_requires=['streamlit', 'pymupdf', 'pypandoc', 'python-docx', 'google-generativeai', 'docx2txt', 'chardet',
-                      'google-cloud-texttospeech'],
+                      'google-cloud-texttospeech', 'pandas'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',

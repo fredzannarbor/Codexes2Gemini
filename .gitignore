@@ -71,3 +71,4 @@ instance/
 Codexes2Gemini/privateodexes2Gemini/private/
 
 *.pkl
+Codexes2Gemini/classes/Codexes/CodexPeopleRoles/LeoBloom/leo_bloom_core/select_criteria/
