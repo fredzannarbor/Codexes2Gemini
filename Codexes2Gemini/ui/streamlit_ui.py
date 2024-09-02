@@ -602,8 +602,10 @@ def run_multiplan(multiplan, user_space):
     markdown_content = ''
     if isinstance(results, list):
         for result in results:
-            if isinstance(result, str):
+            if isinstance(result, list):
                 markdown_content += flatten_and_stringify(result)
+            elif isinstance(result, str):
+                markdown_content += result
             else:
                 # Handle non-string results as needed (e.g., convert to string)
                 markdown_content += str(result)
