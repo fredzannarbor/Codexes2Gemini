@@ -173,7 +173,7 @@ class BuildLauncher:
             # st.write("plan result ^")
             if plan_result is not None:
                 results.append(plan_result)
-                self.save_result(plan, plan_result)
+                self.save_result_to_file_system(plan, plan_result)
 
             return results
 
@@ -220,7 +220,7 @@ class BuildLauncher:
             self.logger.error(f"Invalid mode specified for plan: {plan.mode}")
             return None
 
-    def save_result(self, plan, result):
+    def save_result_to_file_system(self, plan, result):
         if plan.minimum_required_output:
             st.info(f"Ensuring that output is at least minimum length {plan.minimum_required_output_tokens}")
             result = self.parts_builder.ensure_output_limit(result, plan.minimum_required_output_tokens)
