@@ -17,6 +17,7 @@ New objects:
 
 """
 import logging
+import sys
 import traceback
 
 import numpy as np
@@ -214,12 +215,11 @@ class AllUnitSalesThruToday(FinancialReportingObjects):
         fme_copy.fillna({"LTD Net Qty": 0}, inplace=True)
         fme_copy.fillna({'This Month Units Sold': 0}, inplace=True)
         fme_copy["Through Today Net New Qty"] = fme_copy["LTD Net Qty"] + fme_copy["This Month Units Sold"]
-        fme_copy['months_in_print'] = (pd.to_datetime('today') - fme_copy['Pub Date']) / np.timedelta64(1, 'M')
-        fme_copy['Annualized Net Qty'] = (fme_copy['Through Today Net New Qty'] / fme_copy['months_in_print']) * 12
-        # # fme_copy = fme_copy.loc[:, ~fme_copy.columns.str.contains('Discount')]
-        # # fme_copy = fme_copy.loc[:,
-        # #            ~(fme_copy.columns.str.contains('List') & ~fme_copy.columns.str.contains('US List'))]
-        # # fme_copy = fme_copy.loc[:, ~fme_copy.columns.str.contains('Agency')]
+        fme_copy['months_in_print'] = (pd.to_datetime('today') - fme_copy[
+            'Pub Date']).dt.days / 30.44  # Approximate days per month
+        fme_copy['months_in_print'] = fme_copy['months_in_print'].round(2)  # Round to two decimal places
+        fme_copy['Annualized Net Qty'] = (
+                    (fme_copy['Through Today Net New Qty'] / fme_copy['months_in_print']) * 12).round(2)
         fme_copy = fme_copy.sort_values(by='Pub Date', ascending=False, na_position='last')
         return fme_copy
 
@@ -342,93 +342,95 @@ class SlowHorses(FinancialReportingObjects):
         self.glue_factory = self.dataframe[self.dataframe['Net New Qty'] == 0]
 
 
-# class LSI_Year_Data(FinancialReportingObjects):
-#
-#     def __init__(self, parent_instance, file_path=None):
-#         if file_path is None:
-#             file_path = parent_instance.LSI_year_data_file_path
-#         self.LSI_year_data_file_path = file_path
-#         self.dataframe = load_spreadsheet(self.LSI_year_data_file_path)
-#         self.LSI_year_data_df = self.dataframe.astype(
-#             {"ISBN": str, "Title": str, "Author": str, "Format": str, "Gross Qty": int, "Returned Qty": int,
-#              "Net Qty": int, "Net Compensation": float, "Sales Market": str})
-#         # self.is_LSI_year_data_df_valid_shape(self.LSI_year_data_df)
-#
-#
-# class LSI_Years_Data(FinancialReportingObjects):
-#
-#     def __init__(self, parent_instance, years, file_path=None):
-#         super().__init__()
-#         self.years_dict = dict(zip(years, years))
-#         self.LSI_years_requested = years
-#
-#     def add_default_years(self, years_dict=None, root=''):
-#         if years_dict is None:
-#             years_dict = {
-#                 "2022": f"{root}/resources/data_tables/LSI/2022LSIcomp.xlsx",
-#                 "2023": f"{root}/resources/data_tables/LSI/2023LSIComp.xlsx"
-#             }
-#         self.LSI_years_dict.update(years_dict)
-#
-#     def add_to_dictionary(self, key, value):
-#         self.LSI_years_dict[key] = value
-#
-#
-# class LSI_Royalties_Due(FinancialReportingObjects):
-#     def __init__(self, parent_instance, year, lsi_year_data, lsi_royalties_due_file_path=None):
-#         super().__init__()
-#         if lsi_royalties_due_file_path is not None:
-#             self.lsi_royalties_due_file_path = lsi_royalties_due_file_path
-#             try:
-#                 self.dataframe = load_spreadsheet(self.lsi_royalties_due_file_path)
-#             except Exception as e:
-#                 st.error("Could not load lsi_royalties_due file.")
-#                 st.error(f"{e}")
-#                 logging.error(f"Could not load lsi_royalties_due file: {e}")
-#                 st.write(traceback.print_exc())
-#         else:
-#             # if could not load royalties file, create a new blank dataframe
-#             self.lsi_royalties_due_file_path = parent_instance.lsi_royalties_due_file_path
-#             self.dataframe = pd.DataFrame()
-#         # st.write(self.dataframe)
-#         # replace commas in numbers of ISBN column with nothing
-#         self.dataframe["ISBN"] = self.dataframe["ISBN"].astype(str)
-#         thisyear_royalty_df = self.dataframe
-#         self.royalties_df_dict = {f"royalties_due_{year}": thisyear_royalty_df}
-#
-#     def is_LSI_royalty_df_valid(self):
-#         # check validity of LSI Royalties Due
-#         if self.dataframe.shape[1] < 100:
-#             raise ValueError("Invalid shape of LSI Royalties Due dataframe.")
-#         if self.dataframe.shape[0] < 1:
-#             raise ValueError("LSI Royalties Due has no rows")
-#
-#     def create_LSI_royalties_df(self, ltd_enhanced_df, fme, year):
-#         self.thisyear_royalty_df = ltd_enhanced_df.merge(fme[['ISBN', 'Pub Date', 'royaltied']], on='ISBN', how='left')
-#
-#         thisyear_royalty_df = self.thisyear_royalty_df
-#
-#         # Changed Pub Date to dtype datetime
-#         thisyear_royalty_df['Pub Date'] = pd.to_datetime(thisyear_royalty_df['Pub Date'], format='mixed',
-#                                                          errors='coerce')
-#
-#         # add royaltied flag from add2fme
-#
-#         thisyear_royalty_df = thisyear_royalty_df[thisyear_royalty_df['royaltied'] == True]
-#         thisyear_royalty_df["due2author"] = thisyear_royalty_df['Net Compensation'] * 0.3
-#
-#         return thisyear_royalty_df
-#
-#     def create_due2authors_df(self, year, thisyear_royalty_df):
-#
-#         self.thisyear_due2authors_df = thisyear_royalty_df.groupby('Author')['due2author'].sum()
-#
-#         # Sorted due2author in descending order
-#         self.thisyear_due2authors_df.sort_values(by='due2author', ascending=False, na_position='last')
-#         # add blank columns
-#         self.thisyear_due2authors_df  # thisyear_due2authors_df [['paid_amt', 'paid_date', 'paid_mode', 'paid_notes']] = None
-#
-#         return self.thisyear_due2authors_df
+class LSI_Year_Data(FinancialReportingObjects):
+
+    def __init__(self, parent_instance, file_path=None):
+        if file_path is None:
+            file_path = parent_instance.LSI_year_data_file_path
+        self.LSI_year_data_file_path = '/Users/fred/.codexes2gemini/resources/data_tables/LSI/2023LSIComp.xlsx'
+        self.dataframe = load_spreadsheet(self.LSI_year_data_file_path)
+        self.LSI_year_data_df = self.dataframe.astype(
+            {"ISBN": str, "Title": str, "Author": str, "Format": str, "Gross Qty": int, "Returned Qty": int,
+             "Net Qty": int, "Net Compensation": float, "Sales Market": str})
+        # self.is_LSI_year_data_df_valid_shape(self.LSI_year_data_df)
+
+
+class LSI_Years_Data(FinancialReportingObjects):
+
+    def __init__(self, parent_instance, years=[2022, 2023], file_path=None):
+        super().__init__()
+        self.years_dict = dict(zip(years, years))
+        self.LSI_years_requested = years
+
+    def add_default_years(self, years_dict=None, root=''):
+        if years_dict is None:
+            years_dict = {
+                "2022": f"{root}/resources/data_tables/LSI/2022LSIcomp.xlsx",
+                "2023": f"{root}/resources/data_tables/LSI/2023LSIComp.xlsx"
+            }
+        self.LSI_years_dict.update(years_dict)
+
+    def add_to_dictionary(self, key, value):
+        self.LSI_years_dict[key] = value
+
+
+class LSI_Royalties_Due(FinancialReportingObjects):
+
+    # TODO must add lsi_year_data_file_path
+    def __init__(self, parent_instance, year=2024, lsi_royalties_due_file_path=None):
+        super().__init__()
+        if lsi_royalties_due_file_path is not None:
+            self.lsi_royalties_due_file_path = lsi_royalties_due_file_path
+            try:
+                self.dataframe = load_spreadsheet(self.lsi_royalties_due_file_path)
+            except Exception as e:
+                st.error("Could not load lsi_royalties_due file.")
+                st.error(f"{e}")
+                logging.error(f"Could not load lsi_royalties_due file: {e}")
+                st.write(traceback.print_exc())
+        else:
+            # if could not load royalties file, create a new blank dataframe
+            self.lsi_royalties_due_file_path = parent_instance.lsi_royalties_due_file_path
+            self.dataframe = pd.DataFrame()
+        # st.write(self.dataframe)
+        # replace commas in numbers of ISBN column with nothing
+        # self.dataframe["ISBN"] = self.dataframe["ISBN"].astype(str)
+        thisyear_royalty_df = self.dataframe
+        self.royalties_df_dict = {f"royalties_due_{year}": thisyear_royalty_df}
+
+    def is_LSI_royalty_df_valid(self):
+        # check validity of LSI Royalties Due
+        if self.dataframe.shape[1] < 100:
+            raise ValueError("Invalid shape of LSI Royalties Due dataframe.")
+        if self.dataframe.shape[0] < 1:
+            raise ValueError("LSI Royalties Due has no rows")
+
+    def create_LSI_royalties_df(self, ltd_enhanced_df, fme, year):
+        self.thisyear_royalty_df = ltd_enhanced_df.merge(fme[['ISBN', 'Pub Date', 'royaltied']], on='ISBN', how='left')
+
+        thisyear_royalty_df = self.thisyear_royalty_df
+
+        # Changed Pub Date to dtype datetime
+        thisyear_royalty_df['Pub Date'] = pd.to_datetime(thisyear_royalty_df['Pub Date'], format='mixed',
+                                                         errors='coerce')
+
+        # add royaltied flag from add2fme
+
+        thisyear_royalty_df = thisyear_royalty_df[thisyear_royalty_df['royaltied'] == True]
+        thisyear_royalty_df["due2author"] = thisyear_royalty_df['Net Compensation'] * 0.3
+
+        return thisyear_royalty_df
+
+    def create_due2authors_df(self, year, thisyear_royalty_df):
+
+        self.thisyear_due2authors_df = thisyear_royalty_df.groupby('Author')['due2author'].sum()
+
+        # Sorted due2author in descending order
+        self.thisyear_due2authors_df.sort_values(by='due2author', ascending=False, na_position='last')
+        # add blank columns
+        self.thisyear_due2authors_df  # thisyear_due2authors_df [['paid_amt', 'paid_date', 'paid_mode', 'paid_notes']] = None
+
+        return self.thisyear_due2authors_df
 
 
 class Actual_Payment_History(FinancialReportingObjects):

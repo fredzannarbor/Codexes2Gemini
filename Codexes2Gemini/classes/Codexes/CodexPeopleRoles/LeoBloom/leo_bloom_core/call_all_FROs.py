@@ -1,6 +1,8 @@
 #  Copyright (c) 2024. Fred Zimmerman.  Personal or educational use only.  All commercial and enterprise use must be licensed, contact wfz@nimblebooks.com
+import logging
 import os
 import sys
+import traceback
 
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 
@@ -17,32 +19,57 @@ grandparent_dir = os.path.dirname(parent_dir)
 sys.path.append(parent_dir)
 sys.path.append(grandparent_dir)
 
+from Codexes2Gemini.classes.Codexes.CodexPeopleRoles.LeoBloom.leo_bloom_core import FinancialReportingObjects as FROs
+from Codexes2Gemini.classes.Codexes.CodexPeopleRoles.LeoBloom.leo_bloom_core.FinancialReportingObjects import \
+    Actual_Payment_History, AllUnitSalesThruToday, EstimatedUnpaidCompensation, FinancialReportingObjects, \
+    FullMetadataEnhanced, FullMetadataIngest, LifetimePaidCompensation, LSI_Royalties_Due, LSI_Year_Data, \
+    LSI_LTD_Paid_And_Unpaid_Compensation, LSI_Years_Data, ThisMonthUnitSales
+
 import streamlit as st
-import FinancialReportingObjects as FROs
+
 
 
 def run_streamlit_app():
-    report_classes = [
-        FROs.LifetimePaidCompensation,
-        FROs.EstimatedUnpaidCompensation,
-        FROs.LSI_LTD_Paid_And_Unpaid_Compensation,
-        FROs.ThisMonthUnitSales,
-        FROs.FullMetadataIngest,
-        FROs.FullMetadataEnhanced, FROs.Actual_Payment_History, FROs.AllUnitSalesThruToday  # SlowHorses
-    ]
+    report_classes = [Actual_Payment_History,
+
+                      AllUnitSalesThruToday,
+                      EstimatedUnpaidCompensation,
+                      FinancialReportingObjects,
+                      FullMetadataEnhanced,
+                      FullMetadataIngest,
+                      LifetimePaidCompensation,
+                      LSI_LTD_Paid_And_Unpaid_Compensation,
+                      LSI_Royalties_Due,
+                      LSI_Year_Data,
+                      LSI_Years_Data,
+
+                      ThisMonthUnitSales]
+
 
     FRO = FROs.FinancialReportingObjects()
+    dataframe_sections = {}  # Dictionary to store section names and positions
 
-    for report_class in report_classes:
-        report_instance = report_class(FRO)
+    for i, report_class in enumerate(report_classes):
+        try:
+            report_instance = report_class(FRO)
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            st.error(traceback.format_exc())
+            continue
 
-        st.write(f"DataFrame for {report_class.__name__}:")
         if hasattr(report_instance, 'dataframe'):
-            df = report_instance.dataframe
-            st.dataframe(df)
-        else:
-            st.write("This object can't be converted to a dataframe.")
+            dataframe_sections[report_class.__name__] = i  # Store section position
 
+    # Create navigation sidebar
+    selected_section = st.sidebar.selectbox("Go to DataFrame:", list(dataframe_sections.keys()))
+
+    # Display the selected DataFrame
+    for report_class, section_index in dataframe_sections.items():
+        if selected_section == report_class:
+            report_instance = report_classes[section_index](FRO)  # Recreate instance
+            st.write(f"DataFrame for {report_class}:")
+            st.dataframe(report_instance.dataframe)
+            break  # Only display the selected section
 
 def main(port=1967, themebase="light"):
     sys.argv = ["streamlit", "run", __file__, f"--server.port={port}", f'--theme.base={themebase}',
@@ -50,7 +77,6 @@ def main(port=1967, themebase="light"):
     import streamlit.web.cli as stcli
     stcli.main()
     configure_logger("DEBUG")
-
 
 if __name__ == "__main__":
     run_streamlit_app()
