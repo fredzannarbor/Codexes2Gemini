@@ -353,6 +353,9 @@ class LSI_Year_Data(FinancialReportingObjects):
             {"ISBN": str, "Title": str, "Author": str, "Format": str, "Gross Qty": int, "Returned Qty": int,
              "Net Qty": int, "Net Compensation": float, "Sales Market": str})
         # self.is_LSI_year_data_df_valid_shape(self.LSI_year_data_df)
+        self.caption = f"Data from {self.LSI_year_data_file_path}"
+
+
 
 
 class LSI_Years_Data(FinancialReportingObjects):
@@ -446,6 +449,12 @@ class Actual_Payment_History(FinancialReportingObjects):
                 logging.error(f"Could not load actual payment history file: {e}")
                 st.write(traceback.print_exc())
 
+
+class KDP_LTD_royalties(FinancialReportingObjects):
+    def __init__(self, parent_instance, kdp_ltd_royalties_file_path=None):
+        super().__init__()
+        self.KDP_LTD_Royalties = pd.read_excel("resources/data_tables/KDP/KDPltd.xlsx", sheet_name="Combined Sales")
+        self.dataframe = self.KDP_LTD_Royalties
 
 def main(port=1455, themebase="light"):
     sys.argv = ["streamlit", "run", __file__, f"--server.port={port}", f'--theme.base={themebase}',

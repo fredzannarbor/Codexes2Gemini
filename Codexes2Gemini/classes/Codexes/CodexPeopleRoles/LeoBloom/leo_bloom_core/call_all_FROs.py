@@ -4,6 +4,8 @@ import os
 import sys
 import traceback
 
+from mitosheet.streamlit.v1 import spreadsheet
+
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 
 # print("Codexes2Gemini location:", Codexes2Gemini.__file__)
@@ -62,12 +64,19 @@ def run_streamlit_app():
 
     # Create navigation sidebar
     selected_section = st.sidebar.selectbox("Go to DataFrame:", list(dataframe_sections.keys()))
+    # df_keys_string = ','.join(dataframe_sections.keys())
+    with st.expander("Mito Spreadsheet Viewer"):
+        dfs, code = spreadsheet(FullMetadataEnhanced(FRO).dataframe)
+        st.code(code)
 
     # Display the selected DataFrame
     for report_class, section_index in dataframe_sections.items():
         if selected_section == report_class:
             report_instance = report_classes[section_index](FRO)  # Recreate instance
+
             st.write(f"DataFrame for {report_class}:")
+            if hasattr(report_instance, "caption"):
+                st.caption(report_instance.caption)
             st.dataframe(report_instance.dataframe)
             break  # Only display the selected section
 
