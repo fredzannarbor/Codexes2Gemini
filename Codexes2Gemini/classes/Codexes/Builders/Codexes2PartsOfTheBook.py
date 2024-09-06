@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import json
 import logging
 import os
@@ -11,13 +12,16 @@ from typing import List
 import google.generativeai as genai
 import pandas as pd
 import streamlit as st
+from google.generativeai import caching
 
+from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 from ..Builders.PromptGroups import PromptGroups
 
 GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
 
 configure_logger("DEBUG")
+
 
 class Codexes2Parts:
     """
@@ -45,6 +49,7 @@ class Codexes2Parts:
         gemini_get_response(plan, system_prompt, user_prompt, context, model): Calls the Gemini API to get the response.
         make_thisdoc_dir(plan): Creates the directory for the book part output.
     """
+
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
@@ -63,9 +68,10 @@ class Codexes2Parts:
             {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
             {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
         ]
-        self.system_instructions_dict_file_path = resources.files('Codexes2Gemini.resources.prompts').joinpath("system_instructions.json")
+        self.system_instructions_dict_file_path = resources.files('Codexes2Gemini.resources.prompts').joinpath(
+            "system_instructions.json")
         self.continuation_instruction = "The context now includes a section beginning {Work So Far} which includes your work on this book project so far. Your task is to continue where you left off and write the next part of the project. You are not expected to finish the whole project now. Your writing for this task should be at the same level of detail as each individul section of the context. Try to write AT MINIMUM 2000 WORDS in this response.  Remember, do NOT try to complete the entire project all at once. Your priority is doing a thorough job on the current section. However, only once the project as a whole is COMPLETELY finished, with all requirements satisfied, write IAMDONE."
-        self.results=[]
+        self.results = []
         self.add_system_prompt = ""
         self.complete_system_instruction = ""
 
@@ -75,14 +81,24 @@ class Codexes2Parts:
             raise EnvironmentError("GOOGLE_API_KEY environment variable is not set.")
         genai.configure(api_key=api_key)
 
-    def create_model(self, model_name, safety_settings, generation_config):
-        return genai.GenerativeModel(model_name, safety_settings=safety_settings, generation_config=generation_config)
+    def create_model(self, model_name, safety_settings, generation_config, cache=None):
+        if cache is not None:
+            return genai.GenerativeModel.from_cached_content(
+                cached_content=cache,
+                generation_config=generation_config,
+                safety_settings=safety_settings)
+        else:
+            return genai.GenerativeModel(
+                model_name=model_name,
+                safety_settings=safety_settings,
+                generation_config=generation_config)
 
     def create_response_dict(self, response):
 
         response_dict = {
             "text": response.text,
             "prompt_feedback": response.prompt_feedback,
+            "usage_metadata": response.usage_metadata,
             "candidates": [
                 {
                     "content": candidate.content,
@@ -99,14 +115,19 @@ class Codexes2Parts:
 
         return response_dict
 
-    def process_codex_to_book_part(self, plan: PromptGroups):
+    # def process_codex_to_book_part(self, plan: PromptGroups):
 
-        self.logger.debug(f"Starting process_codex_to_book_part with plan: {plan}")
+    def process_codex_to_book_part(self, plan: PromptsPlan):
+        # plan = st.session_state.current_plan
+
+        #st.write(plan.thisdoc_dir)
         self.make_thisdoc_dir(plan)
         context = self.read_and_prepare_context(plan)
         self.logger.debug(f"Context prepared, length: {self.count_tokens(context)} tokens")
+        # TODO: make sure this is available for all builder functions
+        cache = self.create_cache_from_context(context)
 
-        model = self.create_model(self.model_name, self.safety_settings, plan.generation_config)
+        model = self.create_model(self.model_name, self.safety_settings, plan.generation_config, cache)
         self.logger.debug("Model created")
 
         system_prompt = self.assemble_system_prompt(plan)
@@ -118,25 +139,32 @@ class Codexes2Parts:
         satisfactory_results = []
 
         for i, user_prompt in enumerate(user_prompts):
-            self.logger.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
-            # st.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
-            # st.info(f"This user prompt is {user_prompt}")
+
             full_output = " "
             retry_count = 0
             max_retries = 3
 
+            self.logger.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
+            st.warning(f"Processing user prompt {i + 1}/{len(user_prompts)}")
+            #st.warning(f"User prompt is {user_prompt}")
+
             full_output_tokens = self.count_tokens(full_output)
+            all_cached_tokens = 0
             while full_output_tokens < plan.minimum_required_output_tokens and retry_count < max_retries:
                 try:
+                    # st.write(
+                    #     f"counts: {self.count_tokens(system_prompt)}, {self.count_tokens(user_prompt)}, {self.count_tokens(context)}")
+
                     response = self.gemini_get_response(plan, system_prompt, user_prompt, context, model)
                     if "The `response.text` quick accessor requires the response to contain a valid `Part`, but none were returned." in response:
                         for candidate in response.candidates:
                             for rating in candidate.safety_ratings:
                                 print(f"Category: {rating.category}, Probability: {rating.probability}")
                                 st.warning(f"Category: {rating.category}, Probability: {rating.probability}")
-                    self.logger.debug(f"Response received, length: {self.count_tokens(response.text)} tokens")
+                    self.logger.info(f"Response received, length: {self.count_tokens(response.text)} tokens")
                     json_response = self.create_response_dict(response)
-                    st.json(json_response, expanded=False)
+                    #st.json(json_response, expanded=False)
+                    logging.warning(json_response["usage_metadata"])
                     full_output += response.text
                     full_output_tokens = self.count_tokens(full_output)
 
@@ -183,7 +211,20 @@ class Codexes2Parts:
             st.info(f"processed prompt {i + 1}")
         return satisfactory_results
 
-#"\n\n".join(satisfactory_results)  # Return only satisfactory results joined together
+    def create_cache_from_context(self, context):
+        if self.count_tokens(context) > 32768:
+            # create a cache
+            cache = caching.CachedContent.create(
+                model='models/gemini-1.5-flash-001',
+                display_name='text cache',  # used to identify the cache
+                contents=[context],
+                ttl=datetime.timedelta(minutes=5),
+            )
+        else:
+            cache = None
+        return cache
+
+    # "\n\n".join(satisfactory_results)  # Return only satisfactory results joined together
 
     def process_plan_to_codex(self, plan: PromptGroups):
         """
@@ -206,9 +247,9 @@ class Codexes2Parts:
         user_prompts = plan.get_prompts()
         self.logger.info(f"\nUser prompts retrieved: {user_prompts}")
         # adding continuation prompt to user prompts
-        user_prompts.append(self.continuation_instruction)
-        st.write(user_prompts)
-        st.write("user prompts ^")
+        # user_prompts.append(self.continuation_instruction)
+        st.json([user_prompts])
+
 
         full_output = []
         repsmax = 5
@@ -218,13 +259,13 @@ class Codexes2Parts:
                 self.logger.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
                 retry_count = 0
                 max_retries = 3
-                st.write(context[:1000])
-                st.write("context ^")
+                st.json([context[:250]])
+                st.write(f"User prompt just prior to submission is: {user_prompt[0:250]}")
                 response = self.gemini_get_response(plan, system_prompt, user_prompt, context, model)
 
                 self.logger.debug(f"Response received, length: {self.count_tokens(response.text)} tokens")
                 json_response = self.create_response_dict(response)
-                st.json(json_response, expanded=False)
+                #st.json(json_response, expanded=False)
                 full_output += response.text
                 full_output_tokens = self.count_tokens(full_output)
                 context += response.text
@@ -308,9 +349,9 @@ class Codexes2Parts:
         response = model.count_tokens(text)
         return response.total_tokens
 
-
     def read_and_prepare_context(self, plan):
         context_content = plan.context or ""
+
         if plan.context_file_paths:
             for file_path in plan.context_file_paths:
                 if not file_path.strip():  # Skip empty file paths
@@ -322,23 +363,23 @@ class Codexes2Parts:
                 except Exception as e:
                     self.logger.error(f"Error reading context file {file_path}: {e}")
         token_count = self.count_tokens(context_content)
-        context_msg = f"Uploaded context of {token_count} tokens"
+
+        context_msg = f"Uploaded context of {token_count} tokens for {plan.row[1]}"
         self.logger.debug(context_msg)
         st.info(context_msg)
         return f"Context: {context_content.strip()}\n\n"
-
-
 
     def tokens_to_millions(tokens):
         return tokens / 1_000_000
 
     def assemble_system_prompt(self, plan):
+        system_prompt = ""
         if plan.complete_system_instruction:
             system_prompt = plan.complete_system_instruction
         else:
             with open(self.system_instructions_dict_file_path, "r") as json_file:
                 system_instruction_dict = json.load(json_file)
-            system_prompt = ""
+
             for key in plan.selected_system_instruction_keys:
                 key = key.strip()
                 try:
@@ -352,7 +393,6 @@ class Codexes2Parts:
 
     def generate_full_book(self, plans: List[PromptGroups]):
         return [self.process_codex_to_book_part(plan) for plan in plans]
-
 
     def gemini_get_response(self, plan, system_prompt, user_prompt, context, model):
         self.configure_api()
@@ -369,6 +409,8 @@ class Codexes2Parts:
         for attempt_no in range(MODEL_GENERATION_ATTEMPTS):
             try:
                 response = model.generate_content(prompt, request_options={"timeout": 600})
+                # st.write(response.usage_metadata)
+                logging.warning(response.usage_metadata)
                 return response
             except Exception as e:
                 errormsg = traceback.format_exc()
@@ -380,6 +422,8 @@ class Codexes2Parts:
                     exit()
 
     def make_thisdoc_dir(self, plan):
+        #st.write(plan['thisdoc_dir'])
+
         if not plan.thisdoc_dir:
             plan.thisdoc_dir = os.path.join(os.getcwd(), 'output')
 
@@ -387,24 +431,34 @@ class Codexes2Parts:
             os.makedirs(plan.thisdoc_dir)
         print(f"thisdoc_dir is {plan.thisdoc_dir}")
 
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Run CodexesToBookParts with provided arguments")
     parser.add_argument('--model', default="gemini-1.5-flash-001", help="Model to use")
     parser.add_argument('--json_required', action='store_true', help="Require JSON output")
-    parser.add_argument('--generation_config', type=str, default='{"temperature": 1, "top_p": 0.95, "top_k": 0, "max_output_tokens": 8192}', help="Generation config as a JSON string")
-    parser.add_argument('--system_instructions_dict_file_path', default="resources/prompts/system_instructions.json", help="Path to system instructions dictionary file")
-    parser.add_argument('--list_of_system_keys', default="nimble_books_editor,nimble_books_safety_scope,accurate_researcher,energetic_behavior,batch_intro", help="Comma-separated list of system keys")
+    parser.add_argument('--generation_config', type=str,
+                        default='{"temperature": 1, "top_p": 0.95, "top_k": 0, "max_output_tokens": 8192}',
+                        help="Generation config as a JSON string")
+    parser.add_argument('--system_instructions_dict_file_path', default="resources/prompts/system_instructions.json",
+                        help="Path to system instructions dictionary file")
+    parser.add_argument('--list_of_system_keys',
+                        default="nimble_books_editor,nimble_books_safety_scope,accurate_researcher,energetic_behavior,batch_intro",
+                        help="Comma-separated list of system keys")
     parser.add_argument('--user_prompt', default='', help="User prompt")
     parser.add_argument('--user_prompt_override', action='store_true', help="Override user prompts from dictionary")
-    parser.add_argument('--user_prompts_dict_file_path', default=resources.files('Codexes2Gemini.resources.prompts').joinpath("user_prompts_dict.json"), help="Path to user prompts dictionary file")
-    parser.add_argument('--list_of_user_keys_to_use', default="semantic_analysis,core_audience_attributes", help="Comma-separated list of user keys to use")
+    parser.add_argument('--user_prompts_dict_file_path',
+                        default=resources.files('Codexes2Gemini.resources.prompts').joinpath("user_prompts_dict.json"),
+                        help="Path to user prompts dictionary file")
+    parser.add_argument('--list_of_user_keys_to_use', default="semantic_analysis,core_audience_attributes",
+                        help="Comma-separated list of user keys to use")
     parser.add_argument('--continuation_prompts', action='store_true', help="Use continuation prompts")
     parser.add_argument('--context_file_paths', nargs='+', help="Paths to context files")
     parser.add_argument('--output_file_base_name', default="results.md", help="Path to output file")
     parser.add_argument('--thisdoc_dir', default="output/c2g/", help="Document directory")
     parser.add_argument('--log_level', default="INFO", help="Logging level")
     parser.add_argument('--number_to_run', type=int, default=3, help="Number of runs")
-    parser.add_argument('--minimum_required_output_tokens', "-do", type=int, default=1000, help="Desired output length in characters")
+    parser.add_argument('--minimum_required_output_tokens', "-do", type=int, default=1000,
+                        help="Desired output length in characters")
     return parser.parse_args()
 
 

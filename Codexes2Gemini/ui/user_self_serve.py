@@ -163,7 +163,7 @@ class UserSelfServe:
                                         add_system_prompt)
 
             # Save result and prompt plan to user space
-            user_space.save_result(result[0])
+            user_space.save_result_to_file_system(result[0], )
             user_space.save_prompt_plan({
                 "mode": mode,
                 "user_prompts": selected_user_prompts,

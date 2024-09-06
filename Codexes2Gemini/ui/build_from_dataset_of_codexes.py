@@ -4,9 +4,9 @@ import json
 import os
 import random
 import sys
+import tempfile
 import time
 import traceback
-from datetime import datetime
 from importlib import resources
 from io import BytesIO
 from typing import Dict
@@ -19,7 +19,7 @@ import pypandoc
 import streamlit as st
 from docx import Document
 
-#print("Codexes2Gemini location:", Codexes2Gemini.__file__)
+# print("Codexes2Gemini location:", Codexes2Gemini.__file__)
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 # Get the parent directory
@@ -34,18 +34,20 @@ sys.path.append(grandparent_dir)
 
 import google.generativeai as genai
 import logging
+from Codexes2Gemini.classes.Codexes.Fetchers.pg19Fetcher import fetch_rows_pg19_data, fetch_pg19_metadata, \
+    create_file_index
 
 from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space
 from Codexes2Gemini import __version__, __announcements__
 from Codexes2Gemini.ui.multi_context_page import MultiContextUI as MCU
-
+from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
 
 logger = configure_logger("DEBUG")
 logging.info("--- Began logging ---")
 user_space = load_user_space()
-#logger.debug(f"user_space: {user_space}")
+# logger.debug(f"user_space: {user_space}")
 
 GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
 
@@ -54,6 +56,7 @@ def image_to_base64(image_path):
     with open(image_path, "rb") as image_file:
         import base64
         return base64.b64encode(image_file.read()).decode()
+
 
 def load_json(file_path: str) -> dict:
     try:
@@ -84,14 +87,6 @@ def load_image_file(file_name):
     except Exception as e:
         st.error(f"Error loading image file: {e}")
         return
-
-def load_json_carousel_file(file_name):
-    try:
-        with resources.files('Codexes2Gemini.resources.images').joinpath(file_name).open('r') as file:
-            return json.load(file)
-    except Exception as e:
-        st.error(f"Error loading JSON file: {e}")
-        return {}
 
 
 def get_binary_file_downloader_html(bin_file, file_label='File'):
@@ -126,22 +121,16 @@ def upload_build_plan():
 
     config_file = st.file_uploader("Upload JSON configuration file", type="json")
     if config_file is not None:
-        plans = json.load(config_file)
+        plan = json.load(config_file)
+        st.subheader("Review Contents of Uploaded Plan File")
+        truncated_plan = plan.copy()
+        if 'context' in truncated_plan:
+            truncated_plan['context'] = truncated_plan['context'][:1000] + "..." if len(
+                truncated_plan['context']) > 1000 else truncated_plan['context']
+        st.json(truncated_plan, expanded=False)
 
-        if 'multiplan' in plans:
-            st.subheader("Review Contents of Uploaded Plan File")
-            for index, plan in enumerate(plans['multiplan']):
-                st.write(f"**Plan {index + 1}**")
-                truncated_plan = plan.copy()
-                if 'context' in truncated_plan:
-                    truncated_plan['context'] = truncated_plan['context'][:1000] + "..." if len(
-                        truncated_plan['context']) > 1000 else truncated_plan['context']
-                st.json(truncated_plan, expanded=False)
-
-            if st.button("Run Uploaded Plans"):
-
-
-                run_multiplan(plans['multiplan'], user_space)
+        if st.button("Run Uploaded Plan"):
+            pass
 
 
 def count_tokens(text, model='models/gemini-1.5-pro'):
@@ -150,8 +139,8 @@ def count_tokens(text, model='models/gemini-1.5-pro'):
     response = model.count_tokens(text)
     return response.total_tokens
 
-def get_epoch_time_string():
 
+def get_epoch_time_string():
     # Get the current time in seconds since the Unix epoch
     current_time_seconds = time.time()
 
@@ -182,8 +171,6 @@ def tokens_to_mb(tokens, bytes_per_token=4):
 def tokens_to_millions(tokens):
     return tokens / 1_000_000
 
-
-import tempfile
 
 def read_file_content(file):
     file_name = file.name.lower()
@@ -271,104 +258,87 @@ def extract_text_from_json(data):
         text = str(data)
     return text
 
-def multiplan_builder(user_space: UserSpace):
-    st.header("Analyze and Build")
 
-    # Initialize session state variables
-    if 'multiplan' not in st.session_state:
-        st.session_state.multiplan = []
+def prompts_plan_builder_ui(user_space: UserSpace):
+    st.header("Data Set of Codexes to️ New Data Set of Codexes")
+
     if 'current_plan' not in st.session_state:
-        st.session_state.current_plan = {}
-    if 'name' not in st.session_state['current_plan']:
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        st.session_state.current_plan['name'] = f"New Plan_{timestamp}"
-    if 'context_files' not in st.session_state:
-        st.session_state.context_files = []
+        st.session_state.current_plan = {
+            "context_choice": None,
+            "confirmed_data_set": False,
+            "number_of_context_files_to_process": None,
+            "file_index": None,
+            "selected_system_instruction_keys": [],
+            "selected_system_instruction_values": [],
+            "complete_system_instruction": "",
+            "selected_user_prompt_keys": [],
+            "selected_user_prompt_values": [],
+            "custom_user_prompt": "",
+            "user_prompt_override": False,
+            "complete_user_prompt": "",
+            "user_prompts_dict": None,
+            "selected_user_prompts_dict": {},
+        }
 
     user_prompts_dict = load_json_file("user_prompts_dict.json")
     system_instructions_dict = load_json_file("system_instructions.json")
 
-    with st.container():
-        st.markdown("""
-            <style>
-            .fixed-height-container { height: 250px; overflow-y: hidden; }
-            .image-container img { height: 200px; width: auto; object-fit: cover; }
-            .caption { text-align: left; margin-top: 5px; }
-            </style>
-        """, unsafe_allow_html=True)
-
-        cols = st.columns(4)
-        image_info = load_json_carousel_file('image_info.json')
-        display_image_row(cols, image_info)
-
     # Step 1: Context Selection
     st.subheader("Step 1: Context Selection")
-    context_choice = st.radio("Choose context source:", ["Select Saved Context", "Upload New Context","Skip Context"])
 
-    context_selected = False
-    if context_choice == "Upload New Context":
-        with st.form("step_1_upload"):
-            uploaded_files = st.file_uploader("Upload new context files", accept_multiple_files=True,
-                                              help="'.txt', '.pdf', '.docx', '.doc', '.json' are supported")
-            new_context_name = st.text_input("New context name")
-            new_context_tags = st.text_input("Context tags (comma-separated, optional)")
-            new_context_submitted = st.form_submit_button("Save New Context")
+    # confirmed_data_set = False
 
-            if new_context_submitted and uploaded_files:
-                # Process and save new context
-                context_content = "\n\n".join([read_file_content(file) for file in uploaded_files])
-                user_space.save_context(new_context_name, context_content,
-                                        new_context_tags.split(',') if new_context_tags else None)
-                save_user_space(user_space)
-                st.success(f"Context '{new_context_name}' saved successfully.")
-                # st.write(context_content)
-                total_tokens = count_tokens(context_content)
-                total_mb = tokens_to_millions(total_tokens)
-                st.session_state.current_plan.update({
-                    "context": context_content,
-                    "context_total_tokens": total_tokens,
-                    "context_total_mb": total_mb
-                })
-                context_selected = True
+    with st.form("Select Data Set and Number of Files"):
+        context_choice = st.radio("Choose context source:", ["PG19"])  # , "Downloads", "Zyte"])
+        number_of_context_files_to_process = st.number_input("Number of Context Files to Process", min_value=1, value=3)
+        confirmed_data_set = st.form_submit_button("Confirm Data Set Selection")
+        if confirmed_data_set:  # Now check if the form is submitted
+            st.info(f"Data set selected is {context_choice}")
+            st.session_state.current_plan.update({
+                "context_choice": context_choice,
+                "confirmed_data_set": confirmed_data_set,
+                "number_of_context_files_to_process": number_of_context_files_to_process
+            })
+            if context_choice == "PG19":
+                METADATA_FILE = "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/metadata.csv"
+                DATA_DIRS = [
+                    "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/test/test",
+                    "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/train/train",
+                    "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/validation/validation",
+                ]
+                try:
+                    file_index = create_file_index(METADATA_FILE, DATA_DIRS)
+                    st.session_state.current_plan.update({"file_index": file_index})
+                except Exception as e:
+                    st.error(traceback.format_exc())
+                    logging.error(traceback.format_exc())
+                    st.error("Critical error, no file endex, exiting")
+                    exit()
+                try:
+                    selected_rows = fetch_pg19_metadata(METADATA_FILE, DATA_DIRS, number_of_context_files_to_process)
+                    st.session_state.current_plan.update({"selected_rows": selected_rows})
+                except Exception as e:
+                    st.error(traceback.format_exc())
+                    logging.error(traceback.format_exc())
 
-    elif context_choice == "Select Saved Context":
-        with st.form("step_1_select"):
-            context_filter = st.text_input("Filter saved contexts")
-            filtered_contexts = user_space.get_filtered_contexts(context_filter)
-            selected_saved_context = st.selectbox(
-                "Select a saved context",
-                options=[""] + list(filtered_contexts.keys()),
-                format_func=lambda x: f"{x}: {filtered_contexts[x].content[:50]}..." if x else "None"
-            )
-            context_submitted = st.form_submit_button("Select This Context")
+            # we will fetch full context files later in step 4
+    with st.form("Review Selected Titles"):
+        # fetch logic varies by data set
 
-            if context_submitted and selected_saved_context:
-                context_content = filtered_contexts[selected_saved_context].content
-                total_tokens = count_tokens(context_content)
-                total_mb = tokens_to_millions(total_tokens)
-                st.session_state.current_plan.update({
-                    "context": context_content,
-                    "context_total_tokens": total_tokens,
-                    "context_total_mb": total_mb
-                })
-                st.success(f"Context '{selected_saved_context}' selected successfully.")
-                context_selected = True
+        selected_rows = display_selected_rows()
 
-    elif context_choice == "Skip Context":
-        context_selected = True
+        if 'approved_titles' not in st.session_state.current_plan:
+            st.session_state.current_plan['approved_titles'] = False
 
-    # Display current context info
-    if 'context' in st.session_state.current_plan and len(st.session_state.current_plan['context']) > 0:
-        st.info(f"Current context: {st.session_state.current_plan['context_total_tokens']:,} tokens "
-                f"(approximately {st.session_state.current_plan['context_total_mb']:.3f} MB)")
-        plan = st.session_state.current_plan
-
+        approved_titles = st.form_submit_button("Approve These Titles")
+        if approved_titles and not st.session_state.current_plan['approved_titles']:
+            st.session_state.current_plan.update({
+                "selected_rows": st.session_state.current_plan['selected_rows'],
+                "approved_titles": True
+            })
 
     # Step 2: Instructions and Prompts
     st.subheader("Step 2: Instructions and Prompts")
-    instruction_cols = st.columns(4)
-    instructions_images = load_json_carousel_file('instructions_info.json')
-    display_image_row(instruction_cols, instructions_images)
 
     with st.form("step2-instructions-prompts"):
         with st.expander("Enter System Instructions"):
@@ -397,6 +367,7 @@ def multiplan_builder(user_space: UserSpace):
 
             selected_user_prompt_values = [filtered_user[key]['prompt'] for key in selected_user_prompt_keys]
             selected_user_prompts_dict = {key: filtered_user[key]['prompt'] for key in selected_user_prompt_keys}
+            st.info(type(selected_user_prompts_dict))
 
             custom_user_prompt = st.text_area("Custom User Prompt (optional)")
             user_prompt_override = st.radio("Override?",
@@ -412,8 +383,11 @@ def multiplan_builder(user_space: UserSpace):
 
             user_prompt_override_bool = user_prompt_override == "Override other user prompts"
 
-        instructions_submitted = st.form_submit_button("Save Instructions and Continue",
-                                                       disabled=not context_selected)
+        instructions_submitted = st.form_submit_button(
+            "Save Instructions and Continue",
+            disabled=not st.session_state.current_plan["confirmed_data_set"]
+        )
+
     if instructions_submitted:
         st.session_state.current_plan.update({
             "selected_system_instruction_keys": selected_system_instruction_keys,
@@ -425,9 +399,10 @@ def multiplan_builder(user_space: UserSpace):
             'user_prompt_override': user_prompt_override_bool,
             'complete_user_prompt': complete_user_prompt,
             'user_prompts_dict': user_prompts_dict,
-            'selected_user_prompts_dict': selected_user_prompts_dict
+            'selected_user_prompts_dict': selected_user_prompts_dict,
+            'complete_system_instruction': complete_system_instruction,
+            'system_instructions_dict': system_instructions_dict,
         })
-
         st.success("Instructions and prompts saved.")
         # truncate_plan_values_for_display(plan)
 
@@ -435,19 +410,14 @@ def multiplan_builder(user_space: UserSpace):
     st.subheader("Step 3: Output Settings")
     with st.form("step3-output-settings"):
         with st.expander("Set Output Requirements"):
-            mode_options = ["Single Part of a Book (Part)", "Full Codex (Codex)"]  # Add "Codex" option
+            mode_options = ["Full Codex (Codex)"]  # Add "Codex" option
             mode_mapping = {"Single Part of a Book (Part)": 'part',
                             "Full Codex (Codex)": 'codex'}  # Add mapping for "Codex"
             selected_mode_label = st.selectbox("Create This Type of Codex Object:", mode_options)
             mode = mode_mapping[selected_mode_label]
-            if mode != 'codex':
-                maximum_output_tokens = st.number_input("Maximum output size in tokens", value=8000, step=500)
-                minimum_required_output = st.checkbox("Ensure Minimum Output", value=False)
-                minimum_required_output_tokens = st.number_input("Minimum required output tokens", value=50, step=500)
-            else:
-                maximum_output_tokens = 10000000
-                minimum_required_output = False
-                minimum_required_output_tokens = 50
+            maximum_output_tokens = 10000000
+            minimum_required_output = False
+            minimum_required_output_tokens = 10
             require_json_output = st.checkbox("Require JSON Output", value=False)
 
         with st.expander("Set Output Destinations"):
@@ -456,56 +426,118 @@ def multiplan_builder(user_space: UserSpace):
             log_level = st.selectbox("Log level", ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
             plan_name = st.text_input("Plan Name", value=st.session_state.current_plan.get('name', ''))
 
-        # Check conditions for enabling the submit button
-        context_selected = 'context' in st.session_state.current_plan or context_choice == "Skip Context"
-        instructions_selected = (
-                len(st.session_state.current_plan.get('selected_system_instruction_keys', [])) > 0 or
-                len(st.session_state.current_plan.get('selected_user_prompt_keys', [])) > 0 or
-                len(st.session_state.current_plan.get('custom_user_prompt', '')) > 0
-        )
-        submit_disabled = not (context_selected and instructions_selected)
+        submit_disabled = False
 
         plan_submitted = st.form_submit_button("Accept Output Settings", disabled=submit_disabled)
+        # st.write(st.session_state.current_plan)
 
-    if plan_submitted:
-        st.session_state.current_plan.update({
-            "name": plan_name,
-            "mode": mode,
-            "thisdoc_dir": thisdoc_dir,
-            "output_file": output_file,
-            "maximum_output_tokens": maximum_output_tokens,
-            "minimum_required_output": minimum_required_output,
-            "minimum_required_output_tokens": minimum_required_output_tokens,
-            "log_level": log_level,
-            "require_json_output": require_json_output
-        })
-        st.session_state.multiplan.append(st.session_state.current_plan)
-        st.success(f"Plan '{plan_name}' added to multiplan")
-        st.session_state.current_plan = {}
-    # Display current multiplan
-    if st.session_state.multiplan:
-        st.subheader("Current Plans")
-        for i, plan in enumerate(st.session_state.multiplan):
+        if plan_submitted:
+            st.session_state.current_plan.update({
+                "name": plan_name,
+                "mode": mode,
+                "thisdoc_dir": thisdoc_dir,
+                "output_file": output_file,
+                "maximum_output_tokens": maximum_output_tokens,
+                "minimum_required_output": minimum_required_output,
+                "minimum_required_output_tokens": minimum_required_output_tokens,
+                "log_level": log_level,
+                "require_json_output": require_json_output
+            })
 
-            with st.expander(f"Plan {i + 1}: {plan['name']}"):
+            st.success(f"Plan '{plan_name}' updated")
 
-                truncate_plan_values_for_display(plan)
+    st.subheader("Step 4: Begin Building from Data Set")
 
-                col1, col2 = st.columns(2)
-                with col1:
-                    if 'context' in plan and st.button(f"View Full Context for Plan {i + 1}"):
-                        st.text_area("Full Context", value=plan['context'], height=300)
-                with col2:
-                    if st.button(f"Remove Plan {i + 1}"):
-                        st.session_state.multiplan.pop(i)
-                        st.rerun()
+    # show all keys in st.session_state.current_plan
 
-        # Run multiplan button
-        if st.button("Run Multiplans"):
+    if st.button(f"Build From Data Set {context_choice}"):  #
 
-            run_multiplan(st.session_state.multiplan, user_space)
-            user_space.save_prompt_plan({"multiplan": st.session_state.multiplan})
-            st.success("Multiplan and results saved to your Userspace tab.")
+        PP = PromptsPlan(
+            name=st.session_state.current_plan['name'],
+            require_json_output=st.session_state.current_plan.get('require_json_output', False),
+            context=st.session_state.current_plan.get('context', ''),  # Add context if available
+            selected_user_prompts_dict=st.session_state.current_plan['selected_user_prompts_dict'],
+            complete_system_instruction=st.session_state.current_plan['complete_system_instruction']
+        )
+
+        if st.session_state.current_plan['context_choice'] == "PG19":
+            results = fetch_rows_pg19_data(st.session_state.current_plan["selected_rows"],
+                                           output_file_path="output/collapsar")
+            st.write(results)
+            # convert response list to markdown
+            for i, result_item in enumerate(results):
+                st.markdown(f"**Result {i + 1}:**")
+                display_nested_content(result_item)
+
+            # for j, result in enumerate(result_list):
+            results_filename = f"result_{i + 1}_"
+
+            # markdown display
+
+            st.success("All contexts processed.")
+
+            markdown_content = ''
+            if isinstance(results, list):
+                for result in results:
+                    if isinstance(result, list):
+                        markdown_content += flatten_and_stringify(result)
+                    elif isinstance(result, str):
+                        markdown_content += result
+                    else:
+                        # Handle non-string results as needed (e.g., convert to string)
+                        markdown_content += str(result)
+            elif isinstance(results, str):
+                markdown_content = results
+            else:
+                st.error("Unexpected result type. Cannot generate Markdown.")
+            # Markdown download
+            markdown_buffer = BytesIO(markdown_content.encode())
+
+            @st.fragment()
+            def download_markdown():
+                st.download_button(
+                    label=f"Download Markdown ({results_filename}.md)",
+                    data=markdown_buffer,
+                    file_name=f"{results_filename}.md",
+                    mime="text/markdown"
+                )
+
+            download_markdown()
+
+            @st.fragment()
+            def download_json():
+                json_buffer = BytesIO(json.dumps(result, indent=4).encode())
+                st.download_button(
+                    label=f"Download JSON ({results_filename}.json)",
+                    data=json_buffer,
+                    file_name=f"{results_filename}.json",
+                    mime="application/json"
+                )
+
+            download_json()
+
+            try:
+                pdf_buffer = convert_to_pdf(markdown_content)
+
+                if pdf_buffer:
+                    st.download_button(
+                        label="Download PDF",
+                        data=pdf_buffer,
+                        file_name="result.pdf",
+                        mime="application/pdf"
+                    )
+            except ValueError as ve:
+                st.error(str(ve))
+            except Exception as e:
+                st.error(f"An error occurred: {str(e)}")
+
+
+@st.fragment
+def display_selected_rows():
+    with st.expander("Contexts selected", expanded=True):
+        st.info(f"Selected_rows from {st.session_state.current_plan['context_choice']}")
+        selected_rows_df = pd.DataFrame(st.session_state.current_plan['selected_rows'])
+        st.dataframe(selected_rows_df)
 
 
 def truncate_plan_values_for_display(plan):
@@ -516,144 +548,6 @@ def truncate_plan_values_for_display(plan):
     truncated_plan['user_prompts_dict'] = {"prompt": "User prompt dict passed into function, available in debug log"}
 
     st.json(truncated_plan)
-
-
-def display_image_row(cols, image_info):
-    for col, info in zip(cols, image_info):
-        with col:
-            image_extension = os.path.splitext(info["path"])[1][1:].lower()
-            # Correctly construct the resource path
-            image_resource_path = resources.files('Codexes2Gemini.resources.images').joinpath(
-                os.path.basename(info["path"]))
-            with open(image_resource_path, 'rb') as image_file:
-                encoded_image = base64.b64encode(image_file.read()).decode()
-                html_content = f"""
-                <a href="{info["link"]}" target="_blank">
-                    <div class="image-container"><img src="data:image/{image_extension};base64,{encoded_image}"/></div>
-                </a>
-                <div class="caption">{info["caption"]}</div>
-                """
-                st.markdown(html_content, unsafe_allow_html=True)
-
-def run_multiplan(multiplan, user_space):
-    st.info("Beginning to run multiplan")
-    launcher = BuildLauncher()
-
-    results = []
-    for i, plan in enumerate(multiplan):
-
-        launcher_plan = {
-            'mode': plan['mode'],
-            'context': plan['context'],
-            'output': f"output_{plan['name']}.md",
-            'selected_system_instructions': plan['selected_system_instruction_keys'],
-            'user_prompt': plan['complete_user_prompt'],
-            'selected_user_prompt_values': plan['selected_user_prompt_values'],
-            'list_of_user_keys_to_use': plan['selected_user_prompt_keys'],
-            'maximum_output_tokens': plan['maximum_output_tokens'],
-            'minimum_required_output': plan['minimum_required_output'],
-            'minimum_required_output_tokens': plan['minimum_required_output_tokens'],
-            'complete_user_prompt': plan['complete_user_prompt'],
-            'complete_system_instruction': plan['complete_system_instruction'],
-            'selected_system_instructions': plan['selected_system_instruction_keys'],
-            'selected_user_prompts_dict': plan['selected_user_prompts_dict'],
-            'user_prompts_dict': plan['user_prompts_dict'],
-            'log_level': plan['log_level'],
-            'require_json_output': plan['require_json_output'],
-        }
-
-        try:
-            result = launcher.main(launcher_plan)
-            results.append(result)
-        except Exception as e:
-            if "Invalid operation: The `response.parts` quick accessor requires a single candidate" in str(e):
-                st.error(f"Error processing plan '{plan['name']}': {str(e)}")
-                try:
-                    # Assuming 'result' is accessible here and contains the response object
-                    st.write("Prompt Feedback:", result.prompt_feedback)
-                except Exception as feedback_error:
-                    st.error(f"Error accessing prompt feedback: {feedback_error}")
-            else:
-                st.error(f"Error processing plan '{plan['name']}': {str(e)}")
-                st.code(traceback.format_exc())
-            continue
-    st.subheader("Multiplan Results")
-    user_space.add_result('results', results)
-    save_user_space(user_space)
-
-    # Add download options for JSON, Markdown, and PDF results
-    for i, result_item in enumerate(results):
-        st.markdown(f"**Result {i + 1}:**")
-        display_nested_content(result_item)
-
-    # for j, result in enumerate(result_list):
-    results_filename = f"result_{i + 1}_"
-    # markdown display
-
-    def flatten_and_stringify(data):
-        """Recursively flattens nested lists and converts all elements to strings."""
-        if isinstance(data, list):
-            return ''.join([flatten_and_stringify(item) for item in data])
-        else:
-            return str(data)
-
-    markdown_content = ''
-    if isinstance(results, list):
-        for result in results:
-            if isinstance(result, list):
-                markdown_content += flatten_and_stringify(result)
-            elif isinstance(result, str):
-                markdown_content += result
-            else:
-                # Handle non-string results as needed (e.g., convert to string)
-                markdown_content += str(result)
-    elif isinstance(results, str):
-        markdown_content = results
-    else:
-        st.error("Unexpected result type. Cannot generate Markdown.")
-    # Markdown download
-    markdown_buffer = BytesIO(markdown_content.encode())
-
-    @st.fragment()
-    def download_markdown():
-        st.download_button(
-            label=f"Download Markdown ({results_filename}.md)",
-            data=markdown_buffer,
-            file_name=f"{results_filename}.md",
-            mime="text/markdown"
-        )
-
-    download_markdown()
-
-    @st.fragment()
-    def download_json():
-        json_buffer = BytesIO(json.dumps(result, indent=4).encode())
-        st.download_button(
-            label=f"Download JSON ({results_filename}.json)",
-            data=json_buffer,
-            file_name=f"{results_filename}.json",
-            mime="application/json"
-        )
-
-    download_json()
-    # st.write(markdown_content)
-    try:
-        pdf_buffer = convert_to_pdf(markdown_content)
-
-        if pdf_buffer:
-            st.download_button(
-                label="Download PDF",
-                data=pdf_buffer,
-                file_name="result.pdf",
-                mime="application/pdf"
-            )
-    except ValueError as ve:
-        st.error(str(ve))
-    except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
-
-    # return results
-
 
 
 def display_full_context(context_files):
@@ -682,6 +576,7 @@ def convert_to_pdf(markdown_content):
     except Exception as e:
         print(f"Error generating PDF: {str(e)}")
         return None
+
 
 def filter_dict(dictionary, filter_text):
     return {k: v for k, v in dictionary.items() if
@@ -768,8 +663,8 @@ def user_space_app(user_space: UserSpace):
     #         st.success("All prompts cleared")
     #         st.rerun()
 
-   # st.header("Saved Results")
-    #st.write(user_space.results)
+    # st.header("Saved Results")
+    # st.write(user_space.results)
     # if user_space.results:
     #     result_df = pd.DataFrame(
     #         [(r["timestamp"], r["results"][:50] + "...") for r in user_space.results],
@@ -793,8 +688,9 @@ def user_space_app(user_space: UserSpace):
             with open(f"userspaces/{username}/prompt_plan_{i}.json", "w") as f:
                 json.dump(plan, f)
             row[0].json(plan, expanded=False)
-            row[1].markdown(get_binary_file_downloader_html(f"userspaces/{username}/prompt_plan_{i}.json", f"Prompt Plan {i + 1}"),
-                            unsafe_allow_html=True)
+            row[1].markdown(
+                get_binary_file_downloader_html(f"userspaces/{username}/prompt_plan_{i}.json", f"Prompt Plan {i + 1}"),
+                unsafe_allow_html=True)
         if st.button("Clear All Prompt Plans"):
             user_space.prompt_plans = []
             save_user_space(user_space)
@@ -872,6 +768,7 @@ def display_nested_content(content):
     else:
         st.write(content)
 
+
 def apply_custom_css(css):
     st.markdown(f'<style>{css}</style>', unsafe_allow_html=True)
 
@@ -892,7 +789,7 @@ def run_streamlit_app():
                        page_icon=":book:")
     st.title("Codexes2Gemini")
     st.markdown("""
-    ## _Humans and AIs working together to make books richer, more diverse, and more surprising._
+    _Humans and AIs working together to make books richer, more diverse, and more surprising._
     """)
     with st.expander("About", expanded=False):
         st.caption(f"Version {__version__}:  {__announcements__}")
@@ -910,7 +807,7 @@ def run_streamlit_app():
         ["Create Build Plans", "Run Saved Plans", "Multi-Context Processing", "UserSpace"],
     )
     if page == "Create Build Plans":
-        multiplan_builder(user_space)
+        prompts_plan_builder_ui(user_space)
     elif page == "Run Saved Plans":
         upload_build_plan()
     elif page == "Multi-Context Processing":
@@ -920,12 +817,20 @@ def run_streamlit_app():
         user_space_app(user_space)
 
 
-def main(port=1455, themebase="light"):
+def main(port=1919, themebase="light"):
     sys.argv = ["streamlit", "run", __file__, f"--server.port={port}", f'--theme.base={themebase}',
                 f'--server.maxUploadSize=40']
     import streamlit.web.cli as stcli
     stcli.main()
     configure_logger("DEBUG")
+
+
+def flatten_and_stringify(data):
+    """Recursively flattens nested lists and converts all elements to strings."""
+    if isinstance(data, list):
+        return ''.join([flatten_and_stringify(item) for item in data])
+    else:
+        return str(data)
 
 
 if __name__ == "__main__":

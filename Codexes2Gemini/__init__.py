@@ -20,11 +20,15 @@ def ensure_directory_exists(directory_path):
 
 
 # Create the output directory
+ensure_directory_exists("~/.codexes2gemini")
 ensure_directory_exists("output")
 ensure_directory_exists("output/c2g")
 ensure_directory_exists("logs")
 ensure_directory_exists("userspaces")
 ensure_directory_exists("userspaces/self")
+ensure_directory_exists("resources")
+ensure_directory_exists("resources/data_tables")
+ensure_directory_exists("resources/data_tables/LSI")
 
 __version__ = "0.2.3.2"
 __announcements__ = """

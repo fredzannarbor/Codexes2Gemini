@@ -10,8 +10,8 @@ import google.generativeai as genai
 import pypandoc
 import streamlit as st
 
+from Codexes2Gemini.classes.Codexes.Builders.CodexBuilder import CodexBuilder
 from Codexes2Gemini.classes.Codexes.Builders.PromptGroups import PromptGroups
-from ..Builders.CodexBuilder import CodexBuilder
 from ..Builders.PartsBuilder import PartsBuilder
 from ...Utilities.utilities import configure_logger
 
@@ -95,6 +95,7 @@ class BuildLauncher:
                 return {}
 
     def create_prompt_plan(self, config: Dict) -> PromptGroups:
+        st.info(type(config['selected_user_prompts_dict']))
         prompt_plan_params = {
             'context': config.get('context', ''),
             'user_keys': config.get('user_keys', []),
@@ -122,7 +123,7 @@ class BuildLauncher:
         }
         # Remove None values to avoid passing unnecessary keyword arguments
         prompt_plan_params = {k: v for k, v in prompt_plan_params.items() if v is not None}
-
+        st.info(prompt_plan_params['selected_user_prompts_dict'])
         return PromptGroups(**prompt_plan_params)
 
     def load_plans_from_json(self, json_data):
@@ -173,7 +174,7 @@ class BuildLauncher:
             # st.write("plan result ^")
             if plan_result is not None:
                 results.append(plan_result)
-                self.save_result(plan, plan_result)
+                self.save_result_to_file_system(plan, plan_result)
 
             return results
 
@@ -220,7 +221,7 @@ class BuildLauncher:
             self.logger.error(f"Invalid mode specified for plan: {plan.mode}")
             return None
 
-    def save_result(self, plan, result):
+    def save_result_to_file_system(self, plan, result):
         if plan.minimum_required_output:
             st.info(f"Ensuring that output is at least minimum length {plan.minimum_required_output_tokens}")
             result = self.parts_builder.ensure_output_limit(result, plan.minimum_required_output_tokens)
