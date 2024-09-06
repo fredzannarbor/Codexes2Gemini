@@ -9,6 +9,8 @@ import streamlit as st
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 
 
+# from classes.Utilities.utilities import configure_logger
+
 class PromptGroups:
 
     def __init__(self, context: str = "", context_file_paths: List[str] = None, user_keys: List[str] = None,
@@ -35,6 +37,7 @@ class PromptGroups:
                  config_file: str = None, use_all_user_keys: bool = False, add_system_prompt: str = "",
                  require_json_output=False, output_file: str = None) -> None:
 
+        st.info(type(selected_user_prompts_dict))
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(log_level)
         configure_logger(log_level)
@@ -81,7 +84,9 @@ class PromptGroups:
         # If a config file is provided, load it
         if config_file:
             self.load_config(config_file)
-
+        st.info(type(self.selected_user_prompts_dict))
+        st.info(self.selected_user_prompts_dict)
+        st.info("at promptsgroup init^")
         # Prepare the final prompts
         self.final_prompts = self.prepare_final_user_prompts()
 
@@ -94,7 +99,7 @@ class PromptGroups:
         self.logger.info("Preparing final user prompts.")
 
         final_prompts = []
-
+        # st.info(self.selected_user_prompts_dict)
         if self.selected_user_prompts_dict:
             for k, v in self.selected_user_prompts_dict.items():
                 final_prompts.append(f"{k}: {v}")
