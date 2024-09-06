@@ -14,7 +14,6 @@ import pandas as pd
 import streamlit as st
 from google.generativeai import caching
 
-from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 from ..Builders.PromptGroups import PromptGroups
 
@@ -115,12 +114,9 @@ class Codexes2Parts:
 
         return response_dict
 
-    # def process_codex_to_book_part(self, plan: PromptGroups):
+    def process_codex_to_book_part(self, plan: PromptGroups):
 
-    def process_codex_to_book_part(self, plan: PromptsPlan):
-        # plan = st.session_state.current_plan
-
-        #st.write(plan.thisdoc_dir)
+        self.logger.debug(f"Starting process_codex_to_book_part with plan: {plan}")
         self.make_thisdoc_dir(plan)
         context = self.read_and_prepare_context(plan)
         self.logger.debug(f"Context prepared, length: {self.count_tokens(context)} tokens")
@@ -139,21 +135,19 @@ class Codexes2Parts:
         satisfactory_results = []
 
         for i, user_prompt in enumerate(user_prompts):
-
+            self.logger.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
+            # st.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
+            # st.info(f"This user prompt is {user_prompt}")
             full_output = " "
             retry_count = 0
             max_retries = 3
-
-            self.logger.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
-            st.warning(f"Processing user prompt {i + 1}/{len(user_prompts)}")
-            #st.warning(f"User prompt is {user_prompt}")
 
             full_output_tokens = self.count_tokens(full_output)
             all_cached_tokens = 0
             while full_output_tokens < plan.minimum_required_output_tokens and retry_count < max_retries:
                 try:
-                    # st.write(
-                    #     f"counts: {self.count_tokens(system_prompt)}, {self.count_tokens(user_prompt)}, {self.count_tokens(context)}")
+                    st.write(
+                        f"counts: {self.count_tokens(system_prompt)}, {self.count_tokens(user_prompt)}, {self.count_tokens(context)}")
 
                     response = self.gemini_get_response(plan, system_prompt, user_prompt, context, model)
                     if "The `response.text` quick accessor requires the response to contain a valid `Part`, but none were returned." in response:
@@ -163,7 +157,7 @@ class Codexes2Parts:
                                 st.warning(f"Category: {rating.category}, Probability: {rating.probability}")
                     self.logger.info(f"Response received, length: {self.count_tokens(response.text)} tokens")
                     json_response = self.create_response_dict(response)
-                    #st.json(json_response, expanded=False)
+                    st.json(json_response, expanded=False)
                     logging.warning(json_response["usage_metadata"])
                     full_output += response.text
                     full_output_tokens = self.count_tokens(full_output)
@@ -265,7 +259,7 @@ class Codexes2Parts:
 
                 self.logger.debug(f"Response received, length: {self.count_tokens(response.text)} tokens")
                 json_response = self.create_response_dict(response)
-                #st.json(json_response, expanded=False)
+                st.json(json_response, expanded=False)
                 full_output += response.text
                 full_output_tokens = self.count_tokens(full_output)
                 context += response.text
@@ -363,8 +357,7 @@ class Codexes2Parts:
                 except Exception as e:
                     self.logger.error(f"Error reading context file {file_path}: {e}")
         token_count = self.count_tokens(context_content)
-
-        context_msg = f"Uploaded context of {token_count} tokens for {plan.row[1]}"
+        context_msg = f"Uploaded context of {token_count} tokens"
         self.logger.debug(context_msg)
         st.info(context_msg)
         return f"Context: {context_content.strip()}\n\n"
@@ -409,7 +402,7 @@ class Codexes2Parts:
         for attempt_no in range(MODEL_GENERATION_ATTEMPTS):
             try:
                 response = model.generate_content(prompt, request_options={"timeout": 600})
-                # st.write(response.usage_metadata)
+                st.write(response.usage_metadata)
                 logging.warning(response.usage_metadata)
                 return response
             except Exception as e:
@@ -422,8 +415,6 @@ class Codexes2Parts:
                     exit()
 
     def make_thisdoc_dir(self, plan):
-        #st.write(plan['thisdoc_dir'])
-
         if not plan.thisdoc_dir:
             plan.thisdoc_dir = os.path.join(os.getcwd(), 'output')
 

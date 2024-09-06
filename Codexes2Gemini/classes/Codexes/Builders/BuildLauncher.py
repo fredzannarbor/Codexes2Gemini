@@ -10,8 +10,8 @@ import google.generativeai as genai
 import pypandoc
 import streamlit as st
 
-from Codexes2Gemini.classes.Codexes.Builders.CodexBuilder import CodexBuilder
 from Codexes2Gemini.classes.Codexes.Builders.PromptGroups import PromptGroups
+from ..Builders.CodexBuilder import CodexBuilder
 from ..Builders.PartsBuilder import PartsBuilder
 from ...Utilities.utilities import configure_logger
 

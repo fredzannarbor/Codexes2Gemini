@@ -4,12 +4,12 @@ import os
 from typing import List, Dict, Any
 
 import pymupdf as fitz  # PyMuPDF
-import streamlit as st
 
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 
 
 class PromptGroups:
+
 
     def __init__(self, context: str = "", context_file_paths: List[str] = None, user_keys: List[str] = None,
                  thisdoc_dir: str = "", json_required: bool = False, generation_config: dict = None,

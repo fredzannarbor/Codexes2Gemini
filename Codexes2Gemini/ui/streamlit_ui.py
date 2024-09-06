@@ -414,6 +414,8 @@ def multiplan_builder(user_space: UserSpace):
 
         instructions_submitted = st.form_submit_button("Save Instructions and Continue",
                                                        disabled=not context_selected)
+            #
+        
     if instructions_submitted:
         st.session_state.current_plan.update({
             "selected_system_instruction_keys": selected_system_instruction_keys,
@@ -637,21 +639,21 @@ def run_multiplan(multiplan, user_space):
 
     download_json()
     # st.write(markdown_content)
-    try:
-        pdf_buffer = convert_to_pdf(markdown_content)
-
-        if pdf_buffer:
-            st.download_button(
-                label="Download PDF",
-                data=pdf_buffer,
-                file_name="result.pdf",
-                mime="application/pdf"
-            )
-    except ValueError as ve:
-        st.error(str(ve))
-    except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
-
+    # try:
+    #     pdf_buffer = convert_to_pdf(markdown_content)
+    #
+    #     if pdf_buffer:
+    #         st.download_button(
+    #             label="Download PDF",
+    #             data=pdf_buffer,
+    #             file_name="result.pdf",
+    #             mime="application/pdf"
+    #         )
+    # except ValueError as ve:
+    #     st.error(str(ve))
+    # except Exception as e:
+    #     st.error(f"An error occurred: {str(e)}")
+    #
     # return results
 
 
