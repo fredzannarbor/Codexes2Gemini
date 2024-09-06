@@ -247,9 +247,9 @@ class Codexes2Parts:
         user_prompts = plan.get_prompts()
         self.logger.info(f"\nUser prompts retrieved: {user_prompts}")
         # adding continuation prompt to user prompts
-        user_prompts.append(self.continuation_instruction)
-        st.write(user_prompts)
-        st.write("user prompts ^")
+        # user_prompts.append(self.continuation_instruction)
+        st.json([user_prompts])
+
 
         full_output = []
         repsmax = 5
@@ -259,8 +259,8 @@ class Codexes2Parts:
                 self.logger.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
                 retry_count = 0
                 max_retries = 3
-                st.write(context[:1000])
-                st.write("context ^")
+                st.json([context[:250]])
+                st.write(f"User prompt just prior to submission is: {user_prompt[0:250]}")
                 response = self.gemini_get_response(plan, system_prompt, user_prompt, context, model)
 
                 self.logger.debug(f"Response received, length: {self.count_tokens(response.text)} tokens")
@@ -351,6 +351,7 @@ class Codexes2Parts:
 
     def read_and_prepare_context(self, plan):
         context_content = plan.context or ""
+
         if plan.context_file_paths:
             for file_path in plan.context_file_paths:
                 if not file_path.strip():  # Skip empty file paths

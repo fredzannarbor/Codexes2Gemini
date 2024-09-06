@@ -95,6 +95,7 @@ class BuildLauncher:
                 return {}
 
     def create_prompt_plan(self, config: Dict) -> PromptGroups:
+        st.info(type(config['selected_user_prompts_dict']))
         prompt_plan_params = {
             'context': config.get('context', ''),
             'user_keys': config.get('user_keys', []),
@@ -122,7 +123,7 @@ class BuildLauncher:
         }
         # Remove None values to avoid passing unnecessary keyword arguments
         prompt_plan_params = {k: v for k, v in prompt_plan_params.items() if v is not None}
-
+        st.info(prompt_plan_params['selected_user_prompts_dict'])
         return PromptGroups(**prompt_plan_params)
 
     def load_plans_from_json(self, json_data):
