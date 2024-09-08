@@ -4,9 +4,11 @@ import json
 import os
 import random
 import sys
-import tempfile
+import textwrap
 import time
 import traceback
+import uuid
+from datetime import datetime
 from importlib import resources
 from io import BytesIO
 from typing import Dict
@@ -18,6 +20,7 @@ import pandas as pd
 import pypandoc
 import streamlit as st
 from docx import Document
+
 
 # print("Codexes2Gemini location:", Codexes2Gemini.__file__)
 
@@ -87,6 +90,15 @@ def load_image_file(file_name):
     except Exception as e:
         st.error(f"Error loading image file: {e}")
         return
+
+
+def load_json_carousel_file(file_name):
+    try:
+        with resources.files('Codexes2Gemini.resources.images').joinpath(file_name).open('r') as file:
+            return json.load(file)
+    except Exception as e:
+        st.error(f"Error loading JSON file: {e}")
+        return {}
 
 
 def get_binary_file_downloader_html(bin_file, file_label='File'):
@@ -170,6 +182,9 @@ def tokens_to_mb(tokens, bytes_per_token=4):
 
 def tokens_to_millions(tokens):
     return tokens / 1_000_000
+
+
+import tempfile
 
 
 def read_file_content(file):
@@ -278,11 +293,15 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             "complete_user_prompt": "",
             "user_prompts_dict": None,
             "selected_user_prompts_dict": {},
+            "complete_system_instruction": "",
+            "system_instructions_dict": None,
+            "name": "",
+            #  "system_filter_submitted": system_filter_submitted
         }
 
-    user_prompts_dict = load_json_file("user_prompts_dict.json")
+    user_prompts_dict = load_json_file("collapsar_user_prompts.json")
     system_instructions_dict = load_json_file("system_instructions.json")
-
+    selected_rows = pd.read_csv("Codexes2Gemini/resources/data_tables/collapsar/sample_row.csv")
     # Step 1: Context Selection
     st.subheader("Step 1: Context Selection")
 
@@ -340,48 +359,71 @@ def prompts_plan_builder_ui(user_space: UserSpace):
     # Step 2: Instructions and Prompts
     st.subheader("Step 2: Instructions and Prompts")
 
-    with st.form("step2-instructions-prompts"):
-        with st.expander("Enter System Instructions"):
-            system_filter = st.text_input("Filter system instructions")
-            filtered_system = filter_dict(system_instructions_dict, system_filter)
-            selected_system_instruction_values = []
-            selected_system_instruction_keys = st.multiselect(
-                "Select system instructions",
-                options=list(filtered_system.keys()),
-                format_func=lambda x: f"{x}: {filtered_system[x]['prompt'][:50]}..."
-            )
-            for key in selected_system_instruction_keys:
-                selected_system_instruction_values.append(system_instructions_dict[key]['prompt'])
+    with st.form("filter-system-instructions"):
+        system_filter = st.text_input("Filter system instructions")
+        filtered_system = filter_dict(system_instructions_dict, system_filter)
+        selected_system_instruction_values = []
+        selected_system_instruction_keys = st.multiselect(
+            "Select system instructions",
+            options=list(filtered_system.keys()),
+            format_func=lambda x: f"{x}: {filtered_system[x]['prompt'][:50]}..."
+        )
+        for key in selected_system_instruction_keys:
+            selected_system_instruction_values.append(system_instructions_dict[key]['prompt'])
 
-            complete_system_instruction = "\n".join(selected_system_instruction_values)
+        complete_system_instruction = "\n".join(selected_system_instruction_values)
 
-        with st.expander("Enter User Prompts"):
-            user_filter = st.text_input("Filter user prompts")
-            filtered_user = filter_dict(user_prompts_dict, user_filter)
+        # Submit button for the filter form:
+        system_filter_submitted = st.form_submit_button("Select System Instructions")
+        if system_filter_submitted:
+            st.session_state.current_plan.update({"system_filter_submitted": system_filter_submitted})
 
-            selected_user_prompt_keys = st.multiselect(
-                "Select user prompt keys",
-                options=list(filtered_user.keys()),
-                format_func=lambda x: f"{x}: {filtered_user[x]['prompt'][:50]}..."
-            )
+    with st.form("upload custom prompts"):
+        # uploaded_user_prompts = st.file_uploader(
+        #     "Upload Custom User Prompts (JSON)", type="json"
+        # )
+        # if uploaded_user_prompts:
+        #     try:
+        #         custom_user_prompts_dict = json.load(uploaded_user_prompts)
+        #         user_prompts_dict.update(custom_user_prompts_dict)
+        #         st.info("Custom user prompts added.")
+        #     except json.JSONDecodeError:
+        #         st.error("Invalid JSON format for custom user prompts.")
+        #
+        # # Add submit button for custom prompts upload:
+        # custom_prompts_submitted = st.form_submit_button("Update User Prompts")
+        # if custom_prompts_submitted:
+        #     # You might want to re-filter here if you want the filter to
+        #     # immediately apply to the newly uploaded prompts
+        #     user_filter = st.text_input("Filter user prompts", key="user-prompts")
+        #     filtered_user = filter_dict(user_prompts_dict, user_filter)
 
-            selected_user_prompt_values = [filtered_user[key]['prompt'] for key in selected_user_prompt_keys]
-            selected_user_prompts_dict = {key: filtered_user[key]['prompt'] for key in selected_user_prompt_keys}
-            st.info(type(selected_user_prompts_dict))
+        user_filter = st.text_input("Filter user prompts")
+        filtered_user = filter_dict(user_prompts_dict, user_filter)
 
-            custom_user_prompt = st.text_area("Custom User Prompt (optional)")
-            user_prompt_override = st.radio("Override?",
-                                            ["Override other user prompts", "Add at end of other user prompts"],
-                                            index=1)
+        selected_user_prompt_keys = st.multiselect(
+            "Select user prompt keys",
+            options=list(filtered_user.keys()),
+            format_func=lambda x: f"{x}: {filtered_user[x]['prompt'][:50]}..."
+        )
 
-            if user_prompt_override == "Override other user prompts":
-                complete_user_prompt = custom_user_prompt
-            else:
-                selected_user_prompt_keys.append("custom user prompt")
-                selected_user_prompt_values.append(custom_user_prompt)
-                complete_user_prompt = "\n".join(selected_user_prompt_values)
+        selected_user_prompt_values = [filtered_user[key]['prompt'] for key in selected_user_prompt_keys]
+        selected_user_prompts_dict = {key: filtered_user[key]['prompt'] for key in selected_user_prompt_keys}
 
-            user_prompt_override_bool = user_prompt_override == "Override other user prompts"
+        custom_user_prompt = st.text_area("Custom User Prompt (optional)")
+        user_prompt_override = st.radio("Override?",
+                                        ["Override other user prompts", "Add at end of other user prompts"],
+                                        index=1)
+
+        if user_prompt_override == "Override other user prompts":
+            complete_user_prompt = custom_user_prompt
+        else:
+            selected_user_prompt_keys.append("custom user prompt")
+            selected_user_prompt_values.append(custom_user_prompt)
+            complete_user_prompt = "\n".join(selected_user_prompt_values)
+
+        user_prompt_override_bool = user_prompt_override == "Override other user prompts"
+
 
         instructions_submitted = st.form_submit_button(
             "Save Instructions and Continue",
@@ -424,12 +466,12 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             thisdoc_dir = st.text_input("Output directory", value=os.path.join(os.getcwd(), 'output', 'c2g'))
             output_file = st.text_input("Output filename base", "output")
             log_level = st.selectbox("Log level", ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
-            plan_name = st.text_input("Plan Name", value=st.session_state.current_plan.get('name', ''))
+            plan_name = st.text_input("Plan Name", value=st.session_state.current_plan.get('name', 'Current Plan'))
 
         submit_disabled = False
 
         plan_submitted = st.form_submit_button("Accept Output Settings", disabled=submit_disabled)
-        # st.write(st.session_state.current_plan)
+        #st.write(st.session_state.current_plan)
 
         if plan_submitted:
             st.session_state.current_plan.update({
@@ -516,28 +558,31 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
             download_json()
 
-            try:
-                pdf_buffer = convert_to_pdf(markdown_content)
+            # try:
+            #     pdf_buffer = convert_to_pdf(markdown_content)
+            #
+            #     if pdf_buffer:
+            #         st.download_button(
+            #             label="Download PDF",
+            #             data=pdf_buffer,file_name="result.pdf",
+            #             mime="application/pdf"
+            #         )
+            # except ValueError as ve:
+            #     st.error(str(ve))
+            # except Exception as e:
+            #     st.error(f"An error occurred: {str(e)}")
 
-                if pdf_buffer:
-                    st.download_button(
-                        label="Download PDF",
-                        data=pdf_buffer,
-                        file_name="result.pdf",
-                        mime="application/pdf"
-                    )
-            except ValueError as ve:
-                st.error(str(ve))
-            except Exception as e:
-                st.error(f"An error occurred: {str(e)}")
+
 
 
 @st.fragment
 def display_selected_rows():
+
     with st.expander("Contexts selected", expanded=True):
         st.info(f"Selected_rows from {st.session_state.current_plan['context_choice']}")
         selected_rows_df = pd.DataFrame(st.session_state.current_plan['selected_rows'])
         st.dataframe(selected_rows_df)
+
 
 
 def truncate_plan_values_for_display(plan):
@@ -548,6 +593,25 @@ def truncate_plan_values_for_display(plan):
     truncated_plan['user_prompts_dict'] = {"prompt": "User prompt dict passed into function, available in debug log"}
 
     st.json(truncated_plan)
+
+
+def display_image_row(cols, image_info):
+    for col, info in zip(cols, image_info):
+        with col:
+            image_extension = os.path.splitext(info["path"])[1][1:].lower()
+            # Correctly construct the resource path
+            image_resource_path = resources.files('Codexes2Gemini.resources.images').joinpath(
+                os.path.basename(info["path"]))
+            with open(image_resource_path, 'rb') as image_file:
+                encoded_image = base64.b64encode(image_file.read()).decode()
+                html_content = f"""
+                <a href="{info["link"]}" target="_blank">
+                    <div class="image-container"><img src="data:image/{image_extension};base64,{encoded_image}"/></div>
+                </a>
+                <div class="caption">{info["caption"]}</div>
+                """
+                st.markdown(html_content, unsafe_allow_html=True)
+
 
 
 def display_full_context(context_files):
@@ -817,7 +881,7 @@ def run_streamlit_app():
         user_space_app(user_space)
 
 
-def main(port=1919, themebase="light"):
+def main(port=1455, themebase="light"):
     sys.argv = ["streamlit", "run", __file__, f"--server.port={port}", f'--theme.base={themebase}',
                 f'--server.maxUploadSize=40']
     import streamlit.web.cli as stcli
@@ -831,7 +895,5 @@ def flatten_and_stringify(data):
         return ''.join([flatten_and_stringify(item) for item in data])
     else:
         return str(data)
-
-
 if __name__ == "__main__":
     run_streamlit_app()
