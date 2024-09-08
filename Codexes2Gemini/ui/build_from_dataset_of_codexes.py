@@ -37,8 +37,7 @@ sys.path.append(grandparent_dir)
 
 import google.generativeai as genai
 import logging
-from Codexes2Gemini.classes.Codexes.Fetchers.pg19Fetcher import fetch_rows_pg19_data, fetch_pg19_metadata, \
-    create_file_index
+from Codexes2Gemini.classes.Codexes.Fetchers.pg19Fetcher_v2 import PG19FetchAndTrack
 
 from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
@@ -296,16 +295,26 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             "complete_system_instruction": "",
             "system_instructions_dict": None,
             "name": "",
+            "selected_rows": None
             #  "system_filter_submitted": system_filter_submitted
         }
 
     user_prompts_dict = load_json_file("collapsar_user_prompts.json")
     system_instructions_dict = load_json_file("system_instructions.json")
-    selected_rows = pd.read_csv("Codexes2Gemini/resources/data_tables/collapsar/sample_row.csv")
+    st.session_state.current_plan.update({"approved_titles": False})
+    # selected_rows = pd.read_csv("resources/data_tables/collapsar/sample_row.csv")
+    # st.session_state.current_plan.update({"selected_rows": selected_rows.to_dict('records')})
+    #
+
     # Step 1: Context Selection
     st.subheader("Step 1: Context Selection")
 
-    # confirmed_data_set = False
+    METADATA_FILE = "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/metadata.csv"
+    DATA_DIRS = [
+        "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/test/test",
+        "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/train/train",
+        "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/validation/validation",
+    ]
 
     with st.form("Select Data Set and Number of Files"):
         context_choice = st.radio("Choose context source:", ["PG19"])  # , "Downloads", "Zyte"])
@@ -319,38 +328,42 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                 "number_of_context_files_to_process": number_of_context_files_to_process
             })
             if context_choice == "PG19":
-                METADATA_FILE = "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/metadata.csv"
-                DATA_DIRS = [
-                    "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/test/test",
-                    "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/train/train",
-                    "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/validation/validation",
-                ]
+                FT = PG19FetchAndTrack(METADATA_FILE, DATA_DIRS)
                 try:
-                    file_index = create_file_index(METADATA_FILE, DATA_DIRS)
+                    file_index = FT.create_file_index()
                     st.session_state.current_plan.update({"file_index": file_index})
+                    st.success("created file index")
                 except Exception as e:
                     st.error(traceback.format_exc())
                     logging.error(traceback.format_exc())
-                    st.error("Critical error, no file endex, exiting")
+                    st.error("Critical error, no file index, exiting")
                     exit()
                 try:
-                    selected_rows = fetch_pg19_metadata(METADATA_FILE, DATA_DIRS, number_of_context_files_to_process)
+                    selected_rows = FT.fetch_pg19_metadata(number_of_context_files_to_process)
                     st.session_state.current_plan.update({"selected_rows": selected_rows})
+                    st.write(selected_rows)
                 except Exception as e:
                     st.error(traceback.format_exc())
                     logging.error(traceback.format_exc())
+                with st.expander("Contexts selected", expanded=True):
+                    st.info(f"Selected_rows from {st.session_state.current_plan['context_choice']}")
+                    selected_rows_df = pd.DataFrame(st.session_state.current_plan['selected_rows'])
+                    st.dataframe(selected_rows_df)
 
-            # we will fetch full context files later in step 4
+        # we will fetch full context files later in step 4
     with st.form("Review Selected Titles"):
         # fetch logic varies by data set
-
-        selected_rows = display_selected_rows()
 
         if 'approved_titles' not in st.session_state.current_plan:
             st.session_state.current_plan['approved_titles'] = False
 
-        approved_titles = st.form_submit_button("Approve These Titles")
-        if approved_titles and not st.session_state.current_plan['approved_titles']:
+        approved_titles = st.form_submit_button("Approve These Titles", disabled=False)
+        if approved_titles:
+            st.info("Displayed titles are approved for processing")
+            with st.expander("Contexts selected", expanded=True):
+                st.info(f"Selected_rows from {st.session_state.current_plan['context_choice']}")
+                selected_rows_df = pd.DataFrame(st.session_state.current_plan['selected_rows'])
+                st.dataframe(selected_rows_df)
             st.session_state.current_plan.update({
                 "selected_rows": st.session_state.current_plan['selected_rows'],
                 "approved_titles": True
@@ -503,85 +516,80 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         )
 
         if st.session_state.current_plan['context_choice'] == "PG19":
-            results = fetch_rows_pg19_data(st.session_state.current_plan["selected_rows"],
-                                           output_file_path="output/collapsar")
+            results = FT.fetch_pg19_data()
             st.write(results)
-            # convert response list to markdown
-            for i, result_item in enumerate(results):
-                st.markdown(f"**Result {i + 1}:**")
-                display_nested_content(result_item)
+            if results:
+                # convert response list to markdown
+                for i, result_item in enumerate(results):
+                    st.markdown(f"**Result {i + 1}:**")
+                    display_nested_content(result_item)
 
-            # for j, result in enumerate(result_list):
-            results_filename = f"result_{i + 1}_"
+                # for j, result in enumerate(result_list):
+                results_filename = f"result_{i + 1}_"
 
-            # markdown display
+                # markdown display
 
-            st.success("All contexts processed.")
+                st.success("All contexts processed.")
 
-            markdown_content = ''
-            if isinstance(results, list):
-                for result in results:
-                    if isinstance(result, list):
-                        markdown_content += flatten_and_stringify(result)
-                    elif isinstance(result, str):
-                        markdown_content += result
-                    else:
-                        # Handle non-string results as needed (e.g., convert to string)
-                        markdown_content += str(result)
-            elif isinstance(results, str):
-                markdown_content = results
-            else:
-                st.error("Unexpected result type. Cannot generate Markdown.")
-            # Markdown download
-            markdown_buffer = BytesIO(markdown_content.encode())
+                markdown_content = ''
+                if isinstance(results, list):
+                    for result in results:
+                        if isinstance(result, list):
+                            markdown_content += flatten_and_stringify(result)
+                        elif isinstance(result, str):
+                            markdown_content += result
+                        else:
+                            # Handle non-string results as needed (e.g., convert to string)
+                            markdown_content += str(result)
+                elif isinstance(results, str):
+                    markdown_content = results
+                else:
+                    st.error("Unexpected result type. Cannot generate Markdown.")
+                # Markdown download
+                markdown_buffer = BytesIO(markdown_content.encode())
 
-            @st.fragment()
-            def download_markdown():
-                st.download_button(
-                    label=f"Download Markdown ({results_filename}.md)",
-                    data=markdown_buffer,
-                    file_name=f"{results_filename}.md",
-                    mime="text/markdown"
-                )
+                @st.fragment()
+                def download_markdown():
+                    st.download_button(
+                        label=f"Download Markdown ({results_filename}.md)",
+                        data=markdown_buffer,
+                        file_name=f"{results_filename}.md",
+                        mime="text/markdown"
+                    )
 
-            download_markdown()
+                download_markdown()
 
-            @st.fragment()
-            def download_json():
-                json_buffer = BytesIO(json.dumps(result, indent=4).encode())
-                st.download_button(
-                    label=f"Download JSON ({results_filename}.json)",
-                    data=json_buffer,
-                    file_name=f"{results_filename}.json",
-                    mime="application/json"
-                )
+                @st.fragment()
+                def download_json():
+                    json_buffer = BytesIO(json.dumps(result, indent=4).encode())
+                    st.download_button(
+                        label=f"Download JSON ({results_filename}.json)",
+                        data=json_buffer,
+                        file_name=f"{results_filename}.json",
+                        mime="application/json"
+                    )
 
-            download_json()
+                download_json()
 
-            # try:
-            #     pdf_buffer = convert_to_pdf(markdown_content)
-            #
-            #     if pdf_buffer:
-            #         st.download_button(
-            #             label="Download PDF",
-            #             data=pdf_buffer,file_name="result.pdf",
-            #             mime="application/pdf"
-            #         )
-            # except ValueError as ve:
-            #     st.error(str(ve))
-            # except Exception as e:
-            #     st.error(f"An error occurred: {str(e)}")
+                # try:
+                #     pdf_buffer = convert_to_pdf(markdown_content)
+                #
+                #     if pdf_buffer:
+                #         st.download_button(
+                #             label="Download PDF",
+                #             data=pdf_buffer,file_name="result.pdf",
+                #             mime="application/pdf"
+                #         )
+                # except ValueError as ve:
+                #     st.error(str(ve))
+                # except Exception as e:
+                #     st.error(f"An error occurred: {str(e)}")
+
+                # st.session_state.current_plan.update({"confirmed_data_set": False})
 
 
 
 
-@st.fragment
-def display_selected_rows():
-
-    with st.expander("Contexts selected", expanded=True):
-        st.info(f"Selected_rows from {st.session_state.current_plan['context_choice']}")
-        selected_rows_df = pd.DataFrame(st.session_state.current_plan['selected_rows'])
-        st.dataframe(selected_rows_df)
 
 
 
