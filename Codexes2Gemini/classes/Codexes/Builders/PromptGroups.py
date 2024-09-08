@@ -4,91 +4,56 @@ import os
 from typing import List, Dict, Any
 
 import pymupdf as fitz  # PyMuPDF
+import streamlit as st
 
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 
 
-class PromptGroups:
+# from classes.Utilities.utilities import configure_logger
 
+class PromptGroups:
 
     def __init__(self, context: str = "", context_file_paths: List[str] = None, user_keys: List[str] = None,
                  thisdoc_dir: str = "", json_required: bool = False, generation_config: dict = None,
                  system_instructions_dict_file_path: str = None, list_of_system_keys: str = None,
                  user_prompt: str = "", user_prompt_override: bool = False,
-    def __init__(self,
-                 # Context-related arguments
-                 context: str = "",
-                 context_file_paths: List[str] = None,
-
-                 # System Instruction arguments
-                 selected_system_instruction_keys: List[str] = None,
-                 complete_system_instruction: str = "",
-
-                 # User Prompt arguments
-                 selected_user_prompt_keys: List[str] = None,
-                 selected_user_prompt_values: List[str] = None,
-                 complete_user_prompt: str = "",
-                 selected_user_prompts_dict: Dict[str, Any] = None,
-
-                 # Output Settings
-                 thisdoc_dir: str = "output/c2g",
-                 output_file: str = "output",
-
-                 log_level: str = "INFO",
-                 mode: str = None,
-                 maximum_output_tokens: int = None,
-                 minimum_required_output: bool = False,
-                 minimum_required_output_tokens: int = None,
-                 require_json_output: bool = None,
-
-                 # Other arguments (potentially deprecated or unused)
-                 user_keys: List[str] = None,
-                 json_required: bool = False,
-                 generation_config: dict = None,
-                 system_instructions_dict_file_path: str = None,
-                 list_of_system_keys: str = None,
-                 user_prompt: str = "",
-                 user_prompt_override: bool = False,
                  user_prompts_dict: Dict[str, Any] = None,
                  user_prompts_dict_file_path: str = "user_prompts.json",
                  list_of_user_keys_to_use: List[str] = None,
                  continuation_prompts: bool = False,
                  output_file_base_name: str = "output",
+                 log_level: str = "INFO",
                  number_to_run: int = 1,
-                 model_name: str = None,
-                 config_file: str = None,
-                 use_all_user_keys: bool = False,
-                 add_system_prompt: str = ""
-                 ) -> None:
+                 minimum_required_output: bool = False,
+                 minimum_required_output_tokens: int = 100,
+                 maximum_output_tokens: int = 8000,
+                 model_name: str = None, mode: str = "part",
+                 complete_user_prompt: str = "",
+                 complete_system_instruction: str = "",
+                 selected_system_instruction_keys: List[str] = None,
+                 selected_user_prompt_values: List[str] = None,
+                 selected_user_prompts_dict: Dict[str, Any] = None,
+                 selected_user_prompt_keys: List[str] = None,
+                 config_file: str = None, use_all_user_keys: bool = False, add_system_prompt: str = "",
+                 require_json_output=False, output_file: str = None) -> None:
 
+        st.info(type(selected_user_prompts_dict))
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(log_level)
         configure_logger(log_level)
 
-        # Initialize attributes from parameters
+        # Initialize attributes with default values
         self.context = context
         self.context_file_paths = context_file_paths or []
-        self.selected_system_instruction_keys = selected_system_instruction_keys or []
-        self.complete_system_instruction = complete_system_instruction
-        self.selected_user_prompt_keys = selected_user_prompt_keys or []
-        self.selected_user_prompt_values = selected_user_prompt_values or []
-        self.complete_user_prompt = complete_user_prompt
-        self.selected_user_prompts_dict = selected_user_prompts_dict or {}
-
-        # Output Settings
-        self.thisdoc_dir = thisdoc_dir
-        self.output_file = output_file
-        self.log_level = log_level
-        self.mode = mode
-        self.maximum_output_tokens = maximum_output_tokens
-        self.minimum_required_output = minimum_required_output
-        self.minimum_required_output_tokens = minimum_required_output_tokens
-        self.require_json_output = require_json_output
-
-        # add missing parameters
         self.user_keys = user_keys or []
+        self.thisdoc_dir = thisdoc_dir
         self.json_required = json_required
-        self.generation_config = generation_config or {}
+        self.generation_config = generation_config or {
+            "temperature": 1,
+            "top_p": 0.95,
+            "top_k": 0,
+            "max_output_tokens": 8192,
+        }
         self.system_instructions_dict_file_path = system_instructions_dict_file_path
         self.list_of_system_keys = list_of_system_keys.split(',') if isinstance(list_of_system_keys,
                                                                                 str) else list_of_system_keys or []
@@ -98,10 +63,21 @@ class PromptGroups:
         self.user_prompts_dict_file_path = user_prompts_dict_file_path
         self.list_of_user_keys_to_use = list_of_user_keys_to_use or []
         self.continuation_prompts = continuation_prompts
-        self.output_file_base_name = output_file_base_name
+        self.output_file_path = output_file_base_name
+        self.output_file = output_file
+        self.require_json_output = require_json_output
         self.number_to_run = number_to_run
-        self.model_name = model_name
-        self.config_file = config_file
+        self.minimum_required_output = minimum_required_output
+        self.minimum_required_output_tokens = minimum_required_output_tokens
+        self.maximum_output_tokens = maximum_output_tokens
+        self.model = model_name
+        self.mode = mode
+        self.complete_user_prompt = complete_user_prompt
+        self.complete_system_instruction = complete_system_instruction
+        self.selected_system_instruction_keys = selected_system_instruction_keys or []
+        self.selected_user_prompt_values = selected_user_prompt_values or []
+        self.selected_user_prompts_dict = selected_user_prompts_dict or {}
+        self.selected_user_prompt_keys = selected_user_prompt_keys or []
         self.use_all_user_keys = use_all_user_keys
         self.add_system_prompt = add_system_prompt
 
@@ -123,7 +99,7 @@ class PromptGroups:
         self.logger.info("Preparing final user prompts.")
 
         final_prompts = []
-
+        # st.info(self.selected_user_prompts_dict)
         if self.selected_user_prompts_dict:
             for k, v in self.selected_user_prompts_dict.items():
                 final_prompts.append(f"{k}: {v}")
@@ -248,7 +224,7 @@ class PromptGroups:
 
     def __str__(self) -> str:
         """String representation of the PromptGroups object."""
-        return f"PromptGroups(mode={self.mode}, model={self.model_name}, prompts={len(self.final_prompts)})"
+        return f"PromptGroups(mode={self.mode}, model={self.model}, prompts={len(self.final_prompts)})"
 
     def __repr__(self) -> str:
         """Detailed string representation of the PromptGroups object."""
