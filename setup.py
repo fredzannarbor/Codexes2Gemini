@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='Codexes2Gemini',
-    version='0.3.0.2',
+    version='0.3.1.4',
     python_requires='>=3.11',
     description='Humans and AIs making books richer, more diverse, and more surprising.',
     url='https://github.com/fredzannarbor/Codexes2Gemini',
@@ -16,12 +16,12 @@ setup(
     author='Fred_Zimmerman',
     author_email='wfz@nimblebooks.com',
     license='MIT',
-    packages=find_packages(include=['Codexes2Gemini', 'Codexes2Gemini.*']),
-    include_package_data=True,
+    package_dir={'': 'Codexes2Gemini'},  # Tell setuptools where your packages are rooted
+    packages=find_packages(where='Codexes2Gemini', exclude=['private']
+                           ),
+    include_package_data=True,  # Include all data files found within your packages
     package_data={
-        'Codexes2Gemini': ['resources/prompts/*.json', 'resources/images/*.jpg', 'resources/images/*.png',
-                           'resources/images/*.jpeg', 'resources/images/*.json',
-                           'resources/data_tables/collapsar/*.csv'],
+        'Codexes2Gemini': ['*'],  # Include everything within the 'Codexes2Gemini' directory
     },
     install_requires=['streamlit', 'pymupdf', 'pypandoc', 'python-docx', 'google-generativeai', 'docx2txt', 'chardet',
                       'google-cloud-texttospeech'],
