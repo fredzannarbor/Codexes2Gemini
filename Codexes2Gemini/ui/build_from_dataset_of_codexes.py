@@ -304,10 +304,6 @@ def prompts_plan_builder_ui(user_space: UserSpace):
     st.session_state.current_plan.update({"approved_titles": False})
     # selected_rows = pd.read_csv("resources/data_tables/collapsar/sample_row.csv")
     # st.session_state.current_plan.update({"selected_rows": selected_rows.to_dict('records')})
-    #
-
-    # Step 1: Context Selection
-    st.subheader("Step 1: Context Selection")
 
     METADATA_FILE = "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/metadata.csv"
     DATA_DIRS = [
@@ -315,6 +311,10 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/train/train",
         "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/validation/validation",
     ]
+
+    FT = PG19FetchAndTrack(METADATA_FILE, DATA_DIRS)
+    # Step 1: Context Selection
+    st.subheader("Step 1: Context Selection")
 
     with st.form("Select Data Set and Number of Files"):
         context_choice = st.radio("Choose context source:", ["PG19"])  # , "Downloads", "Zyte"])
@@ -328,7 +328,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                 "number_of_context_files_to_process": number_of_context_files_to_process
             })
             if context_choice == "PG19":
-                FT = PG19FetchAndTrack(METADATA_FILE, DATA_DIRS)
+
                 try:
                     file_index = FT.create_file_index()
                     st.session_state.current_plan.update({"file_index": file_index})
@@ -876,7 +876,7 @@ def run_streamlit_app():
         # Create pages using st.sidebar.selectbox
     page = st.sidebar.selectbox(
         "Select a page",
-        ["Create Build Plans", "Run Saved Plans", "Multi-Context Processing", "UserSpace"],
+        ["Create Build Plans", "Dataset of Codexes => New Dataset of Codexes", "Run Saved Plans", "UserSpace"],
     )
     if page == "Create Build Plans":
         prompts_plan_builder_ui(user_space)
@@ -889,7 +889,7 @@ def run_streamlit_app():
         user_space_app(user_space)
 
 
-def main(port=1455, themebase="light"):
+def main(port=1919, themebase="light"):
     sys.argv = ["streamlit", "run", __file__, f"--server.port={port}", f'--theme.base={themebase}',
                 f'--server.maxUploadSize=40']
     import streamlit.web.cli as stcli
