@@ -59,6 +59,10 @@ Replace "your_api_key" with your actual API key. You can find your API key in th
 ```bash
 git clone https://github.com/fredzannarbor/Codexes2Gemini.git
 ```
+5. *Optional*: download the PG19 dataset of text files curated by Google Deepmind from Project Gutenberg. It is *large*: **11.74 GB**.  Place it in the data/ directory.
+
+`cd Codexes2Gemini/data
+git clone https://github.com/google-deepmind/pg19.git`
 
 ## Quick Starts
 
