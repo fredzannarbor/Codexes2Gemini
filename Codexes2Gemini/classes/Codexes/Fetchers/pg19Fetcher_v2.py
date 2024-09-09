@@ -1,10 +1,12 @@
 import csv
 import json
+import logging
 import os
 import random
 import pandas as pd
 from datetime import datetime
 import streamlit as st
+import traceback
 
 from Codexes2Gemini.classes.Codexes.Builders import Codexes2Parts
 from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
@@ -48,12 +50,16 @@ class PG19FetchAndTrack:
         return file_index
 
     def fetch_pg19_data(self):
-        """Fetches and processes PG19 data, tracking progress."""
+        """Fetches and processes PG19 data, tracking progress, and returns the results.
+
+        Returns:
+            list: A list of results from processing the selected contexts.
+        """
         file_index = self.create_file_index()
         if not st.session_state.current_plan["selected_rows"]:
             selected_rows = self.fetch_pg19_metadata(self.number_of_context_files_to_process)
 
-        for row in selected_rows:
+        for row in st.session_state.current_plan["selected_rows"]:
             textfilename = row[0]
 
             # Check if already processed
@@ -75,13 +81,24 @@ class PG19FetchAndTrack:
             # Save results to JSON
             self.save_results_to_json(textfilename, results)
 
+            # Save results to Markdown
+            self.save_results_to_markdown(textfilename, results)
+
             # Update processed metadata
             self.update_processed_metadata(textfilename)
 
         self.save_processed_metadata()
 
+        return results
+
     def fetch_pg19_metadata(self, number_of_context_files_to_process):
-        """Fetches metadata for N random PG19 entries."""
+        """Fetches metadata for N random PG19 entries.
+
+        Args:
+            number_of_context_files_to_process (int): The number of random entries to fetch.
+
+        Returns:
+            list: A list of lists, where each inner list represents a row of metadata."""
         with open(self.metadata_file, "r") as f:
             reader = csv.reader(f)
             next(reader)  # Skip header row
@@ -89,9 +106,15 @@ class PG19FetchAndTrack:
             return random.sample(rows, number_of_context_files_to_process)  # first random
 
     def process_single_context(self, context, row):
-        """Processes a single context and returns the results."""
-        # ... (Your logic to process the context using Codexes2Parts goes here) ...
-        # For example:
+        """Processes a single context and returns the results.
+
+        Args:
+            context (str): The text content of the context.
+            row (list): The metadata row corresponding to the context.
+
+        Returns:
+            list: A list of results from processing the context.
+        """
         st.session_state.current_plan.update({"context": context, "row": row})
         plan = PromptsPlan(**st.session_state.current_plan)
         satisfactory_results = self.CODEXES2PARTS.process_codex_to_book_part(plan)
@@ -102,13 +125,40 @@ class PG19FetchAndTrack:
         output_json_filename = f"{textfilename}.json"
         output_json_path = os.path.join(self.output_dir, output_json_filename)
         os.makedirs(self.output_dir, exist_ok=True)
+        try:
+            with open(output_json_path, 'w') as f:
+                json.dump({
+                    'textfilename': textfilename,
+                    'processing_date': datetime.now().isoformat(),
+                    'results': results
+                }, f, indent=4)
+            st.info(f"Successfully saved file to JSON at {output_json_path}")
+            logging.info(f"Successfully saved file to JSON at {output_json_path}")
+        except Exception as e:
+            print(f"Error saving results to JSON: {traceback.format_exc()}")
+            st.error(f"Error saving results to JSON: {traceback.format_exc()}")
+            logging.error(f"Error saving results to JSON: {traceback.format_exc()}")
 
-        with open(output_json_path, 'w') as f:
-            json.dump({
-                'textfilename': textfilename,
-                'processing_date': datetime.now().isoformat(),
-                'results': results
-            }, f, indent=4)
+    def save_results_to_markdown(self, textfilename, results):
+        """Saves results to a Markdown file."""
+        output_markdown_filename = f"{textfilename}.md"
+        output_markdown_path = os.path.join(self.output_dir, output_markdown_filename)
+        os.makedirs(self.output_dir, exist_ok=True)
+        try:
+            with open(output_markdown_path, 'w') as f:
+                if isinstance(results, list):
+                    for item in results:
+                        f.write(f"- {item}\n")
+                elif isinstance(results, str):
+                    f.write(results)
+                else:
+                    f.write(str(results))
+            st.info(f"Successfully saved file to JSON at {output_markdown_path}")
+            logging.info(f"Successfully saved file to JSON at {output_markdown_path}")
+        except Exception as e:
+            print(f"Error saving results to Markdown: {traceback.format_exc()}")
+            st.error(f"Error saving results to Markdown: {traceback.format_exc()}")
+            logging.error(f"Error saving results to Markdown: {traceback.format_exc()}")
 
     def update_processed_metadata(self, textfilename):
         """Updates the processed metadata DataFrame."""
