@@ -39,6 +39,7 @@ class PromptsPlan:
                  number_of_context_files_to_process: int = 3,
                  output_file_base_name: str = "output",
                  require_json_output=False,
+                 revised_rows: List[str] = None,
                  output_file: str = None,
                  row=None,
                  selected_rows: List[str] = None,
@@ -91,10 +92,12 @@ class PromptsPlan:
         self.mode = mode
         self.model = model_name
         self.name = name
+        self.number_of_context_files_to_process = number_of_context_files_to_process
         self.number_to_run = number_to_run
         self.output_file = output_file
         self.output_file_path = output_file_base_name
         self.require_json_output = require_json_output
+        self.revised_rows = revised_rows
         self.row = row
         self.selected_rows = selected_rows or []
         self.system_instructions_dict = system_instructions_dict or {}
