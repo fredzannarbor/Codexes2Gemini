@@ -49,6 +49,7 @@ class PromptsPlan:
                  selected_user_prompts_dict: Dict[str, Any] = None,
                  system_instructions_dict: Dict[str, Any] = None,
                  system_instructions_dict_file_path: str = None,
+                 system_filter_submitted: bool = False,
 
                  thisdoc_dir: str = "",
                  user_keys: List[str] = None,
@@ -102,6 +103,7 @@ class PromptsPlan:
         self.selected_user_prompt_keys = selected_user_prompt_keys or []
         self.selected_user_prompt_values = selected_user_prompt_values or []
         self.selected_user_prompts_dict = selected_user_prompts_dict or {}
+        self.system_filter_submitted = system_filter_submitted
         self.system_instructions_dict_file_path = system_instructions_dict_file_path
         self.thisdoc_dir = thisdoc_dir
         self.use_all_user_keys = use_all_user_keys
