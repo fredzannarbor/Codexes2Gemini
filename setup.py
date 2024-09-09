@@ -2,24 +2,26 @@ from setuptools import setup, find_packages
 
 setup(
     name='Codexes2Gemini',
-    version='0.2.2.19',
+    version='0.3.0.2',
     python_requires='>=3.11',
     description='Humans and AIs making books richer, more diverse, and more surprising.',
     url='https://github.com/fredzannarbor/Codexes2Gemini',
     entry_points={
         'console_scripts': [
             'codexes2gemini-ui = Codexes2Gemini.ui.streamlit_ui:main',
-            'codexes2gemini-ui-1455 = Codexes2Gemini.ui.streamlit_ui:main'
+            'codexes2gemini-ui-1455 = Codexes2Gemini.ui.streamlit_ui:main',
+            'dataset2gemini = Codexes2Gemini.ui.build_from_dataset_of_codexes:main'
         ]
     },
     author='Fred_Zimmerman',
     author_email='wfz@nimblebooks.com',
     license='MIT',
-    packages=find_packages(),
+    packages=find_packages(include=['Codexes2Gemini', 'Codexes2Gemini.*']),
     include_package_data=True,
     package_data={
         'Codexes2Gemini': ['resources/prompts/*.json', 'resources/images/*.jpg', 'resources/images/*.png',
-                           'resources/images/*.jpeg', 'resources/images/*.json'],
+                           'resources/images/*.jpeg', 'resources/images/*.json',
+                           'resources/data_tables/collapsar/*.csv'],
     },
     install_requires=['streamlit', 'pymupdf', 'pypandoc', 'python-docx', 'google-generativeai', 'docx2txt', 'chardet',
                       'google-cloud-texttospeech'],
