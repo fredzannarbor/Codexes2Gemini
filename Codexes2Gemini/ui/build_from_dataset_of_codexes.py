@@ -305,12 +305,28 @@ def prompts_plan_builder_ui(user_space: UserSpace):
     # selected_rows = pd.read_csv("resources/data_tables/collapsar/sample_row.csv")
     # st.session_state.current_plan.update({"selected_rows": selected_rows.to_dict('records')})
 
-    METADATA_FILE = "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/metadata.csv"
+    METADATA_FILE = "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/data/pg19/metadata.csv"
     DATA_DIRS = [
-        "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/test/test",
-        "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/train/train",
-        "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/validation/validation",
+        "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/data/pg19/test/test",
+        "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/data/pg19/train/train",
+        "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/data/pg19/validation/validation",
     ]
+
+    # check if PG19 is available
+
+    if not os.path.exists(METADATA_FILE) or not all([os.path.exists(DATA_DIR) for DATA_DIR in DATA_DIRS]):
+        error_msg_pg19 = """
+        To use this page, you must download the PG19 dataset of text files curated by Google Deepmind from Project Gutenberg. It is *large*: **11.74 GB**.  Place it in the data/ directory.
+        ```
+        cd Codexes2Gemini/data
+        git clone https://github.com/google-deepmind/pg19.git
+        ```
+        """
+
+
+        logging.error(error_msg_pg19)
+        st.error(error_msg_pg19)
+        st.stop()
 
     FT = PG19FetchAndTrack(METADATA_FILE, DATA_DIRS)
     # Step 1: Context Selection
@@ -363,10 +379,11 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             with st.expander("Contexts selected", expanded=True):
                 st.info(f"Selected_rows from {st.session_state.current_plan['context_choice']}")
                 selected_rows_df = pd.DataFrame(st.session_state.current_plan['selected_rows'])
-                st.dataframe(selected_rows_df)
+                df = st.data_editor(selected_rows_df)
             st.session_state.current_plan.update({
                 "selected_rows": st.session_state.current_plan['selected_rows'],
-                "approved_titles": True
+                "approved_titles": True,
+                "revised_rows": df.to_dict('records')
             })
 
     # Step 2: Instructions and Prompts
