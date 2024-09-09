@@ -39,7 +39,6 @@ from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space
 from Codexes2Gemini import __version__, __announcements__
-from Codexes2Gemini.ui.multi_context_page import MultiContextUI as MCU
 from Codexes2Gemini.ui.build_from_dataset_of_codexes import prompts_plan_builder_ui as PPB
 
 logger = configure_logger("DEBUG")
