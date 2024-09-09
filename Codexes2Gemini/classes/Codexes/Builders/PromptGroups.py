@@ -37,7 +37,7 @@ class PromptGroups:
                  config_file: str = None, use_all_user_keys: bool = False, add_system_prompt: str = "",
                  require_json_output=False, output_file: str = None) -> None:
 
-        st.info(type(selected_user_prompts_dict))
+        # st.info(type(selected_user_prompts_dict))
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(log_level)
         configure_logger(log_level)
@@ -84,9 +84,9 @@ class PromptGroups:
         # If a config file is provided, load it
         if config_file:
             self.load_config(config_file)
-        st.info(type(self.selected_user_prompts_dict))
-        st.info(self.selected_user_prompts_dict)
-        st.info("at promptsgroup init^")
+        # st.info(type(self.selected_user_prompts_dict))
+        # st.info(self.selected_user_prompts_dict)
+        # st.info("at promptsgroup init^")
         # Prepare the final prompts
         self.final_prompts = self.prepare_final_user_prompts()
 

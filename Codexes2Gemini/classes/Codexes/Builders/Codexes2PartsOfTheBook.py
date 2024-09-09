@@ -257,7 +257,7 @@ class Codexes2Parts:
 
                 self.logger.debug(f"Response received, length: {self.count_tokens(response.text)} tokens")
                 json_response = self.create_response_dict(response)
-                st.json(json_response, expanded=False)
+                #   st.json(json_response, expanded=False)
                 full_output += response.text
                 full_output_tokens = self.count_tokens(full_output)
                 context += response.text

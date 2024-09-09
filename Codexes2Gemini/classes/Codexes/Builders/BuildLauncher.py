@@ -95,7 +95,7 @@ class BuildLauncher:
                 return {}
 
     def create_prompt_plan(self, config: Dict) -> PromptGroups:
-        st.info(type(config['selected_user_prompts_dict']))
+        # st.info(type(config['selected_user_prompts_dict']))
         prompt_plan_params = {
             'context': config.get('context', ''),
             'user_keys': config.get('user_keys', []),

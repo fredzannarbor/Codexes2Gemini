@@ -40,7 +40,7 @@ from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space
 from Codexes2Gemini import __version__, __announcements__
 from Codexes2Gemini.ui.multi_context_page import MultiContextUI as MCU
-
+from Codexes2Gemini.ui.build_from_dataset_of_codexes import prompts_plan_builder_ui as PPB
 
 logger = configure_logger("DEBUG")
 logging.info("--- Began logging ---")
@@ -284,6 +284,11 @@ def multiplan_builder(user_space: UserSpace):
         st.session_state.current_plan['name'] = f"New Plan_{timestamp}"
     if 'context_files' not in st.session_state:
         st.session_state.context_files = []
+    if 'context_tokens_total' not in st.session_state:
+        st.session_state.context_tokens_total = 0
+    if 'context_mb_total' not in st.session_state:
+        st.session_state.context_mb_total = 0
+
 
     user_prompts_dict = load_json_file("user_prompts_dict.json")
     system_instructions_dict = load_json_file("system_instructions.json")
@@ -710,28 +715,28 @@ def truncate_context_files(plan: Dict, max_chars=1000) -> Dict:
 def user_space_app(user_space: UserSpace):
     st.title(f"UserSpace: Self")
 
-    # st.header("Saved Filters")
-    # filter_name = st.text_input("Filter Name (optional)")
-    # filter_data = st.text_area("Filter Data (JSON)")
-    # if st.button("Save Filter"):
-    #     try:
-    #         user_space.save_filter(filter_name, json.loads(filter_data))
-    #         save_user_space(user_space)
-    #         st.success("Filter saved")
-    #     except json.JSONDecodeError:
-    #         st.error("Invalid JSON for filter data")
-    #
-    # if user_space.filters:
-    #     filter_df = pd.DataFrame(
-    #         [(name, json.dumps(data)[:50] + "...") for name, data in user_space.filters.items()],
-    #         columns=["Name", "Data Preview"]
-    #     )
-    #     st.table(filter_df)
-    #     if st.button("Clear All Filters"):
-    #         user_space.filters = {}
-    #         save_user_space(user_space)
-    #         st.success("All filters cleared")
-    #         st.rerun()
+    st.header("Saved Filters")
+    filter_name = st.text_input("Filter Name (optional)")
+    filter_data = st.text_area("Filter Data (JSON)")
+    if st.button("Save Filter"):
+        try:
+            user_space.save_filter(filter_name, json.loads(filter_data))
+            save_user_space(user_space)
+            st.success("Filter saved")
+        except json.JSONDecodeError:
+            st.error("Invalid JSON for filter data")
+
+    if user_space.filters:
+        filter_df = pd.DataFrame(
+            [(name, json.dumps(data)[:50] + "...") for name, data in user_space.filters.items()],
+            columns=["Name", "Data Preview"]
+        )
+        st.table(filter_df)
+        if st.button("Clear All Filters"):
+            user_space.filters = {}
+            save_user_space(user_space)
+            st.success("All filters cleared")
+            st.rerun()
 
     st.header("Saved Contexts")
     context_filter = st.text_input("Filter contexts")
@@ -750,39 +755,36 @@ def user_space_app(user_space: UserSpace):
             st.success("All contexts cleared")
             st.rerun()
 
-    # st.header("Save Prompts")
-    # prompt_name = st.text_input("Prompt Name (optional)")
-    # prompt = st.text_area("Prompt")
-    # if st.button("Save Prompt"):
-    #     user_space.save_prompt(prompt_name, prompt)
-    #     save_user_space(user_space)
-    #     st.success("Prompt saved")
-    #
-    # if user_space.prompts:
-    #     prompt_df = pd.DataFrame(
-    #         [(name, text[:50] + "...") for name, text in user_space.prompts.items()],
-    #         columns=["Name", "Prompt Preview"]
-    #     )
-    #     st.table(prompt_df)
-    #     if st.button("Clear All Prompts"):
-    #         user_space.prompts = {}
-    #         save_user_space(user_space)
-    #         st.success("All prompts cleared")
-    #         st.rerun()
+    st.header("Save Prompts")
+    prompt_name = st.text_input("Prompt Name (optional)")
+    prompt = st.text_area("Prompt")
+    if st.button("Save Prompt"):
+        user_space.save_prompt(prompt_name, prompt)
+        save_user_space(user_space)
+        st.success("Prompt saved")
 
-   # st.header("Saved Results")
-    #st.write(user_space.results)
-    # if user_space.results:
-    #     result_df = pd.DataFrame(
-    #         [(r["timestamp"], r["results"][:50] + "...") for r in user_space.results],
-    #         columns=["Timestamp", "Result Preview"]
-    #     )
-    #     st.table(result_df)
-    #     if st.button("Clear All Results"):
-    #         user_space.results = []
-    #         save_user_space(user_space)
-    #         st.success("All results cleared")
-    #         st.rerun()
+    if user_space.prompts:
+        prompt_df = pd.DataFrame(
+            [(name, text[:50] + "...") for name, text in user_space.prompts.items()],
+            columns=["Name", "Prompt Preview"]
+        )
+        st.table(prompt_df)
+        if st.button("Clear All Prompts"):
+            user_space.prompts = {}
+            save_user_space(user_space)
+            st.success("All prompts cleared")
+            st.rerun()
+
+    st.header("Saved Results")
+    st.write(user_space.results)
+    if user_space.results:
+        result_list = user_space.results["result"][0][0]  # Access the nested list
+        result_df = pd.DataFrame(
+            [(user_space.results["time"], r[:50] + "...") for r in result_list],  # Iterate over the correct list
+            columns=["Timestamp", "Result Preview"]
+        )
+        result_df['Timestamp'] = pd.to_datetime(result_df['Timestamp'], unit='s').dt.strftime('%Y-%m-%d-%H-%M-%S')
+        st.table(result_df)
 
     st.header("Saved Prompt Plans")
     if user_space.prompt_plans:
@@ -909,15 +911,17 @@ def run_streamlit_app():
         # Create pages using st.sidebar.selectbox
     page = st.sidebar.selectbox(
         "Select a page",
-        ["Create Build Plans", "Run Saved Plans", "Multi-Context Processing", "UserSpace"],
+        ["Create Build Plans", "Dataset of Codexes => New Dataset of Codexes", "Run Saved Plans", "UserSpace"],
     )
     if page == "Create Build Plans":
         multiplan_builder(user_space)
+    elif page == "Dataset of Codexes => New Dataset of Codexes":
+        PPB(user_space)
     elif page == "Run Saved Plans":
         upload_build_plan()
-    elif page == "Multi-Context Processing":
-        multi_context_app = MCU(user_space)
-        multi_context_app.render()
+    # elif page == "Multi-Context Processing":
+    #     multi_context_app = MCU(user_space)
+    #     multi_context_app.render()
     elif page == "UserSpace":
         user_space_app(user_space)
 
