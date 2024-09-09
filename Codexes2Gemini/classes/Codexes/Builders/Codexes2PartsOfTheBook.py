@@ -143,11 +143,9 @@ class Codexes2Parts:
             max_retries = 3
 
             full_output_tokens = self.count_tokens(full_output)
-            all_cached_tokens = 0
+
             while full_output_tokens < plan.minimum_required_output_tokens and retry_count < max_retries:
                 try:
-                    st.write(
-                        f"counts: {self.count_tokens(system_prompt)}, {self.count_tokens(user_prompt)}, {self.count_tokens(context)}")
 
                     response = self.gemini_get_response(plan, system_prompt, user_prompt, context, model)
                     if "The `response.text` quick accessor requires the response to contain a valid `Part`, but none were returned." in response:
@@ -402,7 +400,7 @@ class Codexes2Parts:
         for attempt_no in range(MODEL_GENERATION_ATTEMPTS):
             try:
                 response = model.generate_content(prompt, request_options={"timeout": 600})
-                st.write(response.usage_metadata)
+                # st.write(response.usage_metadata)
                 logging.warning(response.usage_metadata)
                 return response
             except Exception as e:
