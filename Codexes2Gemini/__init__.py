@@ -30,7 +30,10 @@ ensure_directory_exists("resources")
 ensure_directory_exists("resources/data_tables")
 ensure_directory_exists("resources/data_tables/LSI")
 
-__version__ = "0.2.3.2"
+__version__ = "0.3.1.1"
 __announcements__ = """
-
+- Introduces page for processing a dataset of codexes into another dataset of codexes created from the first set.  This page can be launched via the command line entrypoint dataset2gemini.
+- UserSpace page now shows all available objects.
+- Fixes various bugs, mostly related to session state management.
+- Fixes error in setup.py that prevented correct installation.
 """
