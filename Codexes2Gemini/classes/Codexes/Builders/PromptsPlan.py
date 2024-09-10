@@ -48,6 +48,7 @@ class PromptsPlan:
                  selected_user_prompt_keys: List[str] = None,
                  selected_user_prompt_values: List[str] = None,
                  selected_user_prompts_dict: Dict[str, Any] = None,
+                 skip_processed: bool = False,
                  system_instructions_dict: Dict[str, Any] = None,
                  system_instructions_dict_file_path: str = None,
                  system_filter_submitted: bool = False,
@@ -100,6 +101,7 @@ class PromptsPlan:
         self.revised_rows = revised_rows
         self.row = row
         self.selected_rows = selected_rows or []
+        self.skip_processed = skip_processed or True
         self.system_instructions_dict = system_instructions_dict or {}
         self.selected_system_instruction_keys = selected_system_instruction_keys or []
         self.selected_system_instruction_values = selected_system_instruction_values or []

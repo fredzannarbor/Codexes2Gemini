@@ -335,6 +335,8 @@ def prompts_plan_builder_ui(user_space: UserSpace):
     with st.form("Select Data Set and Number of Files"):
         context_choice = st.radio("Choose context source:", ["PG19"])  # , "Downloads", "Zyte"])
         number_of_context_files_to_process = st.number_input("Number of Context Files to Process", min_value=1, value=3)
+        skip_processed = st.checkbox("Skip Already Processed Files", value=True)
+        st.session_state.current_plan.update({"skip_processed": skip_processed})
         confirmed_data_set = st.form_submit_button("Confirm Data Set Selection")
         if confirmed_data_set:  # Now check if the form is submitted
             st.info(f"Data set selected is {context_choice}")
@@ -533,7 +535,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         )
 
         if st.session_state.current_plan['context_choice'] == "PG19":
-            results = FT.fetch_pg19_data()
+            results = FT.fetch_pg19_data(skip_processed=st.session_state.current_plan['skip_processed'])
             st.write(results)
             if results:
                 # convert response list to markdown
@@ -692,28 +694,28 @@ def truncate_context_files(plan: Dict, max_chars=1000) -> Dict:
 def user_space_app(user_space: UserSpace):
     st.title(f"UserSpace: Self")
 
-    # st.header("Saved Filters")
-    # filter_name = st.text_input("Filter Name (optional)")
-    # filter_data = st.text_area("Filter Data (JSON)")
-    # if st.button("Save Filter"):
-    #     try:
-    #         user_space.save_filter(filter_name, json.loads(filter_data))
-    #         save_user_space(user_space)
-    #         st.success("Filter saved")
-    #     except json.JSONDecodeError:
-    #         st.error("Invalid JSON for filter data")
-    #
-    # if user_space.filters:
-    #     filter_df = pd.DataFrame(
-    #         [(name, json.dumps(data)[:50] + "...") for name, data in user_space.filters.items()],
-    #         columns=["Name", "Data Preview"]
-    #     )
-    #     st.table(filter_df)
-    #     if st.button("Clear All Filters"):
-    #         user_space.filters = {}
-    #         save_user_space(user_space)
-    #         st.success("All filters cleared")
-    #         st.rerun()
+    st.header("Saved Filters")
+    filter_name = st.text_input("Filter Name (optional)")
+    filter_data = st.text_area("Filter Data (JSON)")
+    if st.button("Save Filter"):
+        try:
+            user_space.save_filter(filter_name, json.loads(filter_data))
+            save_user_space(user_space)
+            st.success("Filter saved")
+        except json.JSONDecodeError:
+            st.error("Invalid JSON for filter data")
+
+    if user_space.filters:
+        filter_df = pd.DataFrame(
+            [(name, json.dumps(data)[:50] + "...") for name, data in user_space.filters.items()],
+            columns=["Name", "Data Preview"]
+        )
+        st.table(filter_df)
+        if st.button("Clear All Filters"):
+            user_space.filters = {}
+            save_user_space(user_space)
+            st.success("All filters cleared")
+            st.rerun()
 
     st.header("Saved Contexts")
     context_filter = st.text_input("Filter contexts")
@@ -732,39 +734,39 @@ def user_space_app(user_space: UserSpace):
             st.success("All contexts cleared")
             st.rerun()
 
-    # st.header("Save Prompts")
-    # prompt_name = st.text_input("Prompt Name (optional)")
-    # prompt = st.text_area("Prompt")
-    # if st.button("Save Prompt"):
-    #     user_space.save_prompt(prompt_name, prompt)
-    #     save_user_space(user_space)
-    #     st.success("Prompt saved")
-    #
-    # if user_space.prompts:
-    #     prompt_df = pd.DataFrame(
-    #         [(name, text[:50] + "...") for name, text in user_space.prompts.items()],
-    #         columns=["Name", "Prompt Preview"]
-    #     )
-    #     st.table(prompt_df)
-    #     if st.button("Clear All Prompts"):
-    #         user_space.prompts = {}
-    #         save_user_space(user_space)
-    #         st.success("All prompts cleared")
-    #         st.rerun()
+    st.header("Save Prompts")
+    prompt_name = st.text_input("Prompt Name (optional)")
+    prompt = st.text_area("Prompt")
+    if st.button("Save Prompt"):
+        user_space.save_prompt(prompt_name, prompt)
+        save_user_space(user_space)
+        st.success("Prompt saved")
 
-    # st.header("Saved Results")
-    # st.write(user_space.results)
-    # if user_space.results:
-    #     result_df = pd.DataFrame(
-    #         [(r["timestamp"], r["results"][:50] + "...") for r in user_space.results],
-    #         columns=["Timestamp", "Result Preview"]
-    #     )
-    #     st.table(result_df)
-    #     if st.button("Clear All Results"):
-    #         user_space.results = []
-    #         save_user_space(user_space)
-    #         st.success("All results cleared")
-    #         st.rerun()
+    if user_space.prompts:
+        prompt_df = pd.DataFrame(
+            [(name, text[:50] + "...") for name, text in user_space.prompts.items()],
+            columns=["Name", "Prompt Preview"]
+        )
+        st.table(prompt_df)
+        if st.button("Clear All Prompts"):
+            user_space.prompts = {}
+            save_user_space(user_space)
+            st.success("All prompts cleared")
+            st.rerun()
+
+    st.header("Saved Results")
+    st.write(user_space.results)
+    if user_space.results:
+        result_df = pd.DataFrame(
+            [(r["timestamp"], r["results"][:50] + "...") for r in user_space.results],
+            columns=["Timestamp", "Result Preview"]
+        )
+        st.table(result_df)
+        if st.button("Clear All Results"):
+            user_space.results = []
+            save_user_space(user_space)
+            st.success("All results cleared")
+            st.rerun()
 
     st.header("Saved Prompt Plans")
     if user_space.prompt_plans:

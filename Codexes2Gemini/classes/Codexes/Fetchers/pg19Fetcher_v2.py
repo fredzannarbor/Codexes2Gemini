@@ -49,7 +49,7 @@ class PG19FetchAndTrack:
                         break
         return file_index
 
-    def fetch_pg19_data(self):
+    def fetch_pg19_data(self, skip_processed):
         """Fetches and processes PG19 data, tracking progress, and returns the results.
 
         Returns:
@@ -62,8 +62,9 @@ class PG19FetchAndTrack:
         for row in st.session_state.current_plan["selected_rows"]:
             textfilename = row[0]
 
-            # Check if already processed
-            if self.processed_df[self.processed_df['textfilename'] == textfilename]['processed'].any():
+            # Check if file is already processed and skip_processed is on
+            if skip_processed and self.processed_df[self.processed_df['textfilename'] == textfilename][
+                'processed'].any():
                 print(f"Skipping already processed file: {textfilename}")
                 continue
 
