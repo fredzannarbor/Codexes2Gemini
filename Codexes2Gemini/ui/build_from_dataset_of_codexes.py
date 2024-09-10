@@ -4,6 +4,7 @@ import json
 import os
 import random
 import sys
+import tempfile
 import textwrap
 import time
 import traceback
@@ -40,7 +41,7 @@ import logging
 from Codexes2Gemini.classes.Codexes.Fetchers.pg19Fetcher_v2 import PG19FetchAndTrack
 
 from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
-from Codexes2Gemini.classes.Utilities.utilities import configure_logger
+from Codexes2Gemini.classes.Utilities.utilities import configure_logger, load_spreadsheet
 from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space
 from Codexes2Gemini import __version__, __announcements__
 from Codexes2Gemini.ui.multi_context_page import MultiContextUI as MCU
@@ -91,13 +92,6 @@ def load_image_file(file_name):
         return
 
 
-def load_json_carousel_file(file_name):
-    try:
-        with resources.files('Codexes2Gemini.resources.images').joinpath(file_name).open('r') as file:
-            return json.load(file)
-    except Exception as e:
-        st.error(f"Error loading JSON file: {e}")
-        return {}
 
 
 def get_binary_file_downloader_html(bin_file, file_label='File'):
@@ -107,24 +101,6 @@ def get_binary_file_downloader_html(bin_file, file_label='File'):
     href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(bin_file)}">Download {file_label}</a>'
     return href
 
-
-def create_tag_frequencies(prompts):
-    all_tags = [tag for prompt in prompts.values() for tag in prompt['tags']]
-    return Counter(all_tags)
-
-
-def display_tag_cloud(tag_freq, key_prefix):
-    max_freq = max(tag_freq.values())
-    min_freq = min(tag_freq.values())
-
-    tag_cloud_html = ""
-    for tag, freq in sorted(tag_freq.items()):
-        font_size = 1 + (freq - min_freq) / (max_freq - min_freq) * 1.5
-        color = f"rgb({random.randint(100, 200)}, {random.randint(100, 200)}, {random.randint(100, 200)})"
-        tag_html = f'<a href="?{key_prefix}={tag}" target="_self" style="font-size: {font_size}em; color: {color}; text-decoration: none; margin-right: 10px;">{tag}</a>'
-        tag_cloud_html += tag_html
-
-    st.markdown(tag_cloud_html, unsafe_allow_html=True)
 
 
 def upload_build_plan():
@@ -181,10 +157,6 @@ def tokens_to_mb(tokens, bytes_per_token=4):
 
 def tokens_to_millions(tokens):
     return tokens / 1_000_000
-
-
-import tempfile
-
 
 def read_file_content(file):
     file_name = file.name.lower()
@@ -332,21 +304,30 @@ def prompts_plan_builder_ui(user_space: UserSpace):
     # Step 1: Context Selection
     st.subheader("Step 1: Context Selection")
 
-    with st.form("Select Data Set and Number of Files"):
-        context_choice = st.radio("Choose context source:", ["PG19"])  # , "Downloads", "Zyte"])
+    with st.form("Select Data Set"):
+        context_choice = st.radio("Choose context source:", ["PG19", "User Upload"], index=0)  # , "Downloads", "Zyte"])
         number_of_context_files_to_process = st.number_input("Number of Context Files to Process", min_value=1, value=3)
         skip_processed = st.checkbox("Skip Already Processed Files", value=True)
         st.session_state.current_plan.update({"skip_processed": skip_processed})
+        st.session_state.current_plan.update({"context_choice": context_choice})
         confirmed_data_set = st.form_submit_button("Confirm Data Set Selection")
+
         if confirmed_data_set:  # Now check if the form is submitted
-            st.info(f"Data set selected is {context_choice}")
+            st.info(f"Data set selected is {st.session_state.current_plan['context_choice']}")
             st.session_state.current_plan.update({
                 "context_choice": context_choice,
                 "confirmed_data_set": confirmed_data_set,
                 "number_of_context_files_to_process": number_of_context_files_to_process
             })
-            if context_choice == "PG19":
-
+            # now process the selection of data set & number of context files to process
+            if context_choice == "User Upload":
+                uploaded_file = st.file_uploader("Upload spreadsheet with selected rows to process",
+                                                 type=["csv", "xlsx"])
+                if uploaded_file:
+                    selected_rows_df = load_spreadsheet(uploaded_file)
+                    st.session_state.current_plan.update({"selected_rows": selected_rows_df.to_dict('records')})
+                    st.write(selected_rows_df)
+            elif context_choice == "PG19":
                 try:
                     file_index = FT.create_file_index()
                     st.session_state.current_plan.update({"file_index": file_index})
@@ -359,11 +340,11 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                 try:
                     selected_rows = FT.fetch_pg19_metadata(number_of_context_files_to_process)
                     st.session_state.current_plan.update({"selected_rows": selected_rows})
-                    st.write(selected_rows)
                 except Exception as e:
                     st.error(traceback.format_exc())
                     logging.error(traceback.format_exc())
-                with st.expander("Contexts selected", expanded=True):
+
+            with st.expander("Contexts selected", expanded=True):
                     st.info(f"Selected_rows from {st.session_state.current_plan['context_choice']}")
                     selected_rows_df = pd.DataFrame(st.session_state.current_plan['selected_rows'])
                     st.dataframe(selected_rows_df)
