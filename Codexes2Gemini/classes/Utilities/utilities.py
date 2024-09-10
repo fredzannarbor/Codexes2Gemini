@@ -5,6 +5,7 @@ import inspect
 import logging
 import sys
 
+import pandas as pd
 import pip
 from rich.console import Console
 
@@ -196,3 +197,38 @@ def write_commit_messages_to_file(filename="Commit History.md"):
     with open(filepath, "w") as f:
         f.write(commit_messages_md)
     print(f"Commit messages written to: {filepath}")
+
+
+def load_spreadsheet(filename):
+    """
+    Load a spreadsheet file into a pandas DataFrame.
+
+    Parameters:
+    filename (str): File path to the spreadsheet.
+
+
+    Returns:
+    DataFrame: pandas DataFrame with the spreadsheet data.
+
+    Try utf-8 encoding first for csv, then ISO-8859-1, then Win-1252
+
+    """
+    # Check the file extension
+    _, extension = os.path.splitext(filename)
+
+    if extension == '.csv':
+        encoding_options = ['utf-8', 'ISO-8859-1', 'Win-1252']
+        for encoding in encoding_options:
+            try:
+                df = pd.read_csv(filename, encoding=encoding)
+                break
+            except UnicodeDecodeError:
+                continue
+
+    elif extension == ".xlsx":
+        df = pd.read_excel(filename, engine='openpyxl')
+
+    elif extension == ".xls":
+        df = pd.read_excel(filename)
+
+    return df
