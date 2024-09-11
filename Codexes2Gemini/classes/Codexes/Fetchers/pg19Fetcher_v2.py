@@ -37,6 +37,7 @@ class PG19FetchAndTrack:
     def create_file_index(_self):
         """Creates a file index for efficient lookup of text files."""
         file_index = {}
+
         with open(_self.metadata_file, "r") as f:
             reader = csv.reader(f)
             next(reader)  # Skip header
@@ -55,6 +56,7 @@ class PG19FetchAndTrack:
         Returns:
             list: A list of results from processing the selected contexts.
         """
+        all_results = []
         file_index = self.create_file_index()
         if not st.session_state.current_plan["selected_rows"]:
             selected_rows = self.fetch_pg19_metadata(self.number_of_context_files_to_process)
@@ -87,10 +89,11 @@ class PG19FetchAndTrack:
 
             # Update processed metadata
             self.update_processed_metadata(textfilename)
+            all_results.append(results)
 
         self.save_processed_metadata()
 
-        return results
+        return all_results
 
     def fetch_pg19_metadata(self, number_of_context_files_to_process):
         """Fetches metadata for N random PG19 entries.
@@ -105,6 +108,24 @@ class PG19FetchAndTrack:
             next(reader)  # Skip header row
             rows = list(reader)
             return random.sample(rows, number_of_context_files_to_process)  # first random
+
+    def v2_fetch_pg19_metadata(self, number_of_context_files_to_process, selection_strategy):
+        """Fetches metadata for N random PG19 entries.
+
+        Args:
+            number_of_context_files_to_process (int): The number of random entries to fetch.
+
+        Returns:
+            list: A list of lists, where each inner list represents a row of metadata."""
+        if selection_strategy == "Random":
+            with open(self.metadata_file, "r") as f:
+                reader = csv.reader(f)
+                next(reader)  # Skip header row
+                rows = list(reader)
+        elif selection_strategy == "User Upload":
+            rows = st.session_state()
+            return random.sample(rows, number_of_context_files_to_process)  # first random
+
 
     def process_single_context(self, context, row):
         """Processes a single context and returns the results.

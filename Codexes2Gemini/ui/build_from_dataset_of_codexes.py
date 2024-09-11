@@ -246,11 +246,11 @@ def extract_text_from_json(data):
 
 
 def prompts_plan_builder_ui(user_space: UserSpace):
-    st.header("Data Set of Codexes to️ New Data Set of Codexes")
+    st.header("Data Set Explorer")
 
     if 'current_plan' not in st.session_state:
         st.session_state.current_plan = {
-            "context_choice": None,
+            "context_choice": "Random",
             "confirmed_data_set": False,
             "number_of_context_files_to_process": None,
             "file_index": None,
@@ -302,75 +302,65 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
     FT = PG19FetchAndTrack(METADATA_FILE, DATA_DIRS)
     # Step 1: Context Selection
+
     st.subheader("Step 1: Context Selection")
 
     with st.form("Select Data Set"):
-        context_choice = st.radio("Choose context source:", ["PG19", "User Upload"], index=0)  # , "Downloads", "Zyte"])
-        number_of_context_files_to_process = st.number_input("Number of Context Files to Process", min_value=1, value=3)
-        skip_processed = st.checkbox("Skip Already Processed Files", value=True)
+        context_choice = st.radio("Choose context source:", ["PG19", "User Upload"], index=0)
+        number_of_context_files_to_process = st.number_input("Number of Context Files to Process (PG19 only)",
+                                                             min_value=1, value=3,
+                                                             disabled=(context_choice == "User Upload"))
+        skip_processed = st.checkbox("Skip Already Processed Files (PG19 only)", value=True,
+                                     disabled=(context_choice == "User Upload"))
         st.session_state.current_plan.update({"skip_processed": skip_processed})
         st.session_state.current_plan.update({"context_choice": context_choice})
         confirmed_data_set = st.form_submit_button("Confirm Data Set Selection")
 
-        if confirmed_data_set:  # Now check if the form is submitted
-            st.info(f"Data set selected is {st.session_state.current_plan['context_choice']}")
-            st.session_state.current_plan.update({
-                "context_choice": context_choice,
-                "confirmed_data_set": confirmed_data_set,
-                "number_of_context_files_to_process": number_of_context_files_to_process
-            })
-            # now process the selection of data set & number of context files to process
+        # --- Data Selection and Approval ---
+        if confirmed_data_set:
+            selected_rows = []  # Initialize empty list for selected rows
+
             if context_choice == "User Upload":
-                uploaded_file = st.file_uploader("Upload spreadsheet with selected rows to process",
-                                                 type=["csv", "xlsx"])
+                uploaded_file = st.file_uploader("Upload CSV file (PG19 format)", type=["csv"])
                 if uploaded_file:
-                    selected_rows_df = load_spreadsheet(uploaded_file)
-                    st.session_state.current_plan.update({"selected_rows": selected_rows_df.to_dict('records')})
-                    st.write(selected_rows_df)
+                    try:
+                        selected_rows_df = pd.read_csv(uploaded_file)
+                        selected_rows = selected_rows_df.to_dict('records')
+                    except Exception as e:
+                        st.error(f"Error reading CSV: {e}")
+
             elif context_choice == "PG19":
                 try:
                     file_index = FT.create_file_index()
                     st.session_state.current_plan.update({"file_index": file_index})
-                    st.success("created file index")
-                except Exception as e:
-                    st.error(traceback.format_exc())
-                    logging.error(traceback.format_exc())
-                    st.error("Critical error, no file index, exiting")
-                    exit()
-                try:
+                    st.success("Created file index")
                     selected_rows = FT.fetch_pg19_metadata(number_of_context_files_to_process)
                     st.session_state.current_plan.update({"selected_rows": selected_rows})
                 except Exception as e:
-                    st.error(traceback.format_exc())
-                    logging.error(traceback.format_exc())
+                    st.error(f"Error fetching PG19 data: {e}")
 
-            with st.expander("Contexts selected", expanded=True):
-                    st.info(f"Selected_rows from {st.session_state.current_plan['context_choice']}")
-                    selected_rows_df = pd.DataFrame(st.session_state.current_plan['selected_rows'])
-                    st.dataframe(selected_rows_df)
-
-        # we will fetch full context files later in step 4
-    with st.form("Review Selected Titles"):
-        # fetch logic varies by data set
-
-        if 'approved_titles' not in st.session_state.current_plan:
-            st.session_state.current_plan['approved_titles'] = False
-
-        approved_titles = st.form_submit_button("Approve These Titles", disabled=False)
-        if approved_titles:
-            st.info("Displayed titles are approved for processing")
-            with st.expander("Contexts selected", expanded=True):
-                st.info(f"Selected_rows from {st.session_state.current_plan['context_choice']}")
-                selected_rows_df = pd.DataFrame(st.session_state.current_plan['selected_rows'])
-                df = st.data_editor(selected_rows_df)
-            st.session_state.current_plan.update({
-                "selected_rows": st.session_state.current_plan['selected_rows'],
-                "approved_titles": True,
-                "revised_rows": df.to_dict('records')
-            })
+            # --- Display and Edit Selected Rows ---
+            if selected_rows:
+                st.info("Selected Rows:")
+                selected_rows_df = pd.DataFrame(selected_rows)
+                st.dataframe(selected_rows_df)
+                st.session_state.current_plan.update({"confirmed_data_set": True})
+    #
+    # if confirmed_data_set:
+    #     if selected_rows:
+    #         if st.button("Approve Selected Rows"):
+    #             st.session_state.current_plan.update({"selected_rows": edited_df.to_dict('records')})
+    #             st.success("Rows approved! Proceed to Step 2.")
+    #
+    #         # --- Display Approved Rows ---
+    #         st.subheader("Approved Rows:")  # Add a header for clarity
+    #         st.dataframe(edited_df)  # Display the approved DataFrame
+    #     else:
+    #         st.warning("No rows selected or loaded.")
 
     # Step 2: Instructions and Prompts
     st.subheader("Step 2: Instructions and Prompts")
+
 
     with st.form("filter-system-instructions"):
         system_filter = st.text_input("Filter system instructions")
@@ -504,6 +494,9 @@ def prompts_plan_builder_ui(user_space: UserSpace):
     st.subheader("Step 4: Begin Building from Data Set")
 
     # show all keys in st.session_state.current_plan
+    st.write(st.session_state.current_plan.keys())
+    st.write(st.session_state.current_plan['skip_processed'])
+    st.write(st.session_state.current_plan['selected_rows'])
 
     if st.button(f"Build From Data Set {context_choice}"):  #
 
@@ -517,7 +510,8 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
         if st.session_state.current_plan['context_choice'] == "PG19":
             results = FT.fetch_pg19_data(skip_processed=st.session_state.current_plan['skip_processed'])
-            st.write(results)
+            st.write(f"length of results is {len(results)}")
+            # st.stop()
             if results:
                 # convert response list to markdown
                 for i, result_item in enumerate(results):
@@ -528,64 +522,51 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                 results_filename = f"result_{i + 1}_"
 
                 # markdown display
+            all_results_filename = datetime.now().strftime('%Y%m%d_%H%M%S')
+            st.success("All contexts processed.")
 
-                st.success("All contexts processed.")
+            markdown_content = ''
+            if isinstance(results, list):
+                st.info('is list')
+                for result in results:
+                    if isinstance(result, list):
+                        markdown_content += flatten_and_stringify(result)
+                    elif isinstance(result, str):
+                        markdown_content += result
+                    else:
+                        # Handle non-string results as needed (e.g., convert to string)
+                        markdown_content += str(result)
+            elif isinstance(results, str):
+                st.info('is str')
+                markdown_content = results
+            else:
+                st.error("Unexpected result type. Cannot generate Markdown.")
+            # Markdown download
+            st.write(markdown_content[0:100])
+            markdown_buffer = BytesIO(markdown_content.encode())
 
-                markdown_content = ''
-                if isinstance(results, list):
-                    for result in results:
-                        if isinstance(result, list):
-                            markdown_content += flatten_and_stringify(result)
-                        elif isinstance(result, str):
-                            markdown_content += result
-                        else:
-                            # Handle non-string results as needed (e.g., convert to string)
-                            markdown_content += str(result)
-                elif isinstance(results, str):
-                    markdown_content = results
-                else:
-                    st.error("Unexpected result type. Cannot generate Markdown.")
-                # Markdown download
-                markdown_buffer = BytesIO(markdown_content.encode())
+            @st.fragment()
+            def download_markdown(filename):
+                st.download_button(
+                    label=f"Download Markdown ({filename}.md)",
+                    data=markdown_buffer,
+                    file_name=f"{filename}.md",
+                    mime="text/markdown"
+                )
 
-                @st.fragment()
-                def download_markdown():
-                    st.download_button(
-                        label=f"Download Markdown ({results_filename}.md)",
-                        data=markdown_buffer,
-                        file_name=f"{results_filename}.md",
-                        mime="text/markdown"
-                    )
+            download_markdown(all_results_filename)
 
-                download_markdown()
+            @st.fragment()
+            def download_json(filename):
+                json_buffer = BytesIO(json.dumps(result, indent=4).encode())
+                st.download_button(
+                    label=f"Download JSON ({filename}.json)",
+                    data=json_buffer,
+                    file_name=f"{filename}.json",
+                    mime="application/json"
+                )
 
-                @st.fragment()
-                def download_json():
-                    json_buffer = BytesIO(json.dumps(result, indent=4).encode())
-                    st.download_button(
-                        label=f"Download JSON ({results_filename}.json)",
-                        data=json_buffer,
-                        file_name=f"{results_filename}.json",
-                        mime="application/json"
-                    )
-
-                download_json()
-
-                # try:
-                #     pdf_buffer = convert_to_pdf(markdown_content)
-                #
-                #     if pdf_buffer:
-                #         st.download_button(
-                #             label="Download PDF",
-                #             data=pdf_buffer,file_name="result.pdf",
-                #             mime="application/pdf"
-                #         )
-                # except ValueError as ve:
-                #     st.error(str(ve))
-                # except Exception as e:
-                #     st.error(f"An error occurred: {str(e)}")
-
-                # st.session_state.current_plan.update({"confirmed_data_set": False})
+            download_json(all_results_filename)
 
 
 
@@ -876,7 +857,7 @@ def run_streamlit_app():
         # Create pages using st.sidebar.selectbox
     page = st.sidebar.selectbox(
         "Select a page",
-        ["Create Build Plans", "Dataset of Codexes => New Dataset of Codexes", "Run Saved Plans", "UserSpace"],
+        ["Create Build Plans", "Dataset Explorer", "Run Saved Plans", "UserSpace"],
     )
     if page == "Create Build Plans":
         prompts_plan_builder_ui(user_space)
