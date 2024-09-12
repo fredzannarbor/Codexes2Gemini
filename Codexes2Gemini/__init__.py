@@ -30,8 +30,9 @@ ensure_directory_exists("resources")
 ensure_directory_exists("resources/data_tables")
 ensure_directory_exists("resources/data_tables/LSI")
 
-__version__ = "0.3.1.1"
+__version__ = "0.3.2.2"
 __announcements__ = """
+- Adds refactored User Upload widget to Dataset processing page. 
 - Introduces page for processing a dataset of codexes into another dataset of codexes created from the first set.  This page can be launched via the command line entrypoint dataset2gemini.
 - UserSpace page now shows all available objects.
 - Fixes various bugs, mostly related to session state management.
