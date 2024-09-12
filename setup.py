@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='Codexes2Gemini',
-    version='0.3.1.4',
+    version='0.3.2.2',
     python_requires='>=3.11',
     description='Humans and AIs making books richer, more diverse, and more surprising.',
     url='https://github.com/fredzannarbor/Codexes2Gemini',
@@ -16,9 +16,8 @@ setup(
     author='Fred_Zimmerman',
     author_email='wfz@nimblebooks.com',
     license='MIT',
-    package_dir={'': 'Codexes2Gemini'},  # Tell setuptools where your packages are rooted
-    packages=find_packages(where='Codexes2Gemini', exclude=['private']
-                           ),
+    package_dir={'': '.'},  # Tell setuptools where your packages are rooted
+    packages=find_packages(exclude=['dist', 'build', '*.egg-info', 'logs', 'data/pg19', 'private']),
     include_package_data=True,  # Include all data files found within your packages
     package_data={
         'Codexes2Gemini': ['*'],  # Include everything within the 'Codexes2Gemini' directory
