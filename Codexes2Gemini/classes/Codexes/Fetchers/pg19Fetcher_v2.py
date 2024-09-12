@@ -51,18 +51,24 @@ class PG19FetchAndTrack:
         return file_index
 
     def fetch_pg19_data(self, skip_processed):
-        """Fetches and processes PG19 data, tracking progress, and returns the results.
+        """Fetches PG19 data based on the provided metadata and processing options.
+
+        Args:
+            skip_processed (bool): Whether to skip already processed files.
 
         Returns:
-            list: A list of results from processing the selected contexts.
+            all_results list of results from processing the contexts.
         """
+
         all_results = []
         file_index = self.create_file_index()
+        st.write(st.session_state.current_plan["selected_rows"])
         if not st.session_state.current_plan["selected_rows"]:
-            selected_rows = self.fetch_pg19_metadata(self.number_of_context_files_to_process)
+            st.error("fetch_pg19_data did not receive any rows")
+            st.stop()
 
         for row in st.session_state.current_plan["selected_rows"]:
-            textfilename = row[0]
+            textfilename = row['textfilename']
 
             # Check if file is already processed and skip_processed is on
             if skip_processed and self.processed_df[self.processed_df['textfilename'] == textfilename][

@@ -22,7 +22,6 @@ import pypandoc
 import streamlit as st
 from docx import Document
 
-
 # print("Codexes2Gemini location:", Codexes2Gemini.__file__)
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -92,15 +91,12 @@ def load_image_file(file_name):
         return
 
 
-
-
 def get_binary_file_downloader_html(bin_file, file_label='File'):
     with open(bin_file, 'rb') as f:
         data = f.read()
     bin_str = base64.b64encode(data).decode()
     href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(bin_file)}">Download {file_label}</a>'
     return href
-
 
 
 def upload_build_plan():
@@ -157,6 +153,7 @@ def tokens_to_mb(tokens, bytes_per_token=4):
 
 def tokens_to_millions(tokens):
     return tokens / 1_000_000
+
 
 def read_file_content(file):
     file_name = file.name.lower()
@@ -295,7 +292,6 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         ```
         """
 
-
         logging.error(error_msg_pg19)
         st.error(error_msg_pg19)
         st.stop()
@@ -307,25 +303,42 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
     with st.form("Select Data Set"):
         context_choice = st.radio("Choose context source:", ["PG19", "User Upload"], index=0)
+        uploaded_file = st.file_uploader("Upload CSV file (PG19 format)", type=["csv"],
+                                         help="Will be ignored unless you choose Upload option.")
         number_of_context_files_to_process = st.number_input("Number of Context Files to Process (PG19 only)",
                                                              min_value=1, value=3,
                                                              disabled=(context_choice == "User Upload"))
         skip_processed = st.checkbox("Skip Already Processed Files (PG19 only)", value=True,
                                      disabled=(context_choice == "User Upload"))
         st.session_state.current_plan.update({"skip_processed": skip_processed})
+
         st.session_state.current_plan.update({"context_choice": context_choice})
         confirmed_data_set = st.form_submit_button("Confirm Data Set Selection")
+        st.session_state.current_plan.update({"number_of_context_files_to_process": number_of_context_files_to_process})
 
         # --- Data Selection and Approval ---
         if confirmed_data_set:
             selected_rows = []  # Initialize empty list for selected rows
 
             if context_choice == "User Upload":
-                uploaded_file = st.file_uploader("Upload CSV file (PG19 format)", type=["csv"])
                 if uploaded_file:
                     try:
-                        selected_rows_df = pd.read_csv(uploaded_file)
+                        selected_rows_df = pd.read_csv(uploaded_file, header=None,  # No header row
+                                                       names=['textfilename', 'Title', 'Publication Year', 'URI'],
+                                                       # Column names
+                                                       dtype={'textfilename': str, 'Title': str, 'URI': str},
+                                                       # Specify string types
+                                                       parse_dates=['Publication Year'],
+                                                       # Parse 'Publication Year' as datetime
+                                                       date_parser=lambda x: pd.to_datetime(x, format='%Y')
+                                                       # Specify year format
+                                                       )
+                        selected_rows_df = selected_rows_df.drop_duplicates()
+                        # take N random rows from df
+                        selected_rows_df = selected_rows_df.sample(n=number_of_context_files_to_process)
                         selected_rows = selected_rows_df.to_dict('records')
+
+
                     except Exception as e:
                         st.error(f"Error reading CSV: {e}")
 
@@ -335,16 +348,23 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                     st.session_state.current_plan.update({"file_index": file_index})
                     st.success("Created file index")
                     selected_rows = FT.fetch_pg19_metadata(number_of_context_files_to_process)
-                    st.session_state.current_plan.update({"selected_rows": selected_rows})
+                    st.write(selected_rows)
+                    selected_rows_df = pd.DataFrame(selected_rows,
+                                                    columns=['textfilename', 'Title', 'Publication Year', 'URI'])
+                    selected_rows_df['Publication Year'] = pd.to_datetime(selected_rows_df['Publication Year'],
+                                                                          format='%Y')
+                    selected_rows = selected_rows_df.to_dict('records')
+
                 except Exception as e:
                     st.error(f"Error fetching PG19 data: {e}")
 
             # --- Display and Edit Selected Rows ---
             if selected_rows:
                 st.info("Selected Rows:")
-                selected_rows_df = pd.DataFrame(selected_rows)
+
                 st.dataframe(selected_rows_df)
                 st.session_state.current_plan.update({"confirmed_data_set": True})
+                st.session_state.current_plan.update({"selected_rows": selected_rows})
     #
     # if confirmed_data_set:
     #     if selected_rows:
@@ -360,7 +380,6 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
     # Step 2: Instructions and Prompts
     st.subheader("Step 2: Instructions and Prompts")
-
 
     with st.form("filter-system-instructions"):
         system_filter = st.text_input("Filter system instructions")
@@ -426,7 +445,6 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             complete_user_prompt = "\n".join(selected_user_prompt_values)
 
         user_prompt_override_bool = user_prompt_override == "Override other user prompts"
-
 
         instructions_submitted = st.form_submit_button(
             "Save Instructions and Continue",
@@ -494,12 +512,12 @@ def prompts_plan_builder_ui(user_space: UserSpace):
     st.subheader("Step 4: Begin Building from Data Set")
 
     # show all keys in st.session_state.current_plan
-    st.write(st.session_state.current_plan.keys())
-    st.write(st.session_state.current_plan['skip_processed'])
-    st.write(st.session_state.current_plan['selected_rows'])
+    # st.write(st.session_state.current_plan.keys())
+    # st.write(st.session_state.current_plan['skip_processed'])
+    # st.write(st.session_state.current_plan['selected_rows'])
 
     if st.button(f"Build From Data Set {context_choice}"):  #
-
+        st.write(st.session_state.current_plan["selected_rows"])
         PP = PromptsPlan(
             name=st.session_state.current_plan['name'],
             require_json_output=st.session_state.current_plan.get('require_json_output', False),
@@ -508,70 +526,64 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             complete_system_instruction=st.session_state.current_plan['complete_system_instruction']
         )
 
-        if st.session_state.current_plan['context_choice'] == "PG19":
-            results = FT.fetch_pg19_data(skip_processed=st.session_state.current_plan['skip_processed'])
-            st.write(f"length of results is {len(results)}")
-            # st.stop()
-            if results:
-                # convert response list to markdown
-                for i, result_item in enumerate(results):
-                    st.markdown(f"**Result {i + 1}:**")
-                    display_nested_content(result_item)
+        results = FT.fetch_pg19_data(skip_processed=st.session_state.current_plan['skip_processed'])
+        st.write(f"length of results is {len(results)}")
+        # st.stop()
+        if results:
+            # convert response list to markdown
+            for i, result_item in enumerate(results):
+                st.markdown(f"**Result {i + 1}:**")
+                display_nested_content(result_item)
 
-                # for j, result in enumerate(result_list):
-                results_filename = f"result_{i + 1}_"
+            # for j, result in enumerate(result_list):
+            results_filename = f"result_{i + 1}_"
 
-                # markdown display
-            all_results_filename = datetime.now().strftime('%Y%m%d_%H%M%S')
-            st.success("All contexts processed.")
+            # markdown display
+        all_results_filename = datetime.now().strftime('%Y%m%d_%H%M%S')
+        st.success("All contexts processed.")
 
-            markdown_content = ''
-            if isinstance(results, list):
-                st.info('is list')
-                for result in results:
-                    if isinstance(result, list):
-                        markdown_content += flatten_and_stringify(result)
-                    elif isinstance(result, str):
-                        markdown_content += result
-                    else:
-                        # Handle non-string results as needed (e.g., convert to string)
-                        markdown_content += str(result)
-            elif isinstance(results, str):
-                st.info('is str')
-                markdown_content = results
-            else:
-                st.error("Unexpected result type. Cannot generate Markdown.")
-            # Markdown download
-            st.write(markdown_content[0:100])
-            markdown_buffer = BytesIO(markdown_content.encode())
+        markdown_content = ''
+        if isinstance(results, list):
+            # st.info('is list')
+            for result in results:
+                if isinstance(result, list):
+                    markdown_content += flatten_and_stringify(result)
+                elif isinstance(result, str):
+                    markdown_content += result
+                else:
+                    # Handle non-string results as needed (e.g., convert to string)
+                    markdown_content += str(result)
+        elif isinstance(results, str):
+            st.info('is str')
+            markdown_content = results
+        else:
+            st.error("Unexpected result type. Cannot generate Markdown.")
+        # Markdown download
+        # st.write(markdown_content[0:100])
+        markdown_buffer = BytesIO(markdown_content.encode())
 
-            @st.fragment()
-            def download_markdown(filename):
-                st.download_button(
-                    label=f"Download Markdown ({filename}.md)",
-                    data=markdown_buffer,
-                    file_name=f"{filename}.md",
-                    mime="text/markdown"
-                )
+        @st.fragment()
+        def download_markdown(filename):
+            st.download_button(
+                label=f"Download Markdown ({filename}.md)",
+                data=markdown_buffer,
+                file_name=f"{filename}.md",
+                mime="text/markdown"
+            )
 
-            download_markdown(all_results_filename)
+        download_markdown(all_results_filename)
 
-            @st.fragment()
-            def download_json(filename):
-                json_buffer = BytesIO(json.dumps(result, indent=4).encode())
-                st.download_button(
-                    label=f"Download JSON ({filename}.json)",
-                    data=json_buffer,
-                    file_name=f"{filename}.json",
-                    mime="application/json"
-                )
+        @st.fragment()
+        def download_json(filename):
+            json_buffer = BytesIO(json.dumps(results, indent=4).encode())
+            st.download_button(
+                label=f"Download JSON ({filename}.json)",
+                data=json_buffer,
+                file_name=f"{filename}.json",
+                mime="application/json"
+            )
 
-            download_json(all_results_filename)
-
-
-
-
-
+        download_json(all_results_filename)
 
 
 def truncate_plan_values_for_display(plan):
@@ -600,7 +612,6 @@ def display_image_row(cols, image_info):
                 <div class="caption">{info["caption"]}</div>
                 """
                 st.markdown(html_content, unsafe_allow_html=True)
-
 
 
 def display_full_context(context_files):
@@ -884,5 +895,7 @@ def flatten_and_stringify(data):
         return ''.join([flatten_and_stringify(item) for item in data])
     else:
         return str(data)
+
+
 if __name__ == "__main__":
     run_streamlit_app()
