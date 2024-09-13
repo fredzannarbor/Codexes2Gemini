@@ -244,6 +244,10 @@ def extract_text_from_json(data):
 
 def prompts_plan_builder_ui(user_space: UserSpace):
     st.header("Data Set Explorer")
+    # TODO handle cache fail more gracefully
+    # TODO results from context A are getting saved into results for context B
+    # TODO able to save prompt plan without context
+    # TODO
 
     if 'current_plan' not in st.session_state:
         st.session_state.current_plan = {
@@ -517,7 +521,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
     # st.write(st.session_state.current_plan['selected_rows'])
 
     if st.button(f"Build From Data Set {context_choice}"):  #
-        st.write(st.session_state.current_plan["selected_rows"])
+        # st.write(st.session_state.current_plan["selected_rows"])
         PP = PromptsPlan(
             name=st.session_state.current_plan['name'],
             require_json_output=st.session_state.current_plan.get('require_json_output', False),
@@ -533,11 +537,17 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             # convert response list to markdown
             for i, result_item in enumerate(results):
                 st.markdown(f"**Result {i + 1}:**")
-                display_nested_content(result_item)
-
+                # display_nested_content(result_item)
+                codexready = results2codex(results)
             # for j, result in enumerate(result_list):
-            results_filename = f"result_{i + 1}_"
-
+            # results_filename = f"result_{i + 1}_"
+            codexready_filename = f"codexready_{i + 1}_"
+            try:
+                with open(codexready_filename + ".md", "w") as f:
+                    f.write(codexready)
+                st.info(f"wrote codexready to {codexready_filename}")
+            except Exception as e:
+                st.error(traceback.format_exc)
             # markdown display
         all_results_filename = datetime.now().strftime('%Y%m%d_%H%M%S')
         st.success("All contexts processed.")
@@ -585,6 +595,68 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
         download_json(all_results_filename)
 
+
+def create_latex_preamble(gemini_title="TBD", gemini_subtitle="TBD", gemini_authors="TBD"):
+    # Create the YAML preamble string
+    yaml_preamble = f"""---
+title: "{gemini_title}"
+author: "{gemini_authors}"
+subtitle: "{gemini_subtitle}"
+header-includes:
+  - \\usepackage[paperwidth=4in, paperheight=6in, top=0.25in, bottom=0.25in, right=0.25in, left=0.5in, includehead, includefoot]{{geometry}} # 
+  - \\usepackage{{fancyhdr}}
+  - \\pagestyle{{fancy}}
+  - \\fancyhf{{}}
+  - \\fancyfoot[C]{{
+     \\thepage
+     }}
+  - \\usepackage{{longtable}} 
+  - \\pagenumbering{{arabic}}
+documentclass: book
+output: pdf_document
+fontsize: 10
+---
+
+"""
+    return yaml_preamble
+
+
+def results2codex(results):
+    """
+
+    Args:
+        results: json
+
+    Returns:
+        markdown file prepared for Codex building
+
+    """
+    codexready = ""
+    try:
+        # 1. Extract JSON from results[0]
+        for result_set in results:
+            # Assuming the first element of each result set is the JSON string
+            json_string = result_set[0]
+            json_data = json.loads(json_string)
+
+            # Extract values from JSON
+            gemini_title = json_data.get("gemini_title", "TBD")
+            gemini_subtitle = json_data.get("gemini_subtitle", "TBD")
+            gemini_authors = json_data.get("gemini_authors", "TBD")
+
+            # Create LaTeX preamble
+            latex_preamble = create_latex_preamble(gemini_title, gemini_subtitle, gemini_authors)
+
+            # Append preamble and remaining results
+            codexready += latex_preamble
+
+            for i in range(1, len(result_set)):
+                codexready += result_set[i] + "\n\n"
+    except Exception as e:
+        st.error(e)
+        st.error(traceback.format_exc())
+
+    return codexready
 
 def truncate_plan_values_for_display(plan):
     truncated_plan = plan.copy()
@@ -857,28 +929,32 @@ def run_streamlit_app():
     """)
     with st.expander("About", expanded=False):
         st.caption(f"Version {__version__}:  {__announcements__}")
-
+    st.write('made it')
     user_space = load_user_space()
+
 
     if not hasattr(user_space, 'prompts'):
         st.warning("Loaded UserSpace object is invalid. Creating a new UserSpace.")
         user_space = UserSpace()
         save_user_space(user_space)
-
+    try:
         # Create pages using st.sidebar.selectbox
-    page = st.sidebar.selectbox(
-        "Select a page",
-        ["Create Build Plans", "Dataset Explorer", "Run Saved Plans", "UserSpace"],
-    )
-    if page == "Create Build Plans":
-        prompts_plan_builder_ui(user_space)
-    elif page == "Run Saved Plans":
-        upload_build_plan()
-    elif page == "Multi-Context Processing":
-        multi_context_app = MCU(user_space)
-        multi_context_app.render()
-    elif page == "UserSpace":
-        user_space_app(user_space)
+        page = st.sidebar.selectbox(
+            "Select a page",
+            ["Create Build Plans", "Dataset Explorer", "Run Saved Plans", "UserSpace"],
+        )
+        if page == "Create Build Plans":
+            prompts_plan_builder_ui(user_space)
+        elif page == "Run Saved Plans":
+            upload_build_plan()
+        elif page == "Multi-Context Processing":
+            multi_context_app = MCU(user_space)
+            multi_context_app.render()
+        elif page == "UserSpace":
+            user_space_app(user_space)
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
+
 
 
 def main(port=1919, themebase="light"):
