@@ -49,6 +49,16 @@ user_space = load_user_space()
 GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
 
 
+# DONE - allow optional re-use of gutenberg ids
+# DONE - allow upload of CSV of selected rows
+# TODO - enable revised_rows = st.data_editor
+# TODO - create markdown LaTex prologue using ADEPT for 4 x 6 page
+# TODO - add 12 titles to file
+
+
+
+
+
 def image_to_base64(image_path):
     with open(image_path, "rb") as image_file:
         import base64
@@ -908,21 +918,7 @@ def run_streamlit_app():
         save_user_space(user_space)
 
         # Create pages using st.sidebar.selectbox
-    page = st.sidebar.selectbox(
-        "Select a page",
-        ["Create Build Plans", "Dataset of Codexes => New Dataset of Codexes", "Run Saved Plans", "UserSpace"],
-    )
-    if page == "Create Build Plans":
-        multiplan_builder(user_space)
-    elif page == "Dataset of Codexes => New Dataset of Codexes":
-        PPB(user_space)
-    elif page == "Run Saved Plans":
-        upload_build_plan()
-    # elif page == "Multi-Context Processing":
-    #     multi_context_app = MCU(user_space)
-    #     multi_context_app.render()
-    elif page == "UserSpace":
-        user_space_app(user_space)
+
 
 
 def main(port=1455, themebase="light"):
@@ -931,6 +927,31 @@ def main(port=1455, themebase="light"):
     import streamlit.web.cli as stcli
     stcli.main()
     configure_logger("DEBUG")
+    if "page" not in st.session_state:
+        st.session_state.page = "Create Build Plans"  # Default page
+
+    page_names = [
+        "Create Build Plans",
+        "Dataset of Codexes => New Dataset of Codexes",
+        "Run Saved Plans",
+        "UserSpace"
+    ]
+
+    st.sidebar.title("Navigation")
+    for page_name in page_names:
+        if st.sidebar.button(page_name):
+            st.session_state.page = page_name
+            st.experimental_rerun()  # Force page reload
+
+    # --- Page Content ---
+    if st.session_state.page == "Create Build Plans":
+        multiplan_builder(user_space)
+    elif st.session_state.page == "Dataset of Codexes => New Dataset of Codexes":
+        PPB(user_space)
+    elif st.session_state.page == "Run Saved Plans":
+        upload_build_plan()
+    elif st.session_state.page == "UserSpace":
+        user_space_app(user_space)
 
 
 if __name__ == "__main__":
