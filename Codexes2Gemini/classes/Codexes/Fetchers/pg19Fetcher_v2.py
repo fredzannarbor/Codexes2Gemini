@@ -62,7 +62,7 @@ class PG19FetchAndTrack:
 
         all_results = []
         file_index = self.create_file_index()
-        st.write(st.session_state.current_plan["selected_rows"])
+        # st.write(st.session_state.current_plan["selected_rows"])
         if not st.session_state.current_plan["selected_rows"]:
             st.error("fetch_pg19_data did not receive any rows")
             st.stop()

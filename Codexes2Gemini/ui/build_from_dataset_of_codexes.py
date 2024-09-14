@@ -658,6 +658,29 @@ def results2codex(results):
 
     return codexready
 
+
+def create_imprint_mission_statement(imprint_name):
+    if imprint_name.lower() == "collapsar":
+        imprint_mission_statement = """
+        
+        Collapsar Classics, inspired by the centuries-long popularity of abridgments with readers and the astronomcal marvel of two stars combining into a collapsar, provides condensed reading experiences that distill the essence of each work into an engaging and convenient new format. 
+        
+        Collapsar books have the following parameters:
+ 
+        - 4" x 6" trim size on high-quality 70-lb paper
+        - approximately 350 words per page
+        - 36 to 60 pages per book
+        - 10,000 - 20,000 words, or 13,000 - 26,000 tokens.
+        
+    
+        "Parts of the book" include humorous and candid Truth in Publishing(tm) disclosures; several different types of abstracts; experimental "image gisting"; learning aids, including mnemonics; a selection of the most important passages in their original wording; a few sample pages from the original book; glossaries for lay and modern readers; several types of indexes; and a specially written "condensed matter" section that captures the spirit and words of the original in a compressed volume.  Every word is reviewed and edited by a highly literate and knowledgeable human.
+        
+        With Collapsar Classics, you can rediscover the joy of reading—condensed, yet complete. Our meticulous approach ensures every word serves a purpose, whether it's a witty "Truth in Publishing" disclosure, a striking "image gist," or a carefully curated selection of original text. We bring the past alive in a way that's both engaging and insightful, leaving you with a deeper understanding of the book and a desire to explore more.
+                
+        """
+
+        return imprint_mission_statement
+
 def truncate_plan_values_for_display(plan):
     truncated_plan = plan.copy()
     truncated_plan['context'] = truncated_plan['context'][:500] + "..." if len(
