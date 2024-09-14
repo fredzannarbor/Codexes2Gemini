@@ -952,7 +952,7 @@ def run_streamlit_app():
     """)
     with st.expander("About", expanded=False):
         st.caption(f"Version {__version__}:  {__announcements__}")
-    st.write('made it')
+
     user_space = load_user_space()
 
 
