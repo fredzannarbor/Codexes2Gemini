@@ -70,7 +70,7 @@ git clone https://github.com/google-deepmind/pg19.git`
 
 You can use the library to write your own Python scripts.
 
-The file [quickstart.py](Codexes2Gemini/documentation/quickstart.py) contains simple illustrations of two ways you can
+The file [quickstart.py](documentation/quickstart.py) contains simple illustrations of two ways you can
 call the C2G classes in a Python script.
 
 1.  Pass arguments in dictionary format to the appropriate Builder classes.

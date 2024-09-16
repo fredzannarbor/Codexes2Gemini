@@ -461,10 +461,19 @@ def main(headless, bookjsonfilepath, outputfilepath):
 
     scribus.setActiveLayer("Background")
     # if headless:
-    scribus.selectObject("Group4")
-    scribus.sendToLayer("ISBN")
+
     scribus.deselectAll()
-    # scribus.unGroupObject("Group8")
+    # Get all objects on the current page
+    all_objects = scribus.getAllObjects()
+
+    # Print the names of the objects
+    for obj in all_objects:
+        print(obj)
+    if not headless:
+        scribus.selectObject("Group4")
+        scribus.sendToLayer("ISBN")
+        scribus.deselectAll()
+        # scribus.unGroupObject("Group8")
     scribus.createRect(canvaswidth - textsafety - trimsizewidth - spinewidth - 2.25, trimsizeheight - 1.5, 2.25, 1.5,
                        "UnderISBN")
     scribus.setFillColor("White", "UnderISBN")
@@ -528,7 +537,7 @@ def main(headless, bookjsonfilepath, outputfilepath):
 
 if __name__ == "__main__":
     ##     os.makedirs("output/bookcovers")
-    print('--- Entering lsicover.py ---')
+    print('--- Entering lsicover.py in Codexes2Gemini---')
     # if not os.path.exists("output/bookcovers"):
     #    os.makedirs("output/bookcovers")
 

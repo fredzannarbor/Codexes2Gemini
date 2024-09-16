@@ -155,7 +155,7 @@ class UserSelfServe:
             # Log level
             log_level = st.selectbox("Log level", ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
 
-        user_prompts_dict_file_path = resources.files('Codexes2Gemini.resources.prompts').joinpath("user_prompts_dict.json")
+        user_prompts_dict_file_path = resources.files('resources.prompts').joinpath("user_prompts_dict.json")
         if st.button("Run BuildLauncher"):
             result = run_build_launcher(selected_user_prompts, selected_system_instructions, user_prompt,
                                         context_files, mode, thisdoc_dir, output_file, limit,

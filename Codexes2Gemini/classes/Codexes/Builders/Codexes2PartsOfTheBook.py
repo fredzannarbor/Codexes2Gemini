@@ -6,6 +6,7 @@ import os
 import traceback
 import uuid
 from importlib import resources
+from os.path import basename
 from time import sleep
 from typing import List
 
@@ -13,6 +14,7 @@ import google.generativeai as genai
 import pandas as pd
 import streamlit as st
 from google.generativeai import caching
+
 
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 from ..Builders.PromptGroups import PromptGroups
@@ -67,12 +69,17 @@ class Codexes2Parts:
             {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
             {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
         ]
-        self.system_instructions_dict_file_path = resources.files('Codexes2Gemini.resources.prompts').joinpath(
-            "system_instructions.json")
+        self.system_instructions_dict_file_name = "system_instructions.json"
         self.continuation_instruction = "The context now includes a section beginning {Work So Far} which includes your work on this book project so far. Your task is to continue where you left off and write the next part of the project. You are not expected to finish the whole project now. Your writing for this task should be at the same level of detail as each individul section of the context. Try to write AT MINIMUM 2000 WORDS in this response.  Remember, do NOT try to complete the entire project all at once. Your priority is doing a thorough job on the current section. However, only once the project as a whole is COMPLETELY finished, with all requirements satisfied, write IAMDONE."
         self.results = []
         self.add_system_prompt = ""
         self.complete_system_instruction = ""
+
+        self.system_instructions_dict_file_path = resources.files('resources.prompts').joinpath(
+            self.system_instructions_dict_file_name)
+
+        if not self.system_instructions_dict_file_path.exists():
+            self.system_instructions_dict_file_path = "resources/prompts"
 
     def configure_api(self):
         api_key = os.getenv("GOOGLE_API_KEY")
@@ -368,6 +375,11 @@ class Codexes2Parts:
         if plan.complete_system_instruction:
             system_prompt = plan.complete_system_instruction
         else:
+            st.write(self.system_instructions_dict_file_path)
+            systems_instructions_dict_file_path = self.system_instructions_dict_file_path
+            # systems_instruction_dict_file_name = basename(systems_instructions_dict_file_path)
+            if not systems_instructions_dict_file_path.exists():
+                systems_instructions_dict_file_path = f"resources/prompts/{self.system_instructions_dict_file_name}"
             with open(self.system_instructions_dict_file_path, "r") as json_file:
                 system_instruction_dict = json.load(json_file)
 
@@ -436,7 +448,7 @@ def parse_arguments():
     parser.add_argument('--user_prompt', default='', help="User prompt")
     parser.add_argument('--user_prompt_override', action='store_true', help="Override user prompts from dictionary")
     parser.add_argument('--user_prompts_dict_file_path',
-                        default=resources.files('Codexes2Gemini.resources.prompts').joinpath("user_prompts_dict.json"),
+                        default=resources.files('resources.prompts').joinpath("user_prompts_dict.json"),
                         help="Path to user prompts dictionary file")
     parser.add_argument('--list_of_user_keys_to_use', default="semantic_analysis,core_audience_attributes",
                         help="Comma-separated list of user keys to use")

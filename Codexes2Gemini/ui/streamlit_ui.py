@@ -19,8 +19,6 @@ import pypandoc
 import streamlit as st
 from docx import Document
 
-#print("Codexes2Gemini location:", Codexes2Gemini.__file__)
-
 current_dir = os.path.dirname(os.path.abspath(__file__))
 # Get the parent directory
 parent_dir = os.path.dirname(current_dir)
@@ -78,8 +76,13 @@ def load_json(file_path: str) -> dict:
 
 
 def load_json_file(file_name):
+    # construct path the right way
+    prompts_resource_path = resources.files('resources.prompts').joinpath(file_name)
+    if not prompts_resource_path.exists():
+        prompts_resource_path = resources.files('resources.prompts').joinpath(file_name)
     try:
-        with resources.files('Codexes2Gemini.resources.prompts').joinpath(file_name).open('r') as file:
+        with prompts_resource_path.open('r') as file:
+            # st.info("loaded prompts from source directory")
             return json.load(file)
     except Exception as e:
         st.error(f"Error loading JSON file: {e}")
@@ -91,15 +94,22 @@ def load_image_file(file_name):
         with resources.files('resources.images').joinpath(file_name).open('rb') as file:
             return file.read()
     except Exception as e:
+        with open(f"resources/images/{file_name}", "r") as file:
+            return file.read()
+    except Exception as e:
         st.error(f"Error loading image file: {e}")
         return
 
 def load_json_carousel_file(file_name):
     try:
-        with resources.files('Codexes2Gemini.resources.images').joinpath(file_name).open('r') as file:
+        with resources.files('resources.images').joinpath(file_name).open('r') as file:
             return json.load(file)
     except Exception as e:
-        st.error(f"Error loading JSON file: {e}")
+        with open(f"resources/images/{file_name}", "r") as file:
+            # st.info("loaded images from source directory")
+            return json.load(file)
+    except Exception as e:
+        st.error(f"Error loading image file: {e}")
         return {}
 
 
@@ -536,11 +546,18 @@ def truncate_plan_values_for_display(plan):
 
 def display_image_row(cols, image_info):
     for col, info in zip(cols, image_info):
+        #st.write(image_info)
         with col:
             image_extension = os.path.splitext(info["path"])[1][1:].lower()
             # Correctly construct the resource path
-            image_resource_path = resources.files('Codexes2Gemini.resources.images').joinpath(
+
+            image_resource_path = resources.files('resources.images').joinpath(
                 os.path.basename(info["path"]))
+            # check if it exists
+            if not image_resource_path.exists():
+                image_resource_path = resources.files('resources.images').joinpath(
+                    os.path.basename(info["path"]))
+            #st.write(image_resource_path)
             with open(image_resource_path, 'rb') as image_file:
                 encoded_image = base64.b64encode(image_file.read()).decode()
                 html_content = f"""
@@ -803,10 +820,11 @@ def user_space_app(user_space: UserSpace):
         username = "self"
         for i, plan in enumerate(user_space.prompt_plans):
             row = st.columns(2)
-            with open(f"userspaces/{username}/prompt_plan_{i}.json", "w") as f:
+            with open(f"user_data/{username}/prompt_plan_{i}.json", "w") as f:
                 json.dump(plan, f)
             row[0].json(plan, expanded=False)
-            row[1].markdown(get_binary_file_downloader_html(f"userspaces/{username}/prompt_plan_{i}.json", f"Prompt Plan {i + 1}"),
+            row[1].markdown(
+                get_binary_file_downloader_html(f"user_data/{username}/prompt_plan_{i}.json", f"Prompt Plan {i + 1}"),
                             unsafe_allow_html=True)
         if st.button("Clear All Prompt Plans"):
             user_space.prompt_plans = []
@@ -911,14 +929,28 @@ def run_streamlit_app():
         st.caption(f"Version {__version__}:  {__announcements__}")
 
     user_space = load_user_space()
-
+    # ensure_availability_of_required_resources()
     if not hasattr(user_space, 'prompts'):
         st.warning("Loaded UserSpace object is invalid. Creating a new UserSpace.")
         user_space = UserSpace()
         save_user_space(user_space)
 
         # Create pages using st.sidebar.selectbox
-
+    page = st.sidebar.selectbox(
+        "Select a page",
+        ["Create Build Plans", "Dataset of Codexes => New Dataset of Codexes", "Run Saved Plans", "UserSpace"],
+    )
+    if page == "Create Build Plans":
+        multiplan_builder(user_space)
+    elif page == "Dataset of Codexes => New Dataset of Codexes":
+        PPB(user_space)
+    elif page == "Run Saved Plans":
+        upload_build_plan()
+    # elif page == "Multi-Context Processing":
+    #     multi_context_app = MCU(user_space)
+    #     multi_context_app.render()
+    elif page == "UserSpace":
+        user_space_app(user_space)
 
 
 def main(port=1455, themebase="light"):
@@ -927,31 +959,6 @@ def main(port=1455, themebase="light"):
     import streamlit.web.cli as stcli
     stcli.main()
     configure_logger("DEBUG")
-    if "page" not in st.session_state:
-        st.session_state.page = "Create Build Plans"  # Default page
-
-    page_names = [
-        "Create Build Plans",
-        "Dataset of Codexes => New Dataset of Codexes",
-        "Run Saved Plans",
-        "UserSpace"
-    ]
-
-    st.sidebar.title("Navigation")
-    for page_name in page_names:
-        if st.sidebar.button(page_name):
-            st.session_state.page = page_name
-            st.experimental_rerun()  # Force page reload
-
-    # --- Page Content ---
-    if st.session_state.page == "Create Build Plans":
-        multiplan_builder(user_space)
-    elif st.session_state.page == "Dataset of Codexes => New Dataset of Codexes":
-        PPB(user_space)
-    elif st.session_state.page == "Run Saved Plans":
-        upload_build_plan()
-    elif st.session_state.page == "UserSpace":
-        user_space_app(user_space)
 
 
 if __name__ == "__main__":

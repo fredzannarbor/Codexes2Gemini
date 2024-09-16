@@ -233,7 +233,7 @@ class PromptGroups:
     # def load_json_file(self, file_name):
     #     try:
     #         # Use the imported load_json function
-    #         return load_json(os.path.join(resources.files('Codexes2Gemini.resources.prompts'), file_name))
+    #         return load_json(os.path.join(resources.files('resources.prompts'), file_name))
     #     except Exception as e:
     #         st.error(f"Error loading JSON file: {e}")
     #         return {}

@@ -75,7 +75,7 @@ def load_json(file_path: str) -> dict:
 
 def load_json_file(file_name):
     try:
-        with resources.files('Codexes2Gemini.resources.prompts').joinpath(file_name).open('r') as file:
+        with resources.files('resources.prompts').joinpath(file_name).open('r') as file:
             return json.load(file)
     except Exception as e:
         st.error(f"Error loading JSON file: {e}")
@@ -844,11 +844,11 @@ def user_space_app(user_space: UserSpace):
         username = "self"
         for i, plan in enumerate(user_space.prompt_plans):
             row = st.columns(2)
-            with open(f"userspaces/{username}/prompt_plan_{i}.json", "w") as f:
+            with open(f"user_data/{username}/prompt_plan_{i}.json", "w") as f:
                 json.dump(plan, f)
             row[0].json(plan, expanded=False)
             row[1].markdown(
-                get_binary_file_downloader_html(f"userspaces/{username}/prompt_plan_{i}.json", f"Prompt Plan {i + 1}"),
+                get_binary_file_downloader_html(f"user_data/{username}/prompt_plan_{i}.json", f"Prompt Plan {i + 1}"),
                 unsafe_allow_html=True)
         if st.button("Clear All Prompt Plans"):
             user_space.prompt_plans = []

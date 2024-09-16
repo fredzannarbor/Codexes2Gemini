@@ -5,7 +5,7 @@ import subprocess
 import traceback
 
 
-def process_bookjson_files(directory, coverfiles, max=2):
+def process_bookjson_files(directory, coverfiles, max=2, headless=False):
     """Process .json files in a directory to generate .sla files."""
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -25,7 +25,14 @@ def process_bookjson_files(directory, coverfiles, max=2):
             try:
                 print(f'reading {filename}'.format(filename=filename))
                 print(f'writing sla_filepath {sla_filepath}')
-                command = f'/Applications/Scribus15xNightly.app/Contents/MacOS/Scribus -g -py ~/bookpublishergpt/classes/Codexes/PartsOfTheBook/Covers/lsicover.py --headless -i="{bookjsonfilepath}" --outputfilepath="{sla_filepath}"'
+                if headless:
+                    command = (
+                        f'/Applications/Scribus15xNightly.app/Contents/MacOS/Scribus -g -py '
+                        f'classes/Codexes/PartsOfTheBook/Covers/lsicover.py '
+                        f'--headless -i="{bookjsonfilepath}" --outputfilepath="{sla_filepath}"'
+                    )
+                else:
+                    print("exiting, headless is False")
                 subprocess.run(command, shell=True)
                 count += 1
 
@@ -44,13 +51,15 @@ def main():
     parser.add_argument('-i', '--input', type=str, required=True, help="Input directory containing book.json files")
     parser.add_argument('-o', '--output', type=str, required=True, help="Output directory for cover files")
     parser.add_argument('--max-files', type=int, required=True, help="Maximum number of files to process", default=2)
-    args = parser.parse_args()
+    parser.add_argument('--headless', dest='headless', action='store_true', help='Run in headless mode')
 
+    args = parser.parse_args()
+    print("--- Beginning MultipleCoverBuilder ---")
     print("Processing book JSON files to generate SLA")
     print(f"input directory: {args.input}")
     print(f"output directory: {args.output}")
 
-    process_bookjson_files(args.input, args.output, args.max_files)
+    process_bookjson_files(args.input, args.output, args.max_files, args.headless)
 
 
 if __name__ == "__main__":

@@ -12,7 +12,7 @@ def filter_dict(dictionary, filter_text):
 
 def load_json_file(file_name):
     try:
-        with resources.files('Codexes2Gemini.resources.prompts').joinpath(file_name).open('r') as file:
+        with resources.files('resources.prompts').joinpath(file_name).open('r') as file:
             return json.load(file)
     except Exception as e:
         st.error(f"Error loading JSON file: {e}")

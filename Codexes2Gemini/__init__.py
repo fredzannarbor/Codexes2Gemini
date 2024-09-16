@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 # Get the parent directory
@@ -13,28 +14,43 @@ sys.path.append(parent_dir)
 sys.path.append(grandparent_dir)
 
 
-def ensure_directory_exists(directory_path):
-    """Ensures that a directory exists, creating it if necessary."""
-    if not os.path.exists(directory_path):
-        os.makedirs(directory_path)
+def ensure_directory_exists(directory_name):
+    """Ensures a directory exists, handling package installation and source code execution.
+
+    Args:
+        directory_name: The name of the directory to create.
+    """
+
+    try:
+        # Try to get the package installation directory
+        base_dir = Path(__file__).resolve().parent.parent / ".codexes2gemini"
+    except NameError:
+        # If __file__ is not defined (running from source), use the project root
+        base_dir = Path(__file__).resolve().parent.parent / "Codexes2Gemini"
+
+    target_dir = base_dir / directory_name
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    return target_dir
 
 
+# Example usage:
+data_dir = ensure_directory_exists("data")
+logs_dir = ensure_directory_exists("logs")
 # Create the output directory
-ensure_directory_exists("~/.codexes2gemini")
+
 ensure_directory_exists("output")
 ensure_directory_exists("output/c2g")
+ensure_directory_exists("output/collapsar")
 ensure_directory_exists("logs")
-ensure_directory_exists("userspaces")
-ensure_directory_exists("userspaces/self")
+ensure_directory_exists("user_data")
+ensure_directory_exists("user_data/self")
 ensure_directory_exists("resources")
 ensure_directory_exists("resources/data_tables")
 ensure_directory_exists("resources/data_tables/LSI")
+ensure_directory_exists("processed_data")
 
-__version__ = "0.3.2.2"
+__version__ = "0.3.5.0"
 __announcements__ = """
-- Adds refactored User Upload widget to Dataset processing page. 
-- Introduces page for processing a dataset of codexes into another dataset of codexes created from the first set.  This page can be launched via the command line entrypoint dataset2gemini.
-- UserSpace page now shows all available objects.
-- Fixes various bugs, mostly related to session state management.
-- Fixes error in setup.py that prevented correct installation.
+- Significant, breaking clean-up of directory structure in repo.
 """

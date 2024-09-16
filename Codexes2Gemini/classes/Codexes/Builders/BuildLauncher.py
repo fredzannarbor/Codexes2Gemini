@@ -88,7 +88,7 @@ class BuildLauncher:
         dictionaries = ['user_prompts_dict.json', 'system_instructions_dict.json']
         for file_name in dictionaries:
             try:
-                with resources.files('Codexes2Gemini.resources.prompts').joinpath(file_name).open('r') as file:
+                with resources.files('resources.prompts').joinpath(file_name).open('r') as file:
                     return json.load(file)
             except Exception as e:
                 logging.error(f"Error loading JSON file {file_name}: {e}")
