@@ -8,6 +8,7 @@ import sys
 import pandas as pd
 import pip
 from rich.console import Console
+from Codexes2Gemini import ensure_directory_exists
 
 console = Console(record=True)
 
@@ -62,25 +63,6 @@ def where_am_I_running_to_string(modulename, functionname):
     return f"{modulename}:{functionname}"
 
 
-def create_app_log_directory(dir_path):
-    """
-    Creates a directory for application logs in the user's home directory.
-
-    Args:
-        dir_path (str): The path to the directory to create.
-
-    Returns:
-        str: The absolute path to the created directory.
-    """
-    home_dir = os.path.expanduser("~")
-    dir_path = os.path.join(home_dir, ".codexes2gemini", dir_path)
-    # print(dir_path)
-    if not os.path.exists(dir_path):
-        os.makedirs(dir_path)
-        logging.warning(f'Logging directory {dir_path} created.')
-    else:
-        logging.info(f'Directory {dir_path} already exists.')
-    return dir_path
 
 def configure_logger(log_level):
     """
@@ -98,7 +80,7 @@ def configure_logger(log_level):
         logging.Logger: The configured logger object.
     """
     # create log directory in user's home directory
-    logdir_path = create_app_log_directory("logs")
+    logdir_path = ensure_directory_exists("logs")
 
 
     # Create logger object
