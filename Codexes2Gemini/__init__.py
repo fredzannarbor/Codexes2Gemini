@@ -33,12 +33,6 @@ def ensure_directory_exists(directory_name):
 
     return target_dir
 
-
-# Example usage:
-data_dir = ensure_directory_exists("data")
-logs_dir = ensure_directory_exists("logs")
-# Create the output directory
-
 ensure_directory_exists("output")
 ensure_directory_exists("output/c2g")
 ensure_directory_exists("output/collapsar")
@@ -50,7 +44,9 @@ ensure_directory_exists("resources/data_tables")
 ensure_directory_exists("resources/data_tables/LSI")
 ensure_directory_exists("processed_data")
 
-__version__ = "0.3.5.0"
+__version__ = "0.3.5.4"
 __announcements__ = """
+- Uses explicit package listings in setup.py as workaround to problem.
+- Fixes error in document assembly.
 - Significant, breaking clean-up of directory structure in repo.
 """
