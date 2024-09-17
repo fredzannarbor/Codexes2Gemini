@@ -160,7 +160,7 @@ class PG19FetchAndTrack:
                     'processing_date': datetime.now().isoformat(),
                     'results': results
                 }, f, indent=4)
-            st.info(f"Successfully saved file to JSON at {output_json_path}")
+
             logging.info(f"Successfully saved file to JSON at {output_json_path}")
         except Exception as e:
             print(f"Error saving results to JSON: {traceback.format_exc()}")
@@ -181,8 +181,8 @@ class PG19FetchAndTrack:
                     f.write(results)
                 else:
                     f.write(str(results))
-            st.info(f"Successfully saved file to JSON at {output_markdown_path}")
-            logging.info(f"Successfully saved file to JSON at {output_markdown_path}")
+
+            logging.info(f"Successfully saved file to markdown at {output_markdown_path}")
         except Exception as e:
             print(f"Error saving results to Markdown: {traceback.format_exc()}")
             st.error(f"Error saving results to Markdown: {traceback.format_exc()}")

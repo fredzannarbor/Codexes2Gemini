@@ -278,11 +278,11 @@ def prompts_plan_builder_ui(user_space: UserSpace):
     # selected_rows = pd.read_csv("resources/data_tables/collapsar/sample_row.csv")
     # st.session_state.current_plan.update({"selected_rows": selected_rows.to_dict('records')})
 
-    METADATA_FILE = "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/data/pg19/metadata.csv"
+    METADATA_FILE = "data/pg19/metadata.csv"
     DATA_DIRS = [
-        "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/data/pg19/test/test",
-        "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/data/pg19/train/train",
-        "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/data/pg19/validation/validation",
+        "data/pg19/test/test",
+        "data/pg19/train/train",
+        "data/pg19/validation/validation",
     ]
 
     # check if PG19 is available
@@ -537,17 +537,15 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             # convert response list to markdown
             for i, result_item in enumerate(results):
                 st.markdown(f"**Result {i + 1}:**")
-                # display_nested_content(result_item)
-                codexready = results2codex(results)
-            # for j, result in enumerate(result_list):
-            # results_filename = f"result_{i + 1}_"
-            codexready_filename = f"codexready_{i + 1}_"
-            try:
-                with open(codexready_filename + ".md", "w") as f:
-                    f.write(codexready)
-                st.info(f"wrote codexready to {codexready_filename}")
-            except Exception as e:
-                st.error(traceback.format_exc)
+                display_nested_content(result_item)
+                codexready = results2assembled_pandoc_markdown_with_latex(results)
+                codexready_filename = f"output/codexready_{i + 1}_"
+                try:
+                    with open(codexready_filename + ".md", "w") as f:
+                        f.write(codexready)
+                    st.info(f"wrote codexready to {codexready_filename}")
+                except Exception as e:
+                    st.error(traceback.format_exc)
             # markdown display
         all_results_filename = datetime.now().strftime('%Y%m%d_%H%M%S')
         st.success("All contexts processed.")
@@ -621,42 +619,56 @@ fontsize: 10
     return yaml_preamble
 
 
-def results2codex(results):
+def results2assembled_pandoc_markdown_with_latex(results):
     """
 
     Args:
-        results: json
+        results: is a list of lists
 
     Returns:
         markdown file prepared for Codex building
 
     """
-    codexready = ""
+
     try:
         # 1. Extract JSON from results[0]
+
+        if not isinstance(results, list):
+            st.warning("results is not a list")
+
+        assembled_pandoc_markdown_with_latex = ""
+
         for result_set in results:
-            # Assuming the first element of each result set is the JSON string
+
             json_string = result_set[0]
-            json_data = json.loads(json_string)
+            # check if json_string is json
+            try:
+                json_data = json.loads(json_string)
+            except Exception as e:
+                st.error("Can't extract json data from result")
+                st.error(traceback.format_exc())
+                break
 
-            # Extract values from JSON
-            gemini_title = json_data.get("gemini_title", "TBD")
-            gemini_subtitle = json_data.get("gemini_subtitle", "TBD")
-            gemini_authors = json_data.get("gemini_authors", "TBD")
+            # check if this is a basic info result
+            if "gemini_title" or "gemini_authors" in json_string:
+                # Extract values from JSON
+                gemini_title = json_data.get("gemini_title", "TBD")
+                gemini_subtitle = json_data.get("gemini_subtitle", "TBD")
+                gemini_authors = json_data.get("gemini_authors", "TBD")
 
-            # Create LaTeX preamble
-            latex_preamble = create_latex_preamble(gemini_title, gemini_subtitle, gemini_authors)
+                # Create LaTeX preamble
+                latex_preamble = create_latex_preamble(gemini_title, gemini_subtitle, gemini_authors)
 
             # Append preamble and remaining results
-            codexready += latex_preamble
+            assembled_pandoc_markdown_with_latex += latex_preamble
 
             for i in range(1, len(result_set)):
-                codexready += result_set[i] + "\n\n"
+                assembled_pandoc_markdown_with_latex += result_set[i] + "\n\n"
     except Exception as e:
         st.error(e)
         st.error(traceback.format_exc())
 
-    return codexready
+    return assembled_pandoc_markdown_with_latex
 
 
 def create_imprint_mission_statement(imprint_name):

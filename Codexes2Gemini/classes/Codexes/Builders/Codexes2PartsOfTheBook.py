@@ -122,7 +122,7 @@ class Codexes2Parts:
         return response_dict
 
     def process_codex_to_book_part(self, plan: PromptGroups):
-
+        # status_display = st.empty()
         self.logger.debug(f"Starting process_codex_to_book_part with plan: {plan}")
         self.make_thisdoc_dir(plan)
         context = self.read_and_prepare_context(plan)
