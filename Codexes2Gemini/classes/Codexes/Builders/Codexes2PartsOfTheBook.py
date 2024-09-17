@@ -207,7 +207,7 @@ class Codexes2Parts:
                 self.logger.warning("No satisfactory results were generated.")
                 satisfactory_results = "No satisfactory results were generated."
                 st.warning("No satisfactory results were generated.")
-            st.info(f"processed prompt {i + 1}")
+        # st.info(f"processed prompt {i + 1}")
         return satisfactory_results
 
     def create_cache_from_context(self, context):
@@ -269,7 +269,7 @@ class Codexes2Parts:
                 full_output_tokens = self.count_tokens(full_output)
                 context += response.text
 
-            st.info(f"processed prompt {i + 1}")
+            # st.info(f"processed prompt {i + 1}")
             if 'IAMDONE' in full_output:
                 break
         st.info("found IAMDONE")

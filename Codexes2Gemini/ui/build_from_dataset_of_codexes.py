@@ -531,22 +531,17 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         )
 
         results = FT.fetch_pg19_data(skip_processed=st.session_state.current_plan['skip_processed'])
-        st.write(f"length of results is {len(results)}")
-        # st.stop()
+
         if results:
-            # convert response list to markdown
-            for i, result_item in enumerate(results):
-                st.markdown(f"**Result {i + 1}:**")
-                display_nested_content(result_item)
-                codexready = results2assembled_pandoc_markdown_with_latex(results)
+            assembled_documents = results2assembled_pandoc_markdown_with_latex(results)
+            for i, document_content in enumerate(assembled_documents):
                 codexready_filename = f"output/codexready_{i + 1}_"
                 try:
                     with open(codexready_filename + ".md", "w") as f:
-                        f.write(codexready)
+                        f.write(document_content)
                     st.info(f"wrote codexready to {codexready_filename}")
                 except Exception as e:
                     st.error(traceback.format_exc)
-            # markdown display
         all_results_filename = datetime.now().strftime('%Y%m%d_%H%M%S')
         st.success("All contexts processed.")
 
@@ -621,24 +616,24 @@ fontsize: 10
 
 def results2assembled_pandoc_markdown_with_latex(results):
     """
+    Assembles results into separate Pandoc Markdown documents with LaTeX preambles.
 
     Args:
-        results: is a list of lists
+        results: A list of lists, where each inner list represents a document's results.
 
     Returns:
-        markdown file prepared for Codex building
-
+        A list of strings, each representing a complete Pandoc Markdown document.
     """
 
-    try:
-        # 1. Extract JSON from results[0]
+    assembled_documents = []  # List to store complete documents
 
+    try:
         if not isinstance(results, list):
             st.warning("results is not a list")
-
-        assembled_pandoc_markdown_with_latex = ""
+            return []
 
         for result_set in results:
+            assembled_pandoc_markdown_with_latex = ""  # Initialize for each document
 
             json_string = result_set[0]
             # check if json_string is json
@@ -647,7 +642,7 @@ def results2assembled_pandoc_markdown_with_latex(results):
             except Exception as e:
                 st.error("Can't extract json data from result")
                 st.error(traceback.format_exc())
-                break
+                continue
 
             # check if this is a basic info result
             if "gemini_title" or "gemini_authors" in json_string:
@@ -656,19 +651,23 @@ def results2assembled_pandoc_markdown_with_latex(results):
                 gemini_subtitle = json_data.get("gemini_subtitle", "TBD")
                 gemini_authors = json_data.get("gemini_authors", "TBD")
 
-                # Create LaTeX preamble
+                # Create LaTeX preamble for this document
                 latex_preamble = create_latex_preamble(gemini_title, gemini_subtitle, gemini_authors)
 
-            # Append preamble and remaining results
-            assembled_pandoc_markdown_with_latex += latex_preamble
+                # Append preamble to the document's content
+                assembled_pandoc_markdown_with_latex += latex_preamble
 
             for i in range(1, len(result_set)):
                 assembled_pandoc_markdown_with_latex += result_set[i] + "\n\n"
+
+            # Add the complete document to the list
+            assembled_documents.append(assembled_pandoc_markdown_with_latex)
+
     except Exception as e:
         st.error(e)
         st.error(traceback.format_exc())
 
-    return assembled_pandoc_markdown_with_latex
+    return assembled_documents  # Return the list of assembled documents
 
 
 def create_imprint_mission_statement(imprint_name):
