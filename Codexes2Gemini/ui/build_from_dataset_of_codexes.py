@@ -20,7 +20,10 @@ import fitz  # PyMuPDF
 import pandas as pd
 import pypandoc
 import streamlit as st
+from Codexes2Gemini.classes.Codexes.Metadata.Metadatas import Metadatas
 from docx import Document
+
+from Codexes2Gemini.classes.Codexes.Metadata.metadatas2outputformats import metadatas2bookjson
 
 # print("Codexes2Gemini location:", Codexes2Gemini.__file__)
 
@@ -435,7 +438,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
         selected_user_prompt_values = [filtered_user[key]['prompt'] for key in selected_user_prompt_keys]
         selected_user_prompts_dict = {key: filtered_user[key]['prompt'] for key in selected_user_prompt_keys}
-
+        # TO DO Custom user prompt not being honored if append selected
         custom_user_prompt = st.text_area("Custom User Prompt (optional)")
         user_prompt_override = st.radio("Override?",
                                         ["Override other user prompts", "Add at end of other user prompts"],
@@ -532,61 +535,75 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
         results = FT.fetch_pg19_data(skip_processed=st.session_state.current_plan['skip_processed'])
 
-        if results:
-            assembled_documents = results2assembled_pandoc_markdown_with_latex(results)
-            for i, document_content in enumerate(assembled_documents):
-                codexready_filename = f"output/codexready_{i + 1}_"
-                try:
-                    with open(codexready_filename + ".md", "w") as f:
-                        f.write(document_content)
-                    st.info(f"wrote codexready to {codexready_filename}")
-                except Exception as e:
-                    st.error(traceback.format_exc)
-        all_results_filename = datetime.now().strftime('%Y%m%d_%H%M%S')
-        st.success("All contexts processed.")
+    return results
 
-        markdown_content = ''
-        if isinstance(results, list):
-            # st.info('is list')
-            for result in results:
-                if isinstance(result, list):
-                    markdown_content += flatten_and_stringify(result)
-                elif isinstance(result, str):
-                    markdown_content += result
-                else:
-                    # Handle non-string results as needed (e.g., convert to string)
-                    markdown_content += str(result)
-        elif isinstance(results, str):
-            st.info('is str')
-            markdown_content = results
-        else:
-            st.error("Unexpected result type. Cannot generate Markdown.")
-        # Markdown download
-        # st.write(markdown_content[0:100])
-        markdown_buffer = BytesIO(markdown_content.encode())
 
-        @st.fragment()
-        def download_markdown(filename):
-            st.download_button(
-                label=f"Download Markdown ({filename}.md)",
-                data=markdown_buffer,
-                file_name=f"{filename}.md",
-                mime="text/markdown"
-            )
+def process_returns(results):
+    if results:
+        assembled_documents = results2assembled_pandoc_markdown_with_latex(results)
+        for i, document_content in enumerate(assembled_documents):
+            codexready_filename = f"output/codexready_{i + 1}_"
+            try:
+                with open(codexready_filename + ".md", "w") as f:
+                    f.write(document_content)
+                st.info(f"wrote codexready to {codexready_filename}")
+            except Exception as e:
+                st.error(traceback.format_exc)
+    all_results_filename = datetime.now().strftime('%Y%m%d_%H%M%S')
+    st.success("All contexts processed.")
 
-        download_markdown(all_results_filename)
+    markdown_content = ''
+    if isinstance(results, list):
+        # st.info('is list')
+        for result in results:
+            if isinstance(result, list):
+                markdown_content += flatten_and_stringify(result)
+            elif isinstance(result, str):
+                markdown_content += result
+            else:
+                # Handle non-string results as needed (e.g., convert to string)
+                markdown_content += str(result)
+    elif isinstance(results, str):
+        st.info('is str')
+        markdown_content = results
+    else:
+        st.error("Unexpected result type. Cannot generate Markdown.")
+    # Markdown download
+    # st.write(markdown_content[0:100])
+    markdown_buffer = BytesIO(markdown_content.encode())
 
-        @st.fragment()
-        def download_json(filename):
-            json_buffer = BytesIO(json.dumps(results, indent=4).encode())
-            st.download_button(
-                label=f"Download JSON ({filename}.json)",
-                data=json_buffer,
-                file_name=f"{filename}.json",
-                mime="application/json"
-            )
+    @st.fragment()
+    def download_markdown(filename):
+        st.download_button(
+            label=f"Download Markdown ({filename}.md)",
+            data=markdown_buffer,
+            file_name=f"{filename}.md",
+            mime="text/markdown"
+        )
 
-        download_json(all_results_filename)
+    download_markdown(all_results_filename)
+
+    @st.fragment()
+    def download_json(filename):
+        json_buffer = BytesIO(json.dumps(results, indent=4).encode())
+        st.download_button(
+            label=f"Download JSON ({filename}.json)",
+            data=json_buffer,
+            file_name=f"{filename}.json",
+            mime="application/json"
+        )
+
+    download_json(all_results_filename)
+
+    # TODO process metadata_instance for feeding into bookjson
+    metadata_instance = Metadatas()
+    bookjson_result = metadatas2bookjson(metadata_instance)
+    # TODO get this working
+    st.write(bookjson_result)
+    with open("output/bookjson.json", "w") as f:
+        f.write(json.dump(bookjson_result, f, indent=4))
+
+    return markdown_content
 
 
 def create_latex_preamble(gemini_title="TBD", gemini_subtitle="TBD", gemini_authors="TBD"):
@@ -978,7 +995,8 @@ def run_streamlit_app():
             ["Create Build Plans", "Dataset Explorer", "Run Saved Plans", "UserSpace"],
         )
         if page == "Create Build Plans":
-            prompts_plan_builder_ui(user_space)
+            final_results = prompts_plan_builder_ui(user_space)
+            markdown = process_returns(final_results)
         elif page == "Run Saved Plans":
             upload_build_plan()
         elif page == "Multi-Context Processing":

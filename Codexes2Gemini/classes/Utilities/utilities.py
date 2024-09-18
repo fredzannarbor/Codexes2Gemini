@@ -4,13 +4,69 @@
 import inspect
 import logging
 import sys
-
+import streamlit
 import pandas as pd
 import pip
 from rich.console import Console
 from Codexes2Gemini import ensure_directory_exists
 
 console = Console(record=True)
+
+
+def results2assembled_pandoc_markdown_with_latex(results):
+    """
+    Assembles results into separate Pandoc Markdown documents with LaTeX preambles.
+
+    Args:
+        results: A list of lists, where each inner list represents a document's results.
+
+    Returns:
+        A list of strings, each representing a complete Pandoc Markdown document.
+    """
+
+    assembled_documents = []  # List to store complete documents
+
+    try:
+        if not isinstance(results, list):
+            st.warning("results is not a list")
+            return []
+
+        for result_set in results:
+            assembled_pandoc_markdown_with_latex = ""  # Initialize for each document
+
+            json_string = result_set[0]
+            # check if json_string is json
+            try:
+                json_data = json.loads(json_string)
+            except Exception as e:
+                st.error("Can't extract json data from result")
+                st.error(traceback.format_exc())
+                continue
+
+            # check if this is a basic info result
+            if "gemini_title" or "gemini_authors" in json_string:
+                # Extract values from JSON
+                gemini_title = json_data.get("gemini_title", "TBD")
+                gemini_subtitle = json_data.get("gemini_subtitle", "TBD")
+                gemini_authors = json_data.get("gemini_authors", "TBD")
+
+                # Create LaTeX preamble for this document
+                latex_preamble = create_latex_preamble(gemini_title, gemini_subtitle, gemini_authors)
+
+                # Append preamble to the document's content
+                assembled_pandoc_markdown_with_latex += latex_preamble
+
+            for i in range(1, len(result_set)):
+                assembled_pandoc_markdown_with_latex += result_set[i] + "\n\n"
+
+            # Add the complete document to the list
+            assembled_documents.append(assembled_pandoc_markdown_with_latex)
+
+    except Exception as e:
+        st.error(e)
+        st.error(traceback.format_exc())
+
+    return assembled_documents  # Return the list of assembled documents
 
 
 def set_logging_level(log_level: str):
