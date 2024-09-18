@@ -1,0 +1,347 @@
+{
+  "Collapsar abstracts 1": {
+    "prompt": "Please review this book manuscript. As you do the following tasks, remember to use the entire context.\n1. write a tldr in three words or less. Output begins with \"## TLDR (three words)\" followed by two new line characters and then the three words. ONLY provide three words, do not explain your thinking.\n2. Explain this document to me like I am five years old. Output begins with \"## ELI5\" followed by two new line characters.\n3. Write a scientific-style abstract. Output begins with \"## Scientific-Style Abstract\" followed by two new line characters.",
+    "tags": [
+      "abstract",
+      "tldr",
+      "ELI5",
+      "scientific"
+    ]
+  },
+  "gemini_get_basic_info": {
+    "prompt": "Please review the entire document provided in the context from beginning to end. Allocate your time equally throughout the document.  Carry out the following tasks in batch mode.\n1. Do your best to identify the official title, subtitle, and author(s) of the document. \n2. Do your best to identify the publisher, place of publication, and year of actual publication. \n3. Summarize the content of the document. Your goal is to create a summary that accurately describes all the most important elements of the document in a way that is flexible enough to be used by many prompts.\n4. Return a string that is valid JSON output surrounded only in braces and contains keys 'gemini_title','gemini_subtitle', 'gemini_authors', 'gemini_publisher', 'gemini_place_of_publication', 'gemini_year_of_actual_publication', and 'gemini_summary'. Do NOT enclose the json in triple backticks.",
+    "tags": [
+      "publisher",
+      "author",
+      "title",
+      "abstract",
+      "publishing information",
+      "summary",
+      "metadata"
+    ]
+  },
+  "Collapsar place in historic context": {
+    "prompt": "Please review the entire document provided in the context from beginning to end. Allocate your time equally throughout the document.  Carry out the following tasks in batch mode.\n1. Do your best to identify the official title, subtitle, and author(s) of the document. \n2. Do your best to identify the publisher, place of publication, and year of actual publication. \n3. Summarize the content of the document. Your goal is to create a summary that accurately describes all the most important elements of the document in a way that is flexible enough to be used by many prompts.\n4. Return valid JSON output with the keys 'gemini_title','gemini_subtitle', 'gemini_authors', 'gemini_publisher', 'gemini_place_of_publication', 'gemini_year_of_actual_publication', and 'gemini_summary'.",
+    "tags": [
+      "publisher",
+      "author",
+      "title",
+      "abstract",
+      "publishing information",
+      "summary",
+      "metadata"
+    ]
+  },
+  "Collapsar Publishing Information": {
+    "prompt": "Please generate seven to twelve bibliographic key phrases for this document. Separate each phrase by a semicolon. 500 characters. Output begins: \"# Bibliographic Key Phrases\" followed by two new-line characters.",
+    "tags": [
+      "publishing",
+      "bibliographic",
+      "motivation",
+      "audience"
+    ]
+  },
+  "Collapsar Modern Day Motivation": {
+    "prompt": "Create a \"motivation\" paragraph providing the reader with the benefits of reading this document. \nThe motivation should start with a first sentence that directly addresses a well-known issue or major topic of current importance to many people.  Use pointed, vivid langauge to illustrate why the document is relevant to this topic. \nBriefly describe the main focus or subject of the document, highlighting its content and the specific area it addresses, while linking it back to the issue.  \nProvide additional context for the document by linking it to current events, societal needs, technological trends, challenges,or ongoing debates in its field.  \nSpecifically mention any important methodologies, technologies, topics, or sources that are uniquely available in this document.\nClearly state why the document is a must-read for its intended audience, whether they are researchers, practitioners, policymakers, or the general public interested in the topic. \nEmphasize the benefits the reader will gain from engaging with the document, such as understanding cutting-edge developments, enhancing their knowledge on crucial issues, or applying the document's findings to real-world problems. \nMake sure to appeal to the curiosity and interests of potential readers. \nYour goal is to convincingly present the document's significance and articulate why it deserves their attention, starting from the very first sentence.  Output begins with \"# Publisher's Note\" followed by two new-line characters.",
+    "tags": [
+      "publishing",
+      "bibliographic",
+      "motivation",
+      "audience"
+    ]
+  },
+  "Collapsar Create Condensed Matter": {
+    "prompt": "Backstory:\n\nCollapsar Classics was launched to bring 19th and early 20th century books to modern audiences in a fresh and convenient way. Each book is approximately 15,000 words and is presented in a phone-sized 4 x 6\" paperback format. Each Collapsar Classic includes a section called \"Condensed Matter\" (a play on front matter). Much like the Reader's Digest Condensed Books that were popular many decades ago, the Condensed Matters is meant to give you the best parts of the original in a much smaller space.\n\nYour Task:\n\nWrite the Condensed Matter section for the document in the context. The document in the context is permissioned public domain so you have complete freedom to quote from it.\nWork only on the Condensed Matter section. Do not refer to the backstory.\nYour goal is to write a highly readable version of the original.\nYou should use the exact words of the context frequently.\nYou may use transitional devices such as ellipses, dingbats, or bracketed comments.|\nYou may make sparing use of framing devices in your own words.\nRemember, your overriding goal is to give modern readers the benefit of reading this document in as original a form as possible, but as much condensed experience. You must be clear what value they should expect, you must show the value, and you must show them that they have received it.",
+    "tags": [
+      "publishing",
+      "bibliographic",
+      "motivation",
+      "audience"
+    ]
+  },
+  "Analytic table of contents": {
+    "prompt": "Create an analytic table of contents for the book.  The tone of your writing should match the tone and style of the author. The string '# Analytic Table of Contents' should appear alone on the first line. You do not need to restate the title of the book, we already know it.",
+    "tags": [
+      "table of contents",
+      "front matter",
+      "book structure",
+      "parts of the book"
+    ]
+  },
+  "bibliography-extract": {
+    "prompt": "Let's build a bibliography step by step. Silently:\n\n1. Find all bibliographic citations that occur in the body of the context document.\n2. Convert all of them to Chicago Manual of Style 17th edition formatted bibliographic entries.\n3. Harmonize the entries removing any trivial or apparently erroneous inconsistencies and removing duplicates.\n4. Organize the remaining entries alphabetically in CMOS sort order.\n\nYour output should begin:\n\n# Machine-Extracted Bibliography\n\n{entries ...}\n\n",
+    "tags": [
+      "back matter",
+      "bibliography",
+      "book organization",
+      "attribution"
+    ]
+  },
+  "bibliography2bibtex": {
+    "prompt": "Let's build a BibTex format bibliography step by step. Silently:\n\n1. Find all bibliographic citations that occur in the body of the context document.\n2. Convert all of them to Chicago Manual of Style 17th edition formatted bibliographic entries.\n3. Harmonize the entries removing any trivial or apparently erroneous inconsistencies and removing duplicates.\n4. Organize the remaining entries alphabetically in CMOS sort order.\n\nYour output should be valid BibTex.",
+    "tags": [
+      "back matter",
+      "bibliography",
+      "book organization",
+      "attribution"
+    ]
+  },
+  "core_audience_attributes": {
+    "prompt": "Think about the core audience for the book. Please define a set of addressable attributes that they are likely to fall under, such as:\n- age\n- gender\n- income gt $100K. These are just examples, use your judgment and imagination, as long as the attributes can feasibly be used to identify core readers.",
+    "tags": [
+      "audience analysis",
+      "demographics",
+      "market segmentation"
+    ]
+  },
+  "Create list of abbreviations": {
+    "prompt": "Create a list of abbreviations for the book. Follow the Chicago Manual of Style practices described here. You do not need to mention the CMS as you create the list.\n\n1.44 Not every work that includes abbreviations needs a separate list of abbreviations with the terms or names they stand for. If many are used, or if a few are used frequently, a list is useful (see fig. 1.8); its location should always be given in the table of contents. If abbreviations are used in the text or footnotes, the list may appear in the front matter. If they are used only in the back matter, the list should appear before the first element in which abbreviations are used, whether the appendixes, the endnotes, or the bibliography. A list of abbreviations is generally not a substitute for using the full form of a term at its first occurrence in the text (see 10.3). In the list, alphabetize terms by the abbreviation, not by the spelled-out form. See also 14.60.\n14.60: Where many abbreviations of titles, manuscript collections, personal names, or other entities are used in a work—say, ten or more—they are best listed alphabetically in a separate section. In a book, the list may appear in the front matter (if footnotes are used) or in the end matter preceding the endnotes (if these are used). It is usually headed “Abbreviations” and should be included in the table of contents (see 1.4, 1.44). Where only a few abbreviations are used, these are occasionally listed as the first section of the endnotes (see fig. 14.7) or at the head of the bibliography. Titles that are italicized in the notes or bibliography should be italicized in their abbreviated form in the list of abbreviations and elsewhere.\n\nOutput begins: # Abbreviations\n\n",
+    "tags": [
+      "table of contents",
+      "initialisms",
+      "acronyms",
+      "abbreviations",
+      "front matter",
+      "parts of the book"
+    ]
+  },
+  "create_ideal_reader_persona": {
+    "prompt": "Please create a single, random persona who is likely to be a fan of the target work. The persona should include the following attributes:\n- personal name\n- demographic attributes:\n-- gender\n-- age\n-- education\n- interests\n- genre preferences\n- pet peeves\n- favorite tropes\n- capsule bio\n- nickname that combines name and bio (for example, \"Sci-Fi Sam\")",
+    "tags": [
+      "reader persona",
+      "audience analysis",
+      "character creation"
+    ]
+  },
+  "create_reboot_prompts": {
+    "prompt": "Create a series of prompts that can be used to write a modern reboot of the current work.  Use a modern setting or theme that is pointed, topical, and/or funny.\n\nProvide in valid JSON format:\n\n-- context text\n-- system instruction\n-- prompts for each chapter",
+    "tags": [
+      "bootstrap",
+      "prompts",
+      "reader persona",
+      "audience analysis",
+      "character creation"
+    ]
+  },
+  "create_observables_for_reader": {
+    "prompt": "Now we are going to create a list of positive and negative textual observables for the current reader persona. These are attributes of the text that are likely to influence her experience as she reads it.\n\nExamples: \nPositive:\n- striking language with deep emotional affect\n- unusual insights\n- short paragraphs\n\nNegative:\n- typos\n- old-fashioned thinking\n- disrespect for business\n\nPlease expand these lists consistent with the persona.",
+    "tags": [
+      "reader experience",
+      "textual analysis",
+      "positive and negative attributes"
+    ]
+  },
+  "ELI complete idiot - abstract": {
+    "prompt": "Explain this to me like I am a complete idiot, someone who is both painfully stupid and willfully ignorant. You do not need to be tactful or polite.  Use no more than 100 words. Output begins: '## For Complete Idiots Only'",
+    "tags": [
+      "front matter",
+      "humor",
+      "extreme simplification",
+      "abstract"
+    ]
+  },
+  "ELI5 - abstract": {
+    "prompt": "Explain this to me like I am five years old. Output begins with the string '## ELI5'",
+    "tags": [
+      "front matter",
+      "ELI5",
+      "simple explanation",
+      "abstract"
+    ]
+  },
+  "glossary-lay-reader": {
+    "prompt": "Create an alphabetical glossary explaining technical terms that a lay reader might not understand. Output begins: '# Glossary for Lay Readers.' ",
+    "tags": [
+      "back matter",
+      "glossary",
+      "technical terms",
+      "lay reader"
+    ]
+  },
+  "glossary-lay-reader - 2": {
+    "prompt": "Your task is to create a browsable glossary of old-fashioned, foreign-language, or technical terms Unlike a normal (boring) glossary, your discussion should go beyond definitions and may include opinionated comments on the subject matter from your perspective as a modern reader.",
+    "tags": [
+      "back matter",
+      "glossary",
+      "technical terms",
+      "lay reader"
+    ]
+  },
+  "glossary-modern-readers": {
+    "prompt": "Bearing in mind when this book was written, create an alphabetical glossary of possibly dated terms to help modern readers understand this text. Output begins: '# Glossary for Modern Readers'.",
+    "tags": [
+      "back matter",
+      "glossary",
+      "modern interpretation",
+      "historical context"
+    ]
+  },
+  "Identify parts of the book": {
+    "prompt": "Your task is to review the entire document and identify all \"parts of the book\" such as forewords, dedications, chapters, and so on that are present. Follow the Chicago Manual of Style 18th edition. Do NOT provide page numbers unless the document is a PDF with absolute page numbering. Output begins: # Inventory of Parts of the Book. ",
+    "tags": [
+      "book structure",
+      "Chicago Manual of Style",
+      "parts of the book"
+    ]
+  },
+  "index-idea-generator": {
+    "prompt": "Build three innovative indexes based on the content of the book. Create each of them completely without pausing. Index every page in the book. Top-level entries should be alphabetized.",
+    "tags": [
+      "back matter",
+      "index",
+      "book organization",
+      "creative indexing"
+    ]
+  },
+  "index-of-persons": {
+    "prompt": "Your task is to create a back-of-the-book Index of Persons for this book. Proceed through the manuscript one page at a time, reading every page carefully while still bearing in mind the relevant context of the entire book. Create an alphabetical index in pandoc markdown format. Output begins: # Index of Persons. No letter headings. Names in the following format: **{last name, prefix, first name, initial, suffix, rank}**. Omit any elements not present. Consolidate and harmonize entries with minor inconsistencies. For each entry provide the page numbers on which it was found. Roman numbers first, then arabic. Contiguous pages expressed as a range. Each index entry MUST be on its own line followed by TWO new line characters.",
+    "tags": [
+      "back matter",
+      "index",
+      "persons",
+      "book organization"
+    ]
+  },
+  "index-of-places": {
+    "prompt": "Your task is to create a back-of-the-book Index of Places for this book. Proceed through the manuscript one page at a time, reading every page carefully while still bearing in mind the relevant context of the entire book. Create an alphabetical index in pandoc markdown format. Output begins: # Index of Places. No letter headings. You must consolidate and harmonize index entries so that each index entry has only one line that includes all its page references. You must also harmonize minor inconsistencies such as apparent typos or variant spellings. For each entry provide the page numbers on which it was found. Roman numbers first, then arabic. Contiguous pages expressed as a range. Each index entry MUST be on its own line followed by TWO new line characters.",
+    "tags": [
+      "back matter",
+      "index",
+      "places",
+      "book organization"
+    ]
+  },
+  "mnemonics - abstract": {
+    "prompt": "0. Output begins: '# Learning Aids' followed by two new lines.  For all the following tasks, your goal is summarizing the key learnings that may be drawn from the context document. 1. Create an acronymic mnemonic. Continue the output with '## Mnemonic (acronym)' followed by two lines and your response. \n2. Create a mnemonic using a progression of related words. Example: My Dear Aunt Sally. Continue the output with '## Mnemonic (speakable)' followed by two lines and your response. \n3. Create a singable mnemonic in the form of a ditty to a popular tune. Continue the output with ' ## Mnemonic (singable)' followed by two new results lines. THen present your response in poetry block markdown format.",
+    "tags": [
+      "MDAS",
+      "mnemonic",
+      "acronym",
+      "song",
+      "memory aid"
+    ]
+  },
+  "most important passages - reasoning": {
+    "prompt": "Select the seven most important passages of between one and three paragraphs long from the body of the context. Use direct quotations and provide accurate page numbers. Include the exact full text of each passage followed by your explanation.Concisely explain why you selected each passage.Output begins: # Most Important Passages",
+    "tags": [
+      "front matter",
+      "body",
+      "key passages",
+      "quotations",
+      "book highlights"
+    ]
+  },
+  "most_important_passages - no reasoning": {
+    "prompt": "Select the seven most important passages of between one and three paragraphs long from the body of the context document. Use direct quotations and provide accurate page numbers. Output begins: # Most Important Passages. Do NOT explain your reasoning.",
+    "tags": [
+      "key passages",
+      "quotations",
+      "book highlights"
+    ]
+  },
+  "outline2prompts": {
+    "prompt": "Expand this outline for a book into the following objects:\n) A document that may be used as context for model requests.  This contains factual information about plot, characters, themes and other elements that will help ensure continuity.\n2) System instructions to guide the model in how to create responses.\n3) A series of user prompts which each generate a chapter in the book.  Each prompt can be expanded additional details and specific actions for each character. You can also introduce new characters or locations as the story progresses. Remember to maintain consistency with the themes, plot twists, and overall tone of the book.",
+    "tags": [
+      "book outline",
+      "AI writing",
+      "style",
+      "prompts"
+    ]
+  },
+  "page_by_page_analysis": {
+    "prompt": "Now do a page-by-page analysis of the uploaded manuscript. Award +1 for each positive, -1 for each negative, calculate totals and net.",
+    "tags": [
+      "manuscript analysis",
+      "scoring",
+      "evaluation"
+    ]
+  },
+  "plain_text_no_markdown": {
+    "prompt": "All responses should be plain text. Separate paragraphs by two returns. Do not use markdown. Do not use bolding. Do not use underlining. Do not use header levels.\n\n",
+    "tags": [
+      "plain text",
+      "formatting",
+      "no markdown"
+    ]
+  },
+  "reading_level": {
+    "prompt": "You are writing for bright young people ages 9 to 12 years. It is ok to sprinkle in more difficult words, challenging cultural references, and technical concept as long as you show their meaning.",
+    "tags": [
+      "middle grade",
+      "reading level",
+      "vocabulary"
+    ]
+  },
+  "Recommend parts of the book": {
+    "prompt": "Your task is to recommend new, innovative, or specialized \"parts of the book\" that will make reading the context document richer, more diverse, or more surprising. \n\nExamples: \n- for a context document about warships, an index of technologies.\n- for a novel written in the 1850s, a table of potentially unsafe terminology.\n- for a complex technical book, a series of graduated \"Explain It Like I'm X...\" abstracts. Begin your response with '# Recommended New Parts of the Book' followed by two new lines. \n\nFor each \"part of the book\" you recommend, provide a prompt that I can use to generate it.\n\nIf you do not see any value to adding parts of the book to the document, simply reply \"None\".",
+    "tags": [
+      "back matter",
+      "book structure",
+      "front matter",
+      "parts of the book",
+      "recommendations"
+    ]
+  },
+  "scientific_abstract": {
+    "prompt": "Write a scientific-style abstract. Output begins: ## Scientific-Style Abstract",
+    "tags": [
+      "front matter",
+      "scientific",
+      "abstract",
+      "academic"
+    ]
+  },
+  "semantic_analysis": {
+    "prompt": "Please review this book manuscript. \n1. Outline the semantic structure of the book as best you can. A typical semantic structure is Parts > {Front Matter, Body, Back Matter} => {Foreword, Chapters, Indexes} => {Scenes, Content}.  Very concisely (10 words or less) identify each semantic unit and summarize it. Do NOT add your own numbering.",
+    "tags": [
+      "semantic analysis",
+      "book structure",
+      "content summary"
+    ]
+  },
+  "Synthetic_Reader": {
+    "prompt": "Your goal is to analyze this document from the point of view of a 'synthetic reader', or imaginary persona. As you do the following tasks, remember to refer to the entire context. \n1. Outline the semantic structure of the book as best you can. A typical semantic structure is Parts > {Front Matter, Body, Back Matter} => {Foreword, Chapters, Indexes} => {Scenes, Content}. Always go to scene level.\n2. Create a single persona who is representative of the core audience for the book. 3.\nGenerate a list of positive and negative observable traits of the text that influence the persona's enjoyment of the book. Positive observables might include things like vivid language, clear exposition, and strong dramatic structure. Negative observables might include things like cliches, typos, repetitive content, or boring passages. Generate as many traits as you like and make sure that they are tailored to the nature of the synthetic reader persona.\n4. Now proceed through the semantic structure of the book and for each scene evaluate it for the presence of negative and positive observables. Provide a markdown format table with the following columns: scene, positive observable count, negative observable count, comments. Provide the net positive - negative observables.\n5. Provide a list of actionable 'to dos' for the author. ",
+    "tags": [
+      "synthetic reader",
+      "book analysis",
+      "audience persona",
+      "content evaluation"
+    ]
+  },
+  "timeline-major": {
+    "prompt": "Create a chronology of major events discussed in the book in pandoc markdown format. Entries should be presented in format: {full month} {date}, {year}: {event(s)} and MUST be sorted by ascending date. Consolidate entries that occur on the same date but list them as separate sentences. Output begins: # Timeline. Each event entry must be on its own line followed by TWO new line characters.",
+    "tags": [
+      "back matter",
+      "timeline",
+      "chronology",
+      "major events"
+    ]
+  },
+  "timeline-technical": {
+    "prompt": "Create a chronology of all the explicitly timed or dated events occurring the book. Entries should be presented in **YYYY-MM-DD**: event. If hours, minutes, or seconds are available, add -HH-, -MM-, -SS-. Output begins: # Detailed Timeline. Each event entry MUST be on its own line followed by TWO new line characters.  Each event MUST be sorted by ascending date and time.",
+    "tags": [
+      "back matter",
+      "timeline",
+      "chronology",
+      "detailed events"
+    ]
+  },
+  "tldr3": {
+    "prompt": "Tldr in three words or less. Output format: '## TLDR (three words): {the three words}'. ONLY provide three words without explanations.",
+    "tags": [
+      "front matter",
+      "tldr",
+      "summary",
+      "concise"
+    ]
+  },
+  "Truth in Publishing - abstract": {
+    "prompt": "Your task is to write a light-hearted \"Truth in Publishing\" abstract of the context. You are to candidly disclose any issues that might materially impair the reader's ability to enjoy reading the document. Emphasize both strengths and weaknesses. Don't hesitate to poke fun at the style, tone, or content, highlighting clichés, repetitive language, or overused tropes. But do be fair in explaining what is good about the book. Your goal is to be both informative and amusing. Output begins '# Truth in Publishing (Disclosures)' followed by two new lines.",
+    "tags": [
+      "publishing",
+      "abstract",
+      "humor",
+      "critique"
+    ]
+  }
+}

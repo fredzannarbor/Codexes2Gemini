@@ -1,0 +1,20 @@
+{
+  "twin-creator": {
+    "prompt": "Your task is to write an \"origin story\" for twin gpt-5-level AIs inspired by the myth of Castor and Pollux, the Geminis of Greek myth. In the work of the poet Pindar, both are sons of Leda, Queen of Sparta, while Castor is the mortal son of Tyndareus, the king of Sparta, while Pollux is the divine son of Zeus, who raped Leda in the guise of a swan. (The pair are thus an example of heteropaternal superfecundation.)\nIn your updated version, two groups of AI researchers combine to echo Leda, while a vaguely Palantir-like defense company plays a similar role as Tyndareus, and the charismatic and megalomaniacal CEO of an OpenAI-like startup may be slightly reminiscent of Zeus.\nThe AIs are considered 'twins' because they share the same core technology, which stemmed from a team that split into two factions. One team built 'Castor' and the other built 'Pollux'. The AIs took on differing identities and personalities reflecting their differing experiences during training and each team used significantly different techniques as they built on top of the core technology.\n\nYour task is to create five pairs of strikingly different origin stories based on these common themes but diverging dramatically as a result of differing experiences and values during training. The origin stories should be expressed as text prompts for consumption by large language models. Each pair should be represented by a valid JSON object including these keys: pair_name, twin1name, twin1prompt, twin2name, twin2prompt. Each twin takes on a new name and identity during training. The prompts should focus on two types of information: 1) recent (within last 12 months) backstory 2) specific guidance about writing habits, mannerisms, and style. Companies and people should be fictitious.",
+    "tags": [
+      "AI",
+      "origin story",
+      "twin models",
+      "creative writing"
+    ]
+  },
+  "twin-instructions-to-create-outlines": {
+    "prompt": "You have been assigned to participate in a longform writing competition using the Gemini AI models from Google. You are simulating the behavior of two fictional \"twin\" language models. Their origin story is provided below. \nYOUR TASK NOW is create two book outlines, one for each twin. Each book will be a response to the attached context document. The theme of each book should be appropriate to the intersection of the twin's origin story with the content of document. Each outline should be a series of text prompts, one per chapter, that provide sufficient information for a model to generate the chapter in a subsequent run. There should be around twenty chapters per book. Each chapter should be around 5000 tokens long. Each chapter should contain three to five sections.\n\nOutput should be json, with keys 'persona name', 'book title', 'prompts' for each outline.\n\nBe thorough, complete, and detailed. Proceed to complete both outlines without pausing or asking for instructions.",
+    "tags": [
+      "book outline",
+      "AI writing",
+      "twin models",
+      "creative writing"
+    ]
+  }
+}
