@@ -54,7 +54,105 @@ GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
 # TODO - add 12 titles to file
 
 
+def results2assembled_pandoc_markdown_with_latex(results):
+    """
+    Assembles results into separate Pandoc Markdown documents with LaTeX preambles.
 
+    Args:
+        results: A list of lists, where each inner list represents a document's results.
+
+    Returns:
+        A list of strings, each representing a complete Pandoc Markdown document.
+    """
+
+    assembled_documents = []  # List to store complete documents
+
+    try:
+        if not isinstance(results, list):
+            st.warning("results is not a list")
+            return []
+
+        for result_set in results:
+            assembled_pandoc_markdown_with_latex = ""  # Initialize for each document
+            # fix handling of results
+            #             'list'
+            #             object
+            #             has
+            #             no
+            #             attribute
+            #             'flatten_and_stringify'
+            #
+            #             Traceback(most
+            #             recent
+            #             call
+            #             last): File
+            #             "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/ui/streamlit_ui.py", line
+            #             79, in results2assembled_pandoc_markdown_with_latex
+            #             json_string = result_set[
+            #                               0].flatten_and_stringify() ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ AttributeError: 'list'
+            #             object
+            #             has
+            #             no
+            #             attribute
+            #             'flatten_and_stringify'
+            json_string = result_set[0].flatten_and_stringify()
+            # check if json_string is json
+            try:
+                json_data = json.loads(json_string)
+            except Exception as e:
+                st.error("Can't extract json data from result")
+                st.error(traceback.format_exc())
+                continue
+
+            # check if this is a basic info result
+            if "gemini_title" or "gemini_authors" in json_string:
+                # Extract values from JSON
+                gemini_title = json_data.get("gemini_title", "TBD")
+                gemini_subtitle = json_data.get("gemini_subtitle", "TBD")
+                gemini_authors = json_data.get("gemini_authors", "TBD")
+
+                # Create LaTeX preamble for this document
+                latex_preamble = create_latex_preamble(gemini_title, gemini_subtitle, gemini_authors)
+
+                # Append preamble to the document's content
+                assembled_pandoc_markdown_with_latex += latex_preamble
+
+            for i in range(1, len(result_set)):
+                assembled_pandoc_markdown_with_latex += result_set[i] + "\n\n"
+
+            # Add the complete document to the list
+            assembled_documents.append(assembled_pandoc_markdown_with_latex)
+
+    except Exception as e:
+        st.error(e)
+        st.error(traceback.format_exc())
+
+    return assembled_documents  # Return the list of assembled documents
+
+
+def create_latex_preamble(gemini_title="TBD", gemini_subtitle="TBD", gemini_authors="TBD"):
+    # Create the YAML preamble string
+    yaml_preamble = f"""---
+title: "{gemini_title}"
+author: "{gemini_authors}"
+subtitle: "{gemini_subtitle}"
+header-includes:
+  - \\usepackage[paperwidth=4in, paperheight=6in, top=0.25in, bottom=0.25in, right=0.25in, left=0.5in, includehead, includefoot]{{geometry}} # 
+  - \\usepackage{{fancyhdr}}
+  - \\pagestyle{{fancy}}
+  - \\fancyhf{{}}
+  - \\fancyfoot[C]{{
+     \\thepage
+     }}
+  - \\usepackage{{longtable}} 
+  - \\pagenumbering{{arabic}}
+documentclass: book
+output: pdf_document
+fontsize: 10
+---
+
+"""
+    return yaml_preamble
 
 
 def image_to_base64(image_path):
@@ -78,12 +176,13 @@ def load_json(file_path: str) -> dict:
 def load_json_file(file_name):
     # construct path the right way
     prompts_resource_path = resources.files('resources.prompts').joinpath(file_name)
-    if not prompts_resource_path.exists():
-        prompts_resource_path = resources.files('resources.prompts').joinpath(file_name)
     try:
         with prompts_resource_path.open('r') as file:
             # st.info("loaded prompts from source directory")
             return json.load(file)
+    except Exception as e:
+        with open(f"resources/images/{file_name}", "r") as file:
+            return file.read()
     except Exception as e:
         st.error(f"Error loading JSON file: {e}")
         return {}
@@ -528,11 +627,11 @@ def multiplan_builder(user_space: UserSpace):
 
         # Run multiplan button
         if st.button("Run Multiplans"):
-
-            run_multiplan(st.session_state.multiplan, user_space)
+            job_results = run_multiplan(st.session_state.multiplan, user_space)
             user_space.save_prompt_plan({"multiplan": st.session_state.multiplan})
             st.success("Multiplan and results saved to your Userspace tab.")
-
+            final_results = process_results(job_results)
+            st.write(final_results)
 
 def truncate_plan_values_for_display(plan):
     truncated_plan = plan.copy()
@@ -622,16 +721,34 @@ def run_multiplan(multiplan, user_space):
     # for j, result in enumerate(result_list):
     results_filename = f"result_{i + 1}_"
     # markdown display
+    return results
 
-    def flatten_and_stringify(data):
-        """Recursively flattens nested lists and converts all elements to strings."""
-        if isinstance(data, list):
-            return ''.join([flatten_and_stringify(item) for item in data])
-        else:
-            return str(data)
+
+def flatten_and_stringify(data):
+    """Recursively flattens nested lists and converts all elements to strings."""
+    if isinstance(data, list):
+        return ''.join([flatten_and_stringify(item) for item in data])
+    else:
+        return str(data)
+
+
+def process_results(results):
+    if results:
+        assembled_documents = results2assembled_pandoc_markdown_with_latex(results)
+        for i, document_content in enumerate(assembled_documents):
+            codexready_filename = f"output/codexready_{i + 1}_"
+            try:
+                with open(codexready_filename + ".md", "w") as f:
+                    f.write(document_content)
+                st.info(f"wrote codexready to {codexready_filename}")
+            except Exception as e:
+                st.error(traceback.format_exc)
+    all_results_filename = datetime.now().strftime('%Y%m%d_%H%M%S')
+    st.success("All contexts processed.")
 
     markdown_content = ''
     if isinstance(results, list):
+        # st.info('is list')
         for result in results:
             if isinstance(result, list):
                 markdown_content += flatten_and_stringify(result)
@@ -641,51 +758,37 @@ def run_multiplan(multiplan, user_space):
                 # Handle non-string results as needed (e.g., convert to string)
                 markdown_content += str(result)
     elif isinstance(results, str):
+        st.info('is str')
         markdown_content = results
     else:
         st.error("Unexpected result type. Cannot generate Markdown.")
     # Markdown download
+    # st.write(markdown_content[0:100])
     markdown_buffer = BytesIO(markdown_content.encode())
 
     @st.fragment()
-    def download_markdown():
+    def download_markdown(filename):
         st.download_button(
-            label=f"Download Markdown ({results_filename}.md)",
+            label=f"Download Markdown ({filename}.md)",
             data=markdown_buffer,
-            file_name=f"{results_filename}.md",
+            file_name=f"{filename}.md",
             mime="text/markdown"
         )
 
-    download_markdown()
+    download_markdown(all_results_filename)
 
     @st.fragment()
-    def download_json():
-        json_buffer = BytesIO(json.dumps(result, indent=4).encode())
+    def download_json(filename):
+        json_buffer = BytesIO(json.dumps(results, indent=4).encode())
         st.download_button(
-            label=f"Download JSON ({results_filename}.json)",
+            label=f"Download JSON ({filename}.json)",
             data=json_buffer,
-            file_name=f"{results_filename}.json",
+            file_name=f"{filename}.json",
             mime="application/json"
         )
 
-    download_json()
-    # st.write(markdown_content)
-    # try:
-    #     pdf_buffer = convert_to_pdf(markdown_content)
-    #
-    #     if pdf_buffer:
-    #         st.download_button(
-    #             label="Download PDF",
-    #             data=pdf_buffer,
-    #             file_name="result.pdf",
-    #             mime="application/pdf"
-    #         )
-    # except ValueError as ve:
-    #     st.error(str(ve))
-    # except Exception as e:
-    #     st.error(f"An error occurred: {str(e)}")
-    #
-    # return results
+    download_json(all_results_filename)
+
 
 
 
