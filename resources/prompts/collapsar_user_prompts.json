@@ -60,7 +60,7 @@
     ]
   },
   "Analytic table of contents": {
-    "prompt": "Create an analytic table of contents for the book.  The tone of your writing should match the tone and style of the author. The string '# Analytic Table of Contents' should appear alone on the first line. You do not need to restate the title of the book, we already know it.",
+    "prompt": "Create an analytic table of contents for the book.  The tone of your writing should match the tone and style of the author. Wherever possible use the book's existing structure, chapter titles, and subheadings.  The string '# Analytic Table of Contents' should appear alone on the first line. You do not need to restate the title of the book, we already know it.  ",
     "tags": [
       "table of contents",
       "front matter",
