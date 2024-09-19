@@ -7,7 +7,6 @@ import pandas as pd
 from datetime import datetime
 import streamlit as st
 import traceback
-
 from Codexes2Gemini.classes.Codexes.Builders import Codexes2Parts
 from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
 
@@ -59,7 +58,9 @@ class PG19FetchAndTrack:
         Returns:
             all_results list of results from processing the contexts.
         """
-
+        # FIX - cannot find 'pages2textstrings'
+        # TODO - allow user to upload any data set in correct format
+        # FIX - allow "do not skip processed data" on user upload
         all_results = []
         file_index = self.create_file_index()
         # st.write(st.session_state.current_plan["selected_rows"])
@@ -77,6 +78,7 @@ class PG19FetchAndTrack:
                 continue
 
             filepath = file_index.get(textfilename)
+            st.info(f"filepath is {filepath}")
             if filepath is None:
                 print(f"Warning: Could not find file for {textfilename}")
                 continue
