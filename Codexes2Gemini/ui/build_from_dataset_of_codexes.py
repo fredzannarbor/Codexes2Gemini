@@ -286,6 +286,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         "data/pg19/test/test",
         "data/pg19/train/train",
         "data/pg19/validation/validation",
+        "data/pg19/ADEPT"
     ]
 
     # check if PG19 is available
@@ -372,20 +373,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                 st.dataframe(selected_rows_df)
                 st.session_state.current_plan.update({"confirmed_data_set": True})
                 st.session_state.current_plan.update({"selected_rows": selected_rows})
-    #
-    # if confirmed_data_set:
-    #     if selected_rows:
-    #         if st.button("Approve Selected Rows"):
-    #             st.session_state.current_plan.update({"selected_rows": edited_df.to_dict('records')})
-    #             st.success("Rows approved! Proceed to Step 2.")
-    #
-    #         # --- Display Approved Rows ---
-    #         st.subheader("Approved Rows:")  # Add a header for clarity
-    #         st.dataframe(edited_df)  # Display the approved DataFrame
-    #     else:
-    #         st.warning("No rows selected or loaded.")
 
-    # Step 2: Instructions and Prompts
     st.subheader("Step 2: Instructions and Prompts")
 
     with st.form("filter-system-instructions"):
@@ -407,7 +395,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         if system_filter_submitted:
             st.session_state.current_plan.update({"system_filter_submitted": system_filter_submitted})
 
-    with st.form("upload custom prompts"):
+        # with st.form("upload custom prompts"):
         # uploaded_user_prompts = st.file_uploader(
         #     "Upload Custom User Prompts (JSON)", type="json"
         # )
@@ -445,7 +433,8 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                                         index=1)
 
         if user_prompt_override == "Override other user prompts":
-            complete_user_prompt = custom_user_prompt
+            selected_user_prompt_keys = ["custom_user_prompt"]
+            selected_user_prompt_values = [custom_user_prompt]
         else:
             selected_user_prompt_keys.append("custom user prompt")
             selected_user_prompt_values.append(custom_user_prompt)
