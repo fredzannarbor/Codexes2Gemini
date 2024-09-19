@@ -272,6 +272,7 @@ def main(headless, bookjsonfilepath, outputfilepath):
         scribus.setUnit = 2
         # scribus.UNIT_INCHES = 2
         PageWidth, PageHeight = scribus.getPageSize()
+        print(PageWidth, PageHeight)
         PageWidth = float(PageWidth)
 
     if not headless:
@@ -320,7 +321,7 @@ def main(headless, bookjsonfilepath, outputfilepath):
     if "editor_byline" not in jsonbookinfo:
         editor_byline = "~ Fred Zimmerman, Editor ~"
 
-    canvaswidth = PageWidth
+    coverwidth = PageWidth
     canvasheight = PageHeight
 
     textsafety = 0.25
@@ -337,13 +338,19 @@ def main(headless, bookjsonfilepath, outputfilepath):
     fillheight = trimsizeheight + (textsafety)
 
     # now positioning from TOP RIGHT!
-
-    leftfronttext = canvaswidth - textsafety - trimsizewidth - (spinesafety / 2) - textsafety
-
+    if PageWidth == 15:  # hacky test
+        # TODO - canvaswidth isn't really canvaswidth, it is coverwidth; refactor
+        coverwidth = coverwidth - 2
+        leftfronttext = coverwidth - textsafety - trimsizewidth - (spinesafety / 2) - textsafety
+        topLeftX = coverwidth - fillwidth
+        scribus.messageBox('leftfronttext', str(leftfronttext), scribus.ICON_WARNING, scribus.BUTTON_OK)
+    else:
+        leftfronttext = coverwidth - textsafety - trimsizewidth - (spinesafety / 2) - textsafety
+        topLeftX = coverwidth - fillwidth
     scribus.createLayer("Fill")
 
-    # posiiton fill box
-    topLeftX = canvaswidth - fillwidth
+    # position fill box
+
     topLeftY = 0
 
     scribus.createRect(topLeftX, topLeftY, fillwidth, fillheight, "FillBox")
@@ -354,7 +361,7 @@ def main(headless, bookjsonfilepath, outputfilepath):
 
     # create image box that covers entire safe area on front cover
     textboxwidth = trimsizewidth - 0.25
-    scribus.createImage(canvaswidth - trimsizewidth - spinesafety, topLeftY, trimsizewidth + spinesafety,
+    scribus.createImage(coverwidth - trimsizewidth - spinesafety, topLeftY, trimsizewidth + spinesafety,
                         trimsizeheight, "FrontCoverImage")
     if imagefilename:
         scribus.loadImage(imagefilename, "FrontCoverImage")
@@ -364,12 +371,12 @@ def main(headless, bookjsonfilepath, outputfilepath):
         print('no image loaded')
         # scribus.loadImage(imagefilename, "FrontCoverImage")
 
-    btb = scribus.createText(canvaswidth - trimsizewidth, 0.25, trimsizewidth - (textsafety), trimsizeheight - 0.25,
+    btb = scribus.createText(coverwidth - trimsizewidth, 0.25, trimsizewidth - (textsafety), trimsizeheight - 0.25,
                              "FrontTextBox")
     title_text_distance = 0.5
     scribus.setTextDistances(title_text_distance, title_text_distance, title_text_distance, title_text_distance, btb)
 
-    btb = scribus.createText(canvaswidth - trimsizewidth, 0.25, trimsizewidth - (2 * textsafety), trimsizeheight - 0.25,
+    btb = scribus.createText(coverwidth - trimsizewidth, 0.25, trimsizewidth - (2 * textsafety), trimsizeheight - 0.25,
                              "FrontTextBox")
     scribus.setTextDistances(0.5, 0.5, 0.5, 0.5, btb)
 
@@ -382,7 +389,7 @@ def main(headless, bookjsonfilepath, outputfilepath):
     btb = add_styled_paragraphs_to_text_frame(btb, paragraphs)
 
     paragraphs = []
-    bylineBox = create_bylineBox(canvaswidth=canvaswidth, trimsizewidth=trimsizewidth, trimsizeheight=trimsizeheight,
+    bylineBox = create_bylineBox(canvaswidth=coverwidth, trimsizewidth=trimsizewidth, trimsizeheight=trimsizeheight,
                                  textsafety=textsafety, invertedcolor=invertedcolor, byline=byline, color=dominantcolor,
                                  title_text_distance=0.5)
     # check if byline is a single line
@@ -392,7 +399,7 @@ def main(headless, bookjsonfilepath, outputfilepath):
 
     bylineBox = add_styled_paragraphs_to_text_frame(bylineBox, bylineparagraphs)
 
-    imprintbox = create_imprint_box(canvaswidth=canvaswidth, trimsizewidth=trimsizewidth, trimsizeheight=trimsizeheight,
+    imprintbox = create_imprint_box(canvaswidth=coverwidth, trimsizewidth=trimsizewidth, trimsizeheight=trimsizeheight,
                                     textsafety=textsafety,
                                     invertedcolor=invertedcolor, imprinttext=imprinttext, editor_byline=editor_byline,
                                     slogan=slogan, color="Nimble Reference Red", title_text_distance=0.5)
@@ -403,11 +410,11 @@ def main(headless, bookjsonfilepath, outputfilepath):
 
     scribus.createLayer("BackText")
     if trimsizewidth < 6.0:
-        BackTextBox = scribus.createText(canvaswidth - trimsizewidth - spinewidth - trimsizewidth, textsafety,
+        BackTextBox = scribus.createText(coverwidth - trimsizewidth - spinewidth - trimsizewidth, textsafety,
                                          trimsizewidth - textsafety,
                                          trimsizeheight * 0.67, "BackTextBox")
     else:
-        BackTextBox = scribus.createText(canvaswidth - trimsizewidth - spinewidth - trimsizewidth, textsafety,
+        BackTextBox = scribus.createText(coverwidth - trimsizewidth - spinewidth - trimsizewidth, textsafety,
                                          trimsizewidth - textsafety,
                                          trimsizeheight * 0.67, "BackTextBox")
 
@@ -430,9 +437,9 @@ def main(headless, bookjsonfilepath, outputfilepath):
 
     if spinewidth >= 0.25:
         spinetitle = booktitle
-        SpineTop = scribus.createText(canvaswidth - trimsizewidth - 0.125, 0.75, trimsizeheight - 2, spinewidth,
+        SpineTop = scribus.createText(coverwidth - trimsizewidth - 0.125, 0.75, trimsizeheight - 2, spinewidth,
                                       "SpineBox")
-        NimbleNBox = scribus.createText(canvaswidth - trimsizewidth - 0.125 - spinewidth, trimsizeheight - 0.75,
+        NimbleNBox = scribus.createText(coverwidth - trimsizewidth - 0.125 - spinewidth, trimsizeheight - 0.75,
                                         spinewidth, spinewidth, "NimbleNBox")
         # create & position SpineBox
         scribus.setTextColor(invertedcolor, SpineTop)
@@ -474,7 +481,7 @@ def main(headless, bookjsonfilepath, outputfilepath):
         scribus.sendToLayer("ISBN")
         scribus.deselectAll()
         # scribus.unGroupObject("Group8")
-    scribus.createRect(canvaswidth - textsafety - trimsizewidth - spinewidth - 2.25, trimsizeheight - 1.5, 2.25, 1.5,
+    scribus.createRect(coverwidth - textsafety - trimsizewidth - spinewidth - 2.25, trimsizeheight - 1.5, 2.25, 1.5,
                        "UnderISBN")
     scribus.setFillColor("White", "UnderISBN")
     scribus.setLineColor(dominantcolor, "UnderISBN")
@@ -513,10 +520,10 @@ def main(headless, bookjsonfilepath, outputfilepath):
         scribus.gotoPage(2)
         #
         scribus.createRect(topLeftX, topLeftY, fillwidth, fillheight, "FillBoxDuplex")
-        scribus.setFillColor(DominantColor, "FillBoxDuplex")
+        scribus.setFillColor(dominantcolor, "FillBoxDuplex")
 
         # Create front inside cover text layer
-        front_inside_cover = scribus.createText(canvaswidth - trimsizewidth, 0.25, trimsizewidth - (textsafety),
+        front_inside_cover = scribus.createText(coverwidth - trimsizewidth, 0.25, trimsizewidth - (textsafety),
                                                 trimsizeheight - 0.25, "front_inside_cover")
         title_text_distance = 0.5
         scribus.setTextDistances(title_text_distance, title_text_distance, title_text_distance, title_text_distance,
