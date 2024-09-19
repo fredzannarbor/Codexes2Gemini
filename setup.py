@@ -1,9 +1,11 @@
 from setuptools import setup, find_packages
+import os
 
-
+print(os.listdir('Codexes2Gemini'))
+print(os.listdir('.'))
 setup(
     name='Codexes2Gemini',
-    version='0.3.4.6',
+    version='0.3.5.3',  # Update your version number
     python_requires='>=3.11',
     description='Humans and AIs making books richer, more diverse, and more surprising.',
     url='https://github.com/fredzannarbor/Codexes2Gemini',
@@ -17,9 +19,7 @@ setup(
     author='Fred_Zimmerman',
     author_email='wfz@nimblebooks.com',
     license='MIT',
-    package_dir={'': 'Codexes2Gemini'},  # Root package is in 'Codexes2Gemini' directory
-    packages=find_packages(where='Codexes2Gemini',
-                           exclude=['user_data', 'user_data/*', 'user_data/**/*']),
+    packages=['Codexes2Gemini', 'Codexes2Gemini.ui', 'resources'],  # No need for package_dir
     package_data={
         'Codexes2Gemini': [
             'classes/*',
@@ -34,14 +34,14 @@ setup(
             'documentation/*',
             'documentation/*/*',
         ],
-        'resources': [  # Add this separate entry for 'resources'
-            '*',  # Include everything directly under 'resources'
-            '*/*',  # Include everything one level deep
-            '*/*/*',  # Include everything two levels deep (adjust as needed)
+        'resources': [
+            '*',
+            '*/*',
+            '*/*/*',
         ],
     },
     install_requires=['streamlit', 'pymupdf', 'pypandoc', 'python-docx', 'google-generativeai', 'docx2txt', 'chardet',
-                      'google-cloud-texttospeech'],
+                      ],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
