@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 import pymupdf as fitz  # PyMuPDF
 import streamlit as st
@@ -99,23 +99,17 @@ class PromptGroups:
         self.logger.info("Preparing final user prompts.")
 
         final_prompts = []
-        # st.info(self.selected_user_prompts_dict)
-        if self.selected_user_prompts_dict:
-            for k, v in self.selected_user_prompts_dict.items():
-                final_prompts.append(f"{k}: {v}")
-        elif self.complete_user_prompt:
-            final_prompts.append(self.complete_user_prompt)
-        elif self.user_prompt:
-            final_prompts.append(self.user_prompt)
 
-        if not final_prompts:
-            self.logger.warning("No prompts available. Using default prompt.")
-            final_prompts = ["Please provide output based on the given context."]
+        if self.selected_user_prompt_keys and self.selected_user_prompt_values:
+            for key, value in zip(self.selected_user_prompt_keys, self.selected_user_prompt_values):
+                final_prompts.append(f"{key}: {value}")
 
-        self.logger.debug(f"Final prompts: {final_prompts}")
+        if self.user_prompt_override:
+            final_prompts = [self.custom_user_prompt]  # Override with custom prompt
+        elif self.custom_user_prompt:
+            final_prompts.append(self.custom_user_prompt)  # Append custom prompt
+
         return final_prompts
-
-
 
     def load_config(self, config_file: str) -> None:
         """Load configuration from a JSON file."""
