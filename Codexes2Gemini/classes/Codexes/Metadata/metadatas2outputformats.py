@@ -159,7 +159,6 @@ def metadatas2bookjson(metadatas, thisdoc_dir, distributor="LSI"):
     # convert the metadata to a json file
     st.info('entering metadatas2bookjson')
 
-    ISBN = metadatas.get_attribute("ISBN")
 
     bookjsonkeys = ["BookID", "BookTitle", "SubTitle", "Byline", "ImprintText", "ImageFileName", "settings",
                     "distributor", "InvertedColor", "DominantColor", "BaseFont", "trimsizewidth", "trimsizeheight",
@@ -185,16 +184,14 @@ def metadatas2bookjson(metadatas, thisdoc_dir, distributor="LSI"):
     backtext = metadatas.get_attribute("gemini_motivation") + '\n' + metadatas.get_attribute("gemini_summary") + '\n' + \
                metadatas.get_attribute('description_of_annotations') + '\n' + metadatas.get_attribute('source_text')
     bookjson["backtext"] = backtext
-    st.write(bookjson)
+    # st.write(bookjson)
     logging.debug(str(bookjson))
 
     try:
         with open(thisdoc_dir + '/' + Path(thisdoc_dir).stem + "_book.json", 'w') as f:
             json.dump(bookjson, f)
 
-        # append to cumulative bookjson file
-        with open("output/bookjson/alltime_cumulative_book.json", 'a') as f:
-            f.write(json.dumps(bookjson) + '\n')
+
     except Exception as e:
         logging.error(f"Error in saving bookjson: {str(e)}")
         st.error(f"Error in saving bookjson: {str(e)}")
