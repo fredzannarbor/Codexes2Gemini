@@ -101,7 +101,7 @@ class PromptsPlan:
         self.revised_rows = revised_rows
         self.row = row
         self.selected_rows = selected_rows or []
-        self.skip_processed = skip_processed or True
+        self.skip_processed = skip_processed or False
         self.system_instructions_dict = system_instructions_dict or {}
         self.selected_system_instruction_keys = selected_system_instruction_keys or []
         self.selected_system_instruction_values = selected_system_instruction_values or []
