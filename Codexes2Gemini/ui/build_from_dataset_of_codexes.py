@@ -2,13 +2,13 @@ import base64
 import io
 import json
 import os
-import random
+
 import sys
 import tempfile
-import textwrap
+
 import time
 import traceback
-import uuid
+
 from datetime import datetime
 from importlib import resources
 from io import BytesIO
@@ -44,7 +44,7 @@ from Codexes2Gemini.classes.Codexes.Fetchers.pg19Fetcher_v2 import PG19FetchAndT
 
 from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger, load_spreadsheet
-from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space
+from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space, InstructionPack
 from Codexes2Gemini import __version__, __announcements__
 from Codexes2Gemini.ui.multi_context_page import MultiContextUI as MCU
 from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
@@ -316,7 +316,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         number_of_context_files_to_process = st.number_input("Number of Context Files to Process (PG19 only)",
                                                              min_value=1, value=3,
                                                              disabled=(context_choice == "User Upload"))
-        skip_processed = st.checkbox("Skip Already Processed Files (PG19 only)", value=True,
+        skip_processed = st.checkbox("Skip Already Processed Files (PG19 only)", value=False,
                                      disabled=(context_choice == "User Upload"))
         st.session_state.current_plan.update({"skip_processed": skip_processed})
 
@@ -350,6 +350,9 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                     except Exception as e:
                         st.error(f"Error reading CSV: {e}")
 
+
+
+
             elif context_choice == "PG19":
                 try:
                     file_index = FT.create_file_index()
@@ -374,7 +377,30 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                 st.session_state.current_plan.update({"confirmed_data_set": True})
                 st.session_state.current_plan.update({"selected_rows": selected_rows})
 
+    #
+
     st.subheader("Step 2: Instructions and Prompts")
+
+    with st.expander("Optional: Load Instruction Pack"):
+        with st.form("load-instruction-pack"):
+            instruction_packs = user_space.get_instruction_packs()
+
+            # Display a selectbox to choose an instruction pack
+            selected_pack_name = st.selectbox("Select Instruction Pack", ["-- None --"] + list(instruction_packs.keys()))
+            loaded = st.form_submit_button("Load This Pack")
+            if loaded:
+                if selected_pack_name != "-- None --":
+                    selected_pack = instruction_packs[selected_pack_name]
+
+                    st.session_state.current_plan.update({
+                        "selected_system_instruction_keys": selected_pack.system_instructions,
+                        "selected_user_prompt_keys": list(selected_pack.user_prompts.keys()),
+                        "custom_user_prompt": selected_pack.custom_prompt,
+                        "user_prompt_override": selected_pack.override
+                    })
+                    st.rerun()
+                else:
+                    st.warning("No instruction pack selected, no effect.")
 
     with st.form("filter-system-instructions"):
         system_filter = st.text_input("Filter system instructions")
@@ -383,6 +409,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         selected_system_instruction_keys = st.multiselect(
             "Select system instructions",
             options=list(filtered_system.keys()),
+            default=st.session_state.current_plan.get("selected_system_instruction_keys", []),  # Populate default
             format_func=lambda x: f"{x}: {filtered_system[x]['prompt'][:50]}..."
         )
         for key in selected_system_instruction_keys:
@@ -395,74 +422,80 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         if system_filter_submitted:
             st.session_state.current_plan.update({"system_filter_submitted": system_filter_submitted})
 
-        # with st.form("upload custom prompts"):
-        # uploaded_user_prompts = st.file_uploader(
-        #     "Upload Custom User Prompts (JSON)", type="json"
-        # )
-        # if uploaded_user_prompts:
-        #     try:
-        #         custom_user_prompts_dict = json.load(uploaded_user_prompts)
-        #         user_prompts_dict.update(custom_user_prompts_dict)
-        #         st.info("Custom user prompts added.")
-        #     except json.JSONDecodeError:
-        #         st.error("Invalid JSON format for custom user prompts.")
-        #
-        # # Add submit button for custom prompts upload:
-        # custom_prompts_submitted = st.form_submit_button("Update User Prompts")
-        # if custom_prompts_submitted:
-        #     # You might want to re-filter here if you want the filter to
-        #     # immediately apply to the newly uploaded prompts
-        #     user_filter = st.text_input("Filter user prompts", key="user-prompts")
-        #     filtered_user = filter_dict(user_prompts_dict, user_filter)
 
+
+
+    with st.form("filter-user-prompts2"):
         user_filter = st.text_input("Filter user prompts")
         filtered_user = filter_dict(user_prompts_dict, user_filter)
 
         selected_user_prompt_keys = st.multiselect(
             "Select user prompt keys",
             options=list(filtered_user.keys()),
+            default=st.session_state.current_plan.get("selected_user_prompt_keys", []),  # Populate default
             format_func=lambda x: f"{x}: {filtered_user[x]['prompt'][:50]}..."
         )
-
         selected_user_prompt_values = [filtered_user[key]['prompt'] for key in selected_user_prompt_keys]
         selected_user_prompts_dict = {key: filtered_user[key]['prompt'] for key in selected_user_prompt_keys}
-        # TO DO Custom user prompt not being honored if append selected
+
+        filtered_user_prompts = st.form_submit_button("Select these predefined user prompts")
+        if filtered_user_prompts:
+            st.session_state.current_plan.update({
+                "selected_user_prompt_keys": selected_user_prompt_keys,
+                "selected_user_prompt_values": selected_user_prompt_values,
+                "selected_user_prompts_dict": selected_user_prompts_dict,
+            })
+
+    with st.form("add custom_user_prompts"):
         custom_user_prompt = st.text_area("Custom User Prompt (optional)")
         user_prompt_override = st.radio("Override?",
                                         ["Override other user prompts", "Add at end of other user prompts"],
                                         index=1)
 
-        if user_prompt_override == "Override other user prompts":
-            selected_user_prompt_keys = ["custom_user_prompt"]
-            selected_user_prompt_values = [custom_user_prompt]
-        else:
-            selected_user_prompt_keys.append("custom user prompt")
-            selected_user_prompt_values.append(custom_user_prompt)
-            complete_user_prompt = "\n".join(selected_user_prompt_values)
+        user_prompts_done = st.form_submit_button("Use This Custom Prompt")
+        if user_prompts_done:
+            st.session_state.current_plan.update({
+                "selected_user_prompt_keys": selected_user_prompt_keys,
+                "selected_user_prompt_values": selected_user_prompt_values,
+                "custom_user_prompt": custom_user_prompt,
+                "user_prompt_override": user_prompt_override == "Override other user prompts",
+                "user_prompts_dict": selected_user_prompts_dict,
+            })
 
-        user_prompt_override_bool = user_prompt_override == "Override other user prompts"
+    with st.expander("Optional: Save Instruction Pack", expanded=False):
+        with st.form("save-instruction-pack"):
+            pack_name = st.text_input("Pack Name")
 
+            if st.form_submit_button("Save Pack"):
+                pack = InstructionPack(pack_name,
+                                       st.session_state.current_plan["selected_system_instruction_keys"],
+                                       st.session_state.current_plan['selected_user_prompts_dict'],
+                                       st.session_state.current_plan['custom_user_prompt'],
+                                       st.session_state.current_plan['user_prompt_override'])
+                user_space.save_instruction_pack(pack)
+                st.success(f"Instruction pack '{pack_name}' saved.")
+
+    with st.form("save-instructions-continue"):
         instructions_submitted = st.form_submit_button(
-            "Save Instructions and Continue",
+            "Continue",
             disabled=not st.session_state.current_plan["confirmed_data_set"]
         )
 
-    if instructions_submitted:
-        st.session_state.current_plan.update({
-            "selected_system_instruction_keys": selected_system_instruction_keys,
-            "selected_system_instruction_values": selected_system_instruction_values,
-            "complete_system_instruction": complete_system_instruction,
-            'selected_user_prompt_keys': selected_user_prompt_keys,
-            'selected_user_prompt_values': selected_user_prompt_values,
-            'custom_user_prompt': custom_user_prompt,
-            'user_prompt_override': user_prompt_override_bool,
-            'complete_user_prompt': complete_user_prompt,
-            'user_prompts_dict': user_prompts_dict,
-            'selected_user_prompts_dict': selected_user_prompts_dict,
-            'complete_system_instruction': complete_system_instruction,
-            'system_instructions_dict': system_instructions_dict,
-        })
-        st.success("Instructions and prompts saved.")
+        if instructions_submitted:
+            st.session_state.current_plan.update({
+                "selected_system_instruction_keys": selected_system_instruction_keys,
+                "selected_system_instruction_values": selected_system_instruction_values,
+                "complete_system_instruction": complete_system_instruction,
+                'selected_user_prompt_keys': selected_user_prompt_keys,
+                'selected_user_prompt_values': selected_user_prompt_values,
+                'custom_user_prompt': custom_user_prompt,
+                'user_prompt_override': user_prompt_override,
+                'user_prompts_dict': user_prompts_dict,
+                'selected_user_prompts_dict': selected_user_prompts_dict,
+                'complete_system_instruction': complete_system_instruction,
+                'system_instructions_dict': system_instructions_dict,
+            })
+            st.success("Instructions and prompts saved.")
         # truncate_plan_values_for_display(plan)
 
     # Step 3: Output Settings
@@ -507,10 +540,10 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
     st.subheader("Step 4: Begin Building from Data Set")
 
-    # show all keys in st.session_state.current_plan
-    # st.write(st.session_state.current_plan.keys())
-    # st.write(st.session_state.current_plan['skip_processed'])
-    # st.write(st.session_state.current_plan['selected_rows'])
+    #show all keys in st.session_state.current_plan
+    st.write(st.session_state.current_plan.keys())
+    st.write(st.session_state.current_plan['skip_processed'])
+    st.write(st.session_state.current_plan['selected_rows'])
 
     if st.button(f"Build From Data Set {context_choice}"):  #
         # st.write(st.session_state.current_plan["selected_rows"])
@@ -526,6 +559,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
     return results
 
+# FIX An error occurred: cannot access local variable 'gemini_title' where it is not associated with a value
 
 def process_returns(results):
     if results:
@@ -538,6 +572,7 @@ def process_returns(results):
                 st.info(f"wrote codexready to {codexready_filename}")
             except Exception as e:
                 st.error(traceback.format_exc)
+
     all_results_filename = datetime.now().strftime('%Y%m%d_%H%M%S')
     st.success("All contexts processed.")
 
@@ -557,8 +592,26 @@ def process_returns(results):
         markdown_content = results
     else:
         st.error("Unexpected result type. Cannot generate Markdown.")
-    # Markdown download
-    # st.write(markdown_content[0:100])
+
+    st.json(st.session_state.current_plan.keys())
+    # for r in results:
+    #     try:
+    #         st.session_state.current_plan['gemini_title']
+    #         metadata_instance = Metadatas(
+    #             ISBN=st.session_state.current_plan.get("ISBN", ""),
+    #             title=st.session_state.current_plan.get("gemini_title", ""),
+    #             subtitle=st.session_state.current_plan.get("gemini_subtitle"),
+    #             byline=st.session_state.current_plan.get("gemini_authors", "")
+    #         )
+    #         st.write(metadata_instance)
+    #         bookjson_result = metadatas2bookjson(metadata_instance,
+    #                                              st.session_state.current_plan.get("thisdoc_dir", ""))
+    #
+    #     except Exception as e:
+    #         logging.error("Error processing metadata: %s")
+    #         st.error(e)
+    #         st.error(traceback.format_exc())
+    #
     markdown_buffer = BytesIO(markdown_content.encode())
 
     @st.fragment()
@@ -585,12 +638,8 @@ def process_returns(results):
     download_json(all_results_filename)
 
     # TODO process metadata_instance for feeding into bookjson
-    metadata_instance = Metadatas()
-    bookjson_result = metadatas2bookjson(metadata_instance)
-    # TODO get this working
-    st.write(bookjson_result)
-    with open("output/bookjson.json", "w") as f:
-        f.write(json.dump(bookjson_result, f, indent=4))
+
+
 
     return markdown_content
 
@@ -633,22 +682,16 @@ def results2assembled_pandoc_markdown_with_latex(results):
 
     assembled_documents = []  # List to store complete documents
 
-    try:
-        if not isinstance(results, list):
-            st.warning("results is not a list")
-            return []
 
-        for result_set in results:
-            assembled_pandoc_markdown_with_latex = ""  # Initialize for each document
+    if not isinstance(results, list):
+        st.warning("results is not a list")
+        return []
 
-            json_string = result_set[0]
-            # check if json_string is json
-            try:
-                json_data = json.loads(json_string)
-            except Exception as e:
-                st.error("Can't extract json data from result")
-                st.error(traceback.format_exc())
-                continue
+    for result_set in results:
+        assembled_pandoc_markdown_with_latex = ""  # Initialize for each document
+        # check if result_set[0] is dict that includes gemini_title
+        if isinstance(result_set[0], dict):
+            json_string = json.dumps(result_set[0])
 
             # check if this is a basic info result
             if "gemini_title" or "gemini_authors" in json_string:
@@ -656,22 +699,24 @@ def results2assembled_pandoc_markdown_with_latex(results):
                 gemini_title = json_data.get("gemini_title", "TBD")
                 gemini_subtitle = json_data.get("gemini_subtitle", "TBD")
                 gemini_authors = json_data.get("gemini_authors", "TBD")
+            # if not in json string set all gemini__title to "TBD"
+            else:
+                gemini_title = "TBD"
+                gemini_subtitle = "TBD"
+                gemini_authors = "TBD"
 
-                # Create LaTeX preamble for this document
-                latex_preamble = create_latex_preamble(gemini_title, gemini_subtitle, gemini_authors)
+        latex_preamble = create_latex_preamble(gemini_title, gemini_subtitle, gemini_authors)
 
-                # Append preamble to the document's content
-                assembled_pandoc_markdown_with_latex += latex_preamble
+        # Append preamble to the document's content
+        assembled_pandoc_markdown_with_latex += latex_preamble
 
-            for i in range(1, len(result_set)):
-                assembled_pandoc_markdown_with_latex += result_set[i] + "\n\n"
+        for i in range(1, len(result_set)):
+            assembled_pandoc_markdown_with_latex += result_set[i] + "\n\n"
 
-            # Add the complete document to the list
-            assembled_documents.append(assembled_pandoc_markdown_with_latex)
+        # Add the complete document to the list
+        assembled_documents.append(assembled_pandoc_markdown_with_latex)
 
-    except Exception as e:
-        st.error(e)
-        st.error(traceback.format_exc())
+
 
     return assembled_documents  # Return the list of assembled documents
 
@@ -819,6 +864,30 @@ def user_space_app(user_space: UserSpace):
             st.success("All contexts cleared")
             st.rerun()
 
+
+    st.header("Instruction Packs")
+    instruction_packs = user_space.get_instruction_packs()
+
+    if instruction_packs:
+        pack_df = pd.DataFrame(
+            [(name, ", ".join(pack.system_instructions), ", ".join(pack.user_prompts.keys()),
+              pack.custom_prompt[:50] + "..." if len(pack.custom_prompt) > 50 else pack.custom_prompt,
+              pack.override)
+             for name, pack in instruction_packs.items()],
+            columns=["Name", "System Instructions", "User Prompt Keys", "Custom Prompt Preview", "Override"]
+        )
+        st.table(pack_df)
+
+        packs_to_delete = st.multiselect("Select packs to delete", list(instruction_packs.keys()))
+        if st.button("Delete Selected Packs") and packs_to_delete:
+            for pack_name in packs_to_delete:
+                del user_space.instruction_packs[pack_name]
+            save_user_space(user_space)
+            st.success("Selected instruction packs deleted.")
+            st.rerun()
+    else:
+        st.info("No instruction packs saved yet.")
+
     st.header("Save Prompts")
     prompt_name = st.text_input("Prompt Name (optional)")
     prompt = st.text_area("Prompt")
@@ -896,7 +965,11 @@ def run_build_launcher(selected_user_prompts, selected_system_instructions, user
         'thisdoc_dir': thisdoc_dir,
         'list_of_user_keys_to_use': selected_user_prompts,
         'list_of_system_keys': selected_system_instructions,
-        'user_prompts_dict_file_path': user_prompts_dict_file_path
+        'user_prompts_dict_file_path': user_prompts_dict_file_path,
+        'selected_user_prompt_keys': st.session_state.current_plan['selected_user_prompt_keys'],
+        'selected_user_prompt_values': st.session_state.current_plan['selected_user_prompt_values'],
+        'custom_user_prompt': st.session_state.current_plan['custom_user_prompt'],
+        'user_prompt_override': st.session_state.current_plan['user_prompt_override'],
     }
 
     if context_files:

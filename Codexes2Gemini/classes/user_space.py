@@ -22,6 +22,14 @@ class SavedContext:
         self.tags = tags or []
 
 
+class InstructionPack:
+    def __init__(self, name, system_instructions, user_prompts, custom_prompt, override):
+        self.name = name
+        self.system_instructions = system_instructions
+        self.user_prompts = user_prompts
+        self.custom_prompt = custom_prompt
+        self.override = override
+
 class UserSpace:
     """
     A class to manage user-specific data, including filters, prompts, saved contexts, results, and prompt plans.
@@ -52,6 +60,78 @@ class UserSpace:
         self.results = []
         self.prompt_plans = []
         self.name = self.get_unique_name(name)
+
+    def get_filtered_contexts(self, filter_text: str) -> Dict[str, SavedContext]:
+        """Returns a dictionary of contexts that match the given filter text.
+
+        Args:
+            filter_text (str): The text to filter by.
+
+        Returns:
+            Dict[str, SavedContext]: A dictionary of contexts that match the filter.
+        """
+        return {
+            name: context for name, context in self.saved_contexts.items()
+            if filter_text.lower() in name.lower() or
+               any(filter_text.lower() in tag.lower() for tag in context.tags)
+        }
+
+    def get_instruction_packs(self) -> Dict[str, InstructionPack]:
+        """Returns a dictionary of saved instruction packs.
+
+        Returns:
+            Dict[str, InstructionPack]: A dictionary where keys are pack names and values are InstructionPack objects.
+        """
+        if not hasattr(self, 'instruction_packs'):
+            self.instruction_packs = {}
+        return self.instruction_packs
+
+    def get_unique_name(self, name: str) -> str:
+        """Returns a unique name based on the given name, avoiding collisions with existing names.
+
+        Args:
+            name (str): The desired name.
+
+        Returns:
+            str: A unique name.
+        """
+        existing_names = [f.replace("user_space_", "").replace(".pkl", "") for f in os.listdir() if
+                          f.startswith("user_space_")]
+        if name not in existing_names:
+            return name
+        else:
+            counter = 1
+            while f"{name}_{counter}" in existing_names:
+                counter += 1
+            return f"{name}_{counter}"
+
+    def save_instruction_pack(self, pack: InstructionPack):
+        """Saves an instruction pack.
+
+        Args:
+            pack (InstructionPack): The InstructionPack object to save.
+        """
+        if not hasattr(self, 'instruction_packs'):
+            self.instruction_packs = {}
+        self.instruction_packs[pack.name] = pack
+        save_user_space(self)
+
+    def save_result(self, result: str):
+        """Saves a generated result to the results list.
+
+        Args:
+            result (str): The generated result.
+        """
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        self.results.append({"timestamp": timestamp, "result": result})
+
+    def save_prompt_plan(self, prompt_plan: Dict):
+        """Saves a prompt plan to the prompt plans list.
+
+        Args:
+            prompt_plan (Dict): The prompt plan data.
+        """
+        self.prompt_plans.append(prompt_plan)
 
     def save_filter(self, name: str, filter_data: Dict):
         """Saves a filter with the given name and data.
@@ -87,38 +167,6 @@ class UserSpace:
             name = f"Context_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         self.saved_contexts[name] = SavedContext(name, content, tags)
 
-    def get_filtered_contexts(self, filter_text: str) -> Dict[str, SavedContext]:
-        """Returns a dictionary of contexts that match the given filter text.
-
-        Args:
-            filter_text (str): The text to filter by.
-
-        Returns:
-            Dict[str, SavedContext]: A dictionary of contexts that match the filter.
-        """
-        return {
-            name: context for name, context in self.saved_contexts.items()
-            if filter_text.lower() in name.lower() or
-            any(filter_text.lower() in tag.lower() for tag in context.tags)
-        }
-
-    def save_result(self, result: str):
-        """Saves a generated result to the results list.
-
-        Args:
-            result (str): The generated result.
-        """
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        self.results.append({"timestamp": timestamp, "result": result})
-
-    def save_prompt_plan(self, prompt_plan: Dict):
-        """Saves a prompt plan to the prompt plans list.
-
-        Args:
-            prompt_plan (Dict): The prompt plan data.
-        """
-        self.prompt_plans.append(prompt_plan)
-
     def add_result(self, key, result):
         """Adds a result to the UserSpace object under the specified key.
 
@@ -129,24 +177,6 @@ class UserSpace:
         timestamp = time.time()  # this gives a timestamp
         self.__dict__[key] = {"result": result, "time": timestamp}
 
-    def get_unique_name(self, name: str) -> str:
-        """Returns a unique name based on the given name, avoiding collisions with existing names.
-
-        Args:
-            name (str): The desired name.
-
-        Returns:
-            str: A unique name.
-        """
-        existing_names = [f.replace("user_space_", "").replace(".pkl", "") for f in os.listdir() if
-                          f.startswith("user_space_")]
-        if name not in existing_names:
-            return name
-        else:
-            counter = 1
-            while f"{name}_{counter}" in existing_names:
-                counter += 1
-            return f"{name}_{counter}"
 
 def save_user_space(user_space: UserSpace):
     """Saves the UserSpace object to a pickle file.
