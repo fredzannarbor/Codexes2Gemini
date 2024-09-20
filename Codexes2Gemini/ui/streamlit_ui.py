@@ -53,6 +53,64 @@ GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
 # TODO - create markdown LaTex prologue using ADEPT for 4 x 6 page
 # TODO - add 12 titles to file
 
+def results2assembled_pandoc_markdown_with_latex(results):
+    """
+    Assembles results into separate Pandoc Markdown documents with LaTeX preambles.
+
+    Args:
+        results: A list of lists, where each inner list represents a document's results.
+
+    Returns:
+        A list of strings, each representing a complete Pandoc Markdown document.
+    """
+
+    assembled_documents = []  # List to store complete documents
+
+    try:
+        if not isinstance(results, list):
+            st.warning("results is not a list")
+            return []
+
+        for result_set in results:
+            assembled_pandoc_markdown_with_latex = ""  # Initialize for each document
+            #
+            json_string = result_set[0].flatten_and_stringify()
+            # check if json_string is json
+            try:
+                json_data = json.loads(json_string)
+            except Exception as e:
+                st.error("Can't extract json data from result")
+                st.error(traceback.format_exc())
+                continue
+
+            # check if this is a basic info result
+            if "gemini_title" or "gemini_authors" in json_string:
+                # Extract values from JSON
+                gemini_title = json_data.get("gemini_title", "TBD")
+                gemini_subtitle = json_data.get("gemini_subtitle", "TBD")
+                gemini_authors = json_data.get("gemini_authors", "TBD")
+                st.session_state.current_plan['gemini_title'] = gemini_title
+                st.session_state.current_plan['gemini_subtitle'] = gemini_subtitle
+                st.session_state.current_plan['gemini_authors'] = gemini_authors
+                st.session_state
+                # Create LaTeX preamble for this document
+                latex_preamble = create_latex_preamble(gemini_title, gemini_subtitle, gemini_authors)
+
+                # Append preamble to the document's content
+                assembled_pandoc_markdown_with_latex += latex_preamble
+
+            for i in range(1, len(result_set)):
+                assembled_pandoc_markdown_with_latex += result_set[i] + "\n\n"
+
+            # Add the complete document to the list
+            assembled_documents.append(assembled_pandoc_markdown_with_latex)
+
+    except Exception as e:
+        st.error(e)
+        st.error(traceback.format_exc())
+
+    return assembled_documents  # Return the list of assembled documents
+
 
 def results2assembled_pandoc_markdown_with_latex(results):
     """
@@ -110,7 +168,10 @@ def results2assembled_pandoc_markdown_with_latex(results):
                 gemini_title = json_data.get("gemini_title", "TBD")
                 gemini_subtitle = json_data.get("gemini_subtitle", "TBD")
                 gemini_authors = json_data.get("gemini_authors", "TBD")
-
+                st.session_state.current_plan['gemini_title'] = gemini_title
+                st.session_state.current_plan['gemini_subtitle'] = gemini_subtitle
+                st.session_state.current_plan['gemini_authors'] = gemini_authors
+                st.session_state
                 # Create LaTeX preamble for this document
                 latex_preamble = create_latex_preamble(gemini_title, gemini_subtitle, gemini_authors)
 
@@ -529,7 +590,7 @@ def multiplan_builder(user_space: UserSpace):
             if user_prompt_override == "Override other user prompts":
                 complete_user_prompt = custom_user_prompt
             else:
-                selected_user_prompt_keys.append("custom user prompt")
+                selected_user_prompt_keys.append("custom_user_prompt")
                 selected_user_prompt_values.append(custom_user_prompt)
                 complete_user_prompt = "\n".join(selected_user_prompt_values)
 

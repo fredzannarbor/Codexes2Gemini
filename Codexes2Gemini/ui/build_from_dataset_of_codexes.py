@@ -1068,6 +1068,7 @@ def run_streamlit_app():
             user_space_app(user_space)
     except Exception as e:
         st.error(f"An error occurred: {e}")
+        st.error(traceback.format_exc())
 
 
 

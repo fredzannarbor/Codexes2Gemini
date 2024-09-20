@@ -6,7 +6,6 @@ import os
 import traceback
 import uuid
 from importlib import resources
-from os.path import basename
 from time import sleep
 from typing import List
 
@@ -14,7 +13,6 @@ import google.generativeai as genai
 import pandas as pd
 import streamlit as st
 from google.generativeai import caching
-
 
 from Codexes2Gemini.classes.Utilities.utilities import configure_logger
 from ..Builders.PromptGroups import PromptGroups
@@ -122,7 +120,7 @@ class Codexes2Parts:
         return response_dict
 
     def process_codex_to_book_part(self, plan: PromptGroups):
-        # status_display = st.empty()
+
         self.logger.debug(f"Starting process_codex_to_book_part with plan: {plan}")
         self.make_thisdoc_dir(plan)
         context = self.read_and_prepare_context(plan)
@@ -207,7 +205,7 @@ class Codexes2Parts:
                 self.logger.warning("No satisfactory results were generated.")
                 satisfactory_results = "No satisfactory results were generated."
                 st.warning("No satisfactory results were generated.")
-        # st.info(f"processed prompt {i + 1}")
+            st.info(f"processed prompt {i + 1}")
         return satisfactory_results
 
     def create_cache_from_context(self, context):
@@ -217,13 +215,35 @@ class Codexes2Parts:
                 model='models/gemini-1.5-flash-001',
                 display_name='text cache',  # used to identify the cache
                 contents=[context],
-                ttl=datetime.timedelta(minutes=5),
+                ttl=datetime.timedelta(minutes=60),
             )
         else:
             cache = None
         return cache
 
-    # "\n\n".join(satisfactory_results)  # Return only satisfactory results joined together
+    import google.generativeai as genai
+
+    def delete_current_cache(model_name='models/gemini-1.5-flash-001', display_name='text cache'):
+        """Deletes the current cache based on model name and display name.
+
+        Args:
+            model_name (str): The name of the model associated with the cache.
+            display_name (str): The display name of the cache.
+        """
+        genai.configure(api_key=GOOGLE_API_KEY)  # Make sure your API key is configured
+
+        client = genai.client.get_default_cache_client()
+        request = genai.protos.ListCachedContentsRequest(parent=model_name)
+        response = client.list_cached_contents(request)
+
+        for cached_content in response.cached_contents:
+            if cached_content.display_name == display_name:
+                delete_request = genai.protos.DeleteCachedContentRequest(name=cached_content.name)
+                client.delete_cached_content(delete_request)
+                logging.warning("Cache deleted successfully.")
+                return
+
+        logging.info(f"Cache with display name '{display_name}' not found for model '{model_name}'.")
 
     def process_plan_to_codex(self, plan: PromptGroups):
         """
@@ -249,7 +269,6 @@ class Codexes2Parts:
         # user_prompts.append(self.continuation_instruction)
         st.json([user_prompts])
 
-
         full_output = []
         repsmax = 5
         while 'IAMDONE' not in full_output:
@@ -269,7 +288,7 @@ class Codexes2Parts:
                 full_output_tokens = self.count_tokens(full_output)
                 context += response.text
 
-            # st.info(f"processed prompt {i + 1}")
+            st.info(f"processed prompt {i + 1}")
             if 'IAMDONE' in full_output:
                 break
         st.info("found IAMDONE")
@@ -375,11 +394,6 @@ class Codexes2Parts:
         if plan.complete_system_instruction:
             system_prompt = plan.complete_system_instruction
         else:
-            st.write(self.system_instructions_dict_file_path)
-            systems_instructions_dict_file_path = self.system_instructions_dict_file_path
-            # systems_instruction_dict_file_name = basename(systems_instructions_dict_file_path)
-            if not systems_instructions_dict_file_path.exists():
-                systems_instructions_dict_file_path = f"resources/prompts/{self.system_instructions_dict_file_name}"
             with open(self.system_instructions_dict_file_path, "r") as json_file:
                 system_instruction_dict = json.load(json_file)
 
@@ -421,8 +435,12 @@ class Codexes2Parts:
                 if attempt_no < MODEL_GENERATION_ATTEMPTS - 1:
                     sleep(RETRY_DELAY_SECONDS)
                 else:
-                    print("Max retries exceeded. Exiting.")
-                    exit()
+                    print("Max retries exceeded. Breaking and moving on to next book.")
+                    break
+        # delete the cache
+        self.delete_current_cache(model_name=plan.model_name, display_name='text cache')
+
+        return response
 
     def make_thisdoc_dir(self, plan):
         if not plan.thisdoc_dir:
@@ -448,7 +466,7 @@ def parse_arguments():
     parser.add_argument('--user_prompt', default='', help="User prompt")
     parser.add_argument('--user_prompt_override', action='store_true', help="Override user prompts from dictionary")
     parser.add_argument('--user_prompts_dict_file_path',
-                        default=resources.files('resources.prompts').joinpath("user_prompts_dict.json"),
+                        default=resources.files('Codexes2Gemini.resources.prompts').joinpath("user_prompts_dict.json"),
                         help="Path to user prompts dictionary file")
     parser.add_argument('--list_of_user_keys_to_use', default="semantic_analysis,core_audience_attributes",
                         help="Comma-separated list of user keys to use")
