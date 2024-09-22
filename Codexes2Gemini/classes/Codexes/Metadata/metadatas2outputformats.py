@@ -189,7 +189,8 @@ def metadatas2bookjson(metadatas, thisdoc_dir, distributor="LSI"):
 
     try:
         with open(thisdoc_dir + '/' + Path(thisdoc_dir).stem + "_book.json", 'w') as f:
-            json.dump(bookjson, f)
+
+            f.write(json.dump(bookjson, f))
 
 
     except Exception as e:
