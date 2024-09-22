@@ -25,6 +25,10 @@ class PromptsPlan:
                  continuation_prompts: bool = False,
                  custom_user_prompt: str = "",
                  file_index: str = None,
+                 gemini_authors: str = "TBD",
+                 gemini_subtitle: str = "TBD",
+                 gemini_title: str = "TBD",
+                 ISBN: str = "TBD",
                  generation_config: dict = None,
                  json_required: bool = False,
                  list_of_system_keys: str = None,
@@ -80,6 +84,10 @@ class PromptsPlan:
             "top_k": 0,
             "top_p": 0.95,
         }
+        self.gemini_authors = gemini_authors or "TBD"
+        self.gemini_subtitle = gemini_subtitle or "TBD"
+        self.gemini_title = gemini_title or "TBD"
+        self.ISBN = ISBN or "TBD"
         self.json_required = json_required
 
         self.list_of_system_keys = list_of_system_keys.split(',') \

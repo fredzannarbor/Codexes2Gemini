@@ -99,7 +99,7 @@ class PG19FetchAndTrack:
             self.update_processed_metadata(textfilename)
             all_results.append(results)
 
-        self.save_processed_metadata()
+        self.save_processed_metadata_to_cumulative_csv()
 
         return all_results
 
@@ -163,7 +163,7 @@ class PG19FetchAndTrack:
                     'results': results
                 }, f, indent=4)
 
-            logging.info(f"Successfully saved file to JSON at {output_json_path}")
+            logging.info(f"Successfully saved results to JSON at {output_json_path}")
         except Exception as e:
             print(f"Error saving results to JSON: {traceback.format_exc()}")
             st.error(f"Error saving results to JSON: {traceback.format_exc()}")
@@ -200,6 +200,6 @@ class PG19FetchAndTrack:
         })
         self.processed_df = pd.concat([self.processed_df, new_row], ignore_index=True)
 
-    def save_processed_metadata(self):
+    def save_processed_metadata_to_cumulative_csv(self):
         """Saves the processed metadata to a CSV file."""
         self.processed_df.to_csv(self.processed_csv, index=False)

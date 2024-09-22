@@ -189,12 +189,17 @@ class Codexes2Parts:
 
             if satisfactory_results:
                 self.logger.info(f"Returning satisfactory results of {self.count_tokens(satisfactory_results)}")
-
+                safety_feedback = {}
                 if plan.require_json_output:
+                    if response.candidates[0].finish_reason == "SAFETY":
+
+                        for candidate in response.candidates:
+                            for rating in candidate.safety_ratings:
+                                safety_feedback.update({rating.category: rating.probability})
+
                     output_data = {
                         "text": response.text,
-                        "prompt_feedback": response.prompt_feedback,
-                        # ... (Add other relevant data to the dictionary) ...
+                        "prompt_feedback": safety_feedback,
                     }
                     json_output_path = f"{plan.thisdoc_dir}/{plan.output_file_path}_{str(uuid.uuid4())[:6]}.json"
                     with open(json_output_path, 'w') as json_file:
