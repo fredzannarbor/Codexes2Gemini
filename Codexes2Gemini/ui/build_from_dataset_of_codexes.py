@@ -417,11 +417,12 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
         complete_system_instruction = "\n".join(selected_system_instruction_values)
 
-        # Submit button for the filter form:
+        # Submit button for the system instructions form:
         system_filter_submitted = st.form_submit_button("Select System Instructions")
         if system_filter_submitted:
-            st.session_state.current_plan.update({"system_filter_submitted": system_filter_submitted})
-
+            st.session_state.current_plan.update({"system_filter_submitted": system_filter_submitted,
+                                                  "selected_system_instruction_keys": selected_system_instruction_keys,
+                                                  "selected_system_instruction_values": selected_system_instruction_values})
 
 
 
@@ -541,9 +542,9 @@ def prompts_plan_builder_ui(user_space: UserSpace):
     st.subheader("Step 4: Begin Building from Data Set")
 
     #show all keys in st.session_state.current_plan
-    st.write(st.session_state.current_plan.keys())
-    st.write(st.session_state.current_plan['skip_processed'])
-    st.write(st.session_state.current_plan['selected_rows'])
+    logging.info(f"session state keys are {st.session_state.current_plan.keys()}")
+    logging.info(f"skipping previously processed files: {st.session_state.current_plan['skip_processed']}")
+    logging.info(f"selected_rows: {st.session_state.current_plan['selected_rows']}")
 
     if st.button(f"Build From Data Set {context_choice}"):  #
         # st.write(st.session_state.current_plan["selected_rows"])
@@ -556,8 +557,8 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         )
 
         results = FT.fetch_pg19_data(skip_processed=st.session_state.current_plan['skip_processed'])
-
-    return results
+        process_returns(results)
+        return results
 
 # FIX An error occurred: cannot access local variable 'gemini_title' where it is not associated with a value
 
@@ -593,25 +594,7 @@ def process_returns(results):
     else:
         st.error("Unexpected result type. Cannot generate Markdown.")
 
-    st.json(st.session_state.current_plan.keys())
-    # for r in results:
-    #     try:
-    #         st.session_state.current_plan['gemini_title']
-    #         metadata_instance = Metadatas(
-    #             ISBN=st.session_state.current_plan.get("ISBN", ""),
-    #             title=st.session_state.current_plan.get("gemini_title", ""),
-    #             subtitle=st.session_state.current_plan.get("gemini_subtitle"),
-    #             byline=st.session_state.current_plan.get("gemini_authors", "")
-    #         )
-    #         st.write(metadata_instance)
-    #         bookjson_result = metadatas2bookjson(metadata_instance,
-    #                                              st.session_state.current_plan.get("thisdoc_dir", ""))
-    #
-    #     except Exception as e:
-    #         logging.error("Error processing metadata: %s")
-    #         st.error(e)
-    #         st.error(traceback.format_exc())
-    #
+
     markdown_buffer = BytesIO(markdown_content.encode())
 
     @st.fragment()
@@ -686,24 +669,11 @@ def results2assembled_pandoc_markdown_with_latex(results):
     if not isinstance(results, list):
         st.warning("results is not a list")
         return []
-
+    gemini_title = "TBD"
+    gemini_subtitle = "TBD"
+    gemini_authors = "TBD"
     for result_set in results:
         assembled_pandoc_markdown_with_latex = ""  # Initialize for each document
-        # check if result_set[0] is dict that includes gemini_title
-        if isinstance(result_set[0], dict):
-            json_string = json.dumps(result_set[0])
-
-            # check if this is a basic info result
-            if "gemini_title" or "gemini_authors" in json_string:
-                # Extract values from JSON
-                gemini_title = json_data.get("gemini_title", "TBD")
-                gemini_subtitle = json_data.get("gemini_subtitle", "TBD")
-                gemini_authors = json_data.get("gemini_authors", "TBD")
-            # if not in json string set all gemini__title to "TBD"
-            else:
-                gemini_title = "TBD"
-                gemini_subtitle = "TBD"
-                gemini_authors = "TBD"
 
         latex_preamble = create_latex_preamble(gemini_title, gemini_subtitle, gemini_authors)
 
@@ -1058,7 +1028,7 @@ def run_streamlit_app():
         )
         if page == "Create Build Plans":
             final_results = prompts_plan_builder_ui(user_space)
-            markdown = process_returns(final_results)
+        #   markdown = process_returns(final_results)
         elif page == "Run Saved Plans":
             upload_build_plan()
         elif page == "Multi-Context Processing":
