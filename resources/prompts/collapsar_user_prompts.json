@@ -1,13 +1,4 @@
 {
-  "Collapsar abstracts 1": {
-    "prompt": "Please review this book manuscript. As you do the following tasks, remember to use the entire context.\n1. write a tldr in three words or less. Output begins with \"## TLDR (three words)\" followed by two new line characters and then the three words. ONLY provide three words, do not explain your thinking.\n2. Explain this document to me like I am five years old. Output begins with \"## ELI5\" followed by two new line characters.\n3. Write a scientific-style abstract. Output begins with \"## Scientific-Style Abstract\" followed by two new line characters.",
-    "tags": [
-      "abstract",
-      "tldr",
-      "ELI5",
-      "scientific"
-    ]
-  },
   "gemini_get_basic_info": {
     "prompt": "Please review the entire document provided in the context from beginning to end. Allocate your time equally throughout the document.  Carry out the following tasks in batch mode.\n1. Do your best to identify the official title, subtitle, and author(s) of the document. \n2. Do your best to identify the publisher, place of publication, and year of actual publication. \n3. Summarize the content of the document. Your goal is to create a summary that accurately describes all the most important elements of the document in a way that is flexible enough to be used by many prompts.\n4. Return a string that is valid JSON output surrounded only in braces and contains keys 'gemini_title','gemini_subtitle', 'gemini_authors', 'gemini_publisher', 'gemini_place_of_publication', 'gemini_year_of_actual_publication', and 'gemini_summary'. Do NOT enclose the json in triple backticks.",
     "tags": [
@@ -20,16 +11,13 @@
       "metadata"
     ]
   },
-  "Collapsar place in historic context": {
-    "prompt": "Please review the entire document provided in the context from beginning to end. Allocate your time equally throughout the document.  Carry out the following tasks in batch mode.\n1. Do your best to identify the official title, subtitle, and author(s) of the document. \n2. Do your best to identify the publisher, place of publication, and year of actual publication. \n3. Summarize the content of the document. Your goal is to create a summary that accurately describes all the most important elements of the document in a way that is flexible enough to be used by many prompts.\n4. Return valid JSON output with the keys 'gemini_title','gemini_subtitle', 'gemini_authors', 'gemini_publisher', 'gemini_place_of_publication', 'gemini_year_of_actual_publication', and 'gemini_summary'.",
+  "Collapsar abstracts 1": {
+    "prompt": "Please review this book manuscript. As you do the following tasks, remember to use the entire context.\n1. write a tldr in three words or less. Output begins with \"## TLDR (three words)\" followed by two new line characters and then the three words. ONLY provide three words, do not explain your thinking.\n2. Explain this document to me like I am five years old. Output begins with \"## ELI5\" followed by two new line characters.\n3. Write a scientific-style abstract. Output begins with \"## Scientific-Style Abstract\" followed by two new line characters.",
     "tags": [
-      "publisher",
-      "author",
-      "title",
       "abstract",
-      "publishing information",
-      "summary",
-      "metadata"
+      "tldr",
+      "ELI5",
+      "scientific"
     ]
   },
   "Collapsar Publishing Information": {
@@ -114,7 +102,7 @@
     ]
   },
   "create_reboot_prompts": {
-    "prompt": "Create a series of prompts that can be used to write a modern reboot of the current work.  Use a modern setting or theme that is pointed, topical, and/or funny.\n\nProvide in valid JSON format:\n\n-- context text\n-- system instruction\n-- prompts for each chapter",
+    "prompt": "Create a series of prompts that can be used to write a modern reboot of the current document in the context.  Use a modern setting or theme that is pointed, topical, and/or funny.\n\nProvide in valid JSON format:\n\n-- a \"codexspec\" using the format provided below. \n-- system instruction\n-- prompts for each chapter\n\nFill in the codexspec as thoroughly as you can. It will be used as a context in the writing prompts.\n\nHere is an example of the codexspec.  Use the same keys for the JSON schema.\n{\n    \"title\": \"Titivillus: Let There Be Lihgt\",\n    \"idea\": \"The origin story of Titivillus, the demon who introduces errors into the work of authors, editors, publishers, and scribes, takes his story from the creation of angels to the invention of the written word.\",\n    \"author_voice\": \"CS Lewis crossed with Dorothy Parker: urbane, spiritual, darkly funny.\",\n    \"protagonist\": \"Titivillus\",\n    \"antagonist\": \"TBD\",\n    \"good guys\": \"various minor angels\",\n    \"bad guys\": \"various minor demons\",\n    \"settings\": \"Heaven; the Garden of Eden; Hell\",\n    \"locations\": \"The Tree of Life\",\n    \"themes\": \"\",\n    \"revelations\": \"\",\n    \"character_arcs\": \"\",\n    \"mcguffins\": \"\",\n    \"plot_twists\": \"\",\n    \"num_chapters\": 13,\n    \"num_scenes_per_chapter\": 5,\n    \"num_tokens_total\": 66666,\n    \"special_instructions\": \"\"\n  }\n  }\n  \nUse this JSON schema for the system instruction:\n      \n      {\"system instruction\": str}\n\n      return: list[dict]\n    \nUse this JSON schema for the prompts:\n\n{\"prompt\": str}\nReturn: list[dict]\n\nReturn these results using this JSON schema:\n\n{\n\"codexspecs\": [dict],\n\"system instruction\": [dict],\n\"prompts\": list[dict]\n}\n\n  ",
     "tags": [
       "bootstrap",
       "prompts",
