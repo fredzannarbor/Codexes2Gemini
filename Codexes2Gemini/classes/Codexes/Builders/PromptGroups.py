@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Optional
 import pymupdf as fitz  # PyMuPDF
 import streamlit as st
 
-from Codexes2Gemini.classes.Utilities.utilities import configure_logger
+from Codexes2Gemini.classes.Utilities.classes_utilities import configure_logger
 
 
 # from classes.Utilities.utilities import configure_logger
