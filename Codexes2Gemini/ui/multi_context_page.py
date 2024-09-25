@@ -17,7 +17,7 @@ grandparent_dir = os.path.dirname(parent_dir)
 sys.path.append(parent_dir)
 from Codexes2Gemini.classes.Codexes.Builders import PromptGroups
 from Codexes2Gemini.classes.Codexes.Builders.MultiContextBuilder import MultiContextProcessor
-from Codexes2Gemini.ui.utils import filter_dict, load_json_file
+from Codexes2Gemini.ui.ui_utilities import filter_dict, load_json_file
 import os
 
 
