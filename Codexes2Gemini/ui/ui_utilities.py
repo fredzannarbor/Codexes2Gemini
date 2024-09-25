@@ -60,16 +60,16 @@ fontsize: {fontsize}
     return yaml_preamble
 
 
-# FIX make subtitle optional/blank
+# DONE make subtitle optional/blank
 # DONE issue in Wallace book where ToC is empty & shifted right/left
 # DONE Truth in Publishing not treated as level 1
-# FIX ensure all body paragraphs are separated by double new lines
+# DONE ensure all body paragraphs are separated by double new lines
 # DONE get rid of multiple new pages in Wallace book
-# FIX enforce lyric markdown in Mnemonic singable
-# FIX enforce timeline chronology
+# DONE enforce lyric markdown in Mnemonic singable
+# DONE enforce timeline chronology
 # TODO make condensed matter longer
 # TODO include more random text or full body
-# FIX ensure Abstracts section has level 1 heading
+# DONE ensure Abstracts section has level 1 heading
 # FIX do not include exceprts from the Context
 
 
