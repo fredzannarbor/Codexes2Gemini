@@ -5,10 +5,10 @@ from typing import List, Dict, Any
 
 import pymupdf as fitz  # PyMuPDF
 
-from Codexes2Gemini.classes.Utilities.utilities import configure_logger
+from Codexes2Gemini.classes.Utilities.classes_utilities import configure_logger
 
-
-# from classes.Utilities.utilities import configure_logger
+# TODO  replace PromptGroups with this everywhere
+from Codexes2Gemini.classes.Utilities.classes_utilities import configure_logger
 
 class PromptsPlan:
 
@@ -25,9 +25,9 @@ class PromptsPlan:
                  continuation_prompts: bool = False,
                  custom_user_prompt: str = "",
                  file_index: str = None,
-                 gemini_authors: str = "TBD",
-                 gemini_subtitle: str = "TBD",
-                 gemini_title: str = "TBD",
+                 gemini_authors: str = "TK",
+                 gemini_subtitle: str = "",
+                 gemini_title: str = "TK",
                  ISBN: str = "TBD",
                  generation_config: dict = None,
                  json_required: bool = False,
