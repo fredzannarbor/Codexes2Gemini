@@ -13,7 +13,7 @@ import streamlit as st
 from Codexes2Gemini.classes.Codexes.Builders.PromptGroups import PromptGroups
 from ..Builders.CodexBuilder import CodexBuilder
 from ..Builders.PartsBuilder import PartsBuilder
-from ...Utilities.utilities import configure_logger
+from ...Utilities.classes_utilities import configure_logger
 
 GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
 class BuildLauncher:
@@ -237,6 +237,9 @@ class BuildLauncher:
         with open(unique_filename + '.json', 'w') as f:
             json.dump(result, f, indent=4)
         self.logger.info(f"Output written to {unique_filename}.md and {unique_filename}.json")
+        self.markdown2pdf(md_result, unique_filename)
+
+    def markdown2pdf(self, md_result, unique_filename):
         mainfont = 'Skolar PE'
         extra_args = ['--toc', '--toc-depth=2', '--pdf-engine=xelatex', '-V', f'mainfont={mainfont}',
                       '--pdf-engine=xelatex']
