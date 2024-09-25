@@ -14,7 +14,7 @@ import pandas as pd
 import streamlit as st
 from google.generativeai import caching
 
-from Codexes2Gemini.classes.Utilities.utilities import configure_logger
+from Codexes2Gemini.classes.Utilities.classes_utilities import configure_logger
 from ..Builders.PromptGroups import PromptGroups
 
 GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
