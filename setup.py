@@ -5,7 +5,7 @@ print(os.listdir('Codexes2Gemini'))
 print(os.listdir('.'))
 setup(
     name='Codexes2Gemini',
-    version='0.3.5.3',  # Update your version number
+    version='0.4.0.0',  # Update your version number
     python_requires='>=3.11',
     description='Humans and AIs making books richer, more diverse, and more surprising.',
     url='https://github.com/fredzannarbor/Codexes2Gemini',
