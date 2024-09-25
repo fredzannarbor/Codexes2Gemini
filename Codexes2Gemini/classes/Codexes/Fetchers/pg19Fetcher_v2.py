@@ -60,7 +60,7 @@ class PG19FetchAndTrack:
         """
         # FIX - cannot find 'pages2textstrings'
         # TODO - allow user to upload any data set in correct format
-        # FIX - allow "do not skip processed data" on user upload
+        # DONE - allow "do not skip processed data" on user upload
         all_results = []
         file_index = self.create_file_index()
         # st.write(st.session_state.current_plan["selected_rows"])
