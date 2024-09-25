@@ -105,16 +105,7 @@ class UserSpace:
                 counter += 1
             return f"{name}_{counter}"
 
-    def save_instruction_pack(self, pack: InstructionPack):
-        """Saves an instruction pack.
 
-        Args:
-            pack (InstructionPack): The InstructionPack object to save.
-        """
-        if not hasattr(self, 'instruction_packs'):
-            self.instruction_packs = {}
-        self.instruction_packs[pack.name] = pack
-        save_user_space(self)
 
     def save_result(self, result: str):
         """Saves a generated result to the results list.
@@ -177,7 +168,101 @@ class UserSpace:
         timestamp = time.time()  # this gives a timestamp
         self.__dict__[key] = {"result": result, "time": timestamp}
 
+    def create_instruction_pack(self, pack_name: str, system_instructions: List[str],
+                                user_prompts: Dict[str, str], custom_prompt: str, override: bool):
+        """Creates a new InstructionPack and saves it to the UserSpace.
 
+        Args:
+            pack_name (str): The name of the new instruction pack.
+            system_instructions (List[str]): A list of system instruction keys.
+            user_prompts (Dict[str, str]): A dictionary of user prompt keys and their corresponding prompts.
+            custom_prompt (str): A custom user prompt.
+            override (bool): Whether the custom prompt should override other user prompts.
+        """
+        if pack_name in self.get_instruction_packs():
+            raise ValueError(f"Instruction pack '{pack_name}' already exists.")
+
+        pack = InstructionPack(pack_name, system_instructions, user_prompts, custom_prompt, override)
+        self.save_instruction_pack(pack)
+
+    def read_instruction_pack(self, pack_name: str) -> InstructionPack:
+        """Reads an InstructionPack from the UserSpace.
+
+        Args:
+            pack_name (str): The name of the instruction pack to read.
+
+        Returns:
+            InstructionPack: The InstructionPack object if found, otherwise None.
+        """
+        return self.get_instruction_packs().get(pack_name)
+
+    def update_instruction_pack(self, pack_name: str, system_instructions: Optional[List[str]] = None,
+                                user_prompts: Optional[Dict[str, str]] = None,
+                                custom_prompt: Optional[str] = None, override: Optional[bool] = None):
+        """Updates an existing InstructionPack in the UserSpace.
+
+        Args:
+            pack_name (str): The name of the instruction pack to update.
+            system_instructions (List[str], optional): The updated list of system instruction keys.
+            user_prompts (Dict[str, str], optional): The updated dictionary of user prompt keys and prompts.
+            custom_prompt (str, optional): The updated custom user prompt.
+            override (bool, optional): Whether the custom prompt should override other user prompts.
+        """
+        pack = self.read_instruction_pack(pack_name)
+        if not pack:
+            raise ValueError(f"Instruction pack '{pack_name}' not found.")
+
+        if system_instructions is not None:
+            pack.system_instructions = system_instructions
+        if user_prompts is not None:
+            pack.user_prompts = user_prompts
+        if custom_prompt is not None:
+            pack.custom_prompt = custom_prompt
+        if override is not None:
+            pack.override = override
+
+        self.save_instruction_pack(pack)
+
+    def destroy_instruction_pack(self, pack_name: str):
+        """Deletes an InstructionPack from the UserSpace.
+
+        Args:
+            pack_name (str): The name of the instruction pack to delete.
+        """
+        if pack_name not in self.get_instruction_packs():
+            raise ValueError(f"Instruction pack '{pack_name}' not found.")
+
+        del self.instruction_packs[pack_name]
+        save_user_space(self)
+
+    def rename_instruction_pack(self, old_name: str, new_name: str):
+        """Renames an InstructionPack in the UserSpace.
+
+        Args:
+            old_name (str): The current name of the instruction pack.
+            new_name (str): The new name for the instruction pack.
+        """
+        if old_name not in self.get_instruction_packs():
+            raise ValueError(f"Instruction pack '{old_name}' not found.")
+        if new_name in self.get_instruction_packs():
+            raise ValueError(f"Instruction pack '{new_name}' already exists.")
+
+        pack = self.instruction_packs[old_name]
+        pack.name = new_name
+        self.instruction_packs[new_name] = pack
+        del self.instruction_packs[old_name]
+        save_user_space(self)
+
+    def save_instruction_pack(self, pack: InstructionPack):
+        """Saves an instruction pack.
+
+        Args:
+            pack (InstructionPack): The InstructionPack object to save.
+        """
+        if not hasattr(self, 'instruction_packs'):
+            self.instruction_packs = {}
+        self.instruction_packs[pack.name] = pack
+        save_user_space(self)
 def save_user_space(user_space: UserSpace):
     """Saves the UserSpace object to a pickle file.
 
