@@ -250,8 +250,8 @@ def extract_text_from_json(data):
 def prompts_plan_builder_ui(user_space: UserSpace):
     st.header("Data Set Explorer")
     # DONE handle cache fail more gracefully
-    # TODO results from context A are getting saved into results for context B
-    # TODO able to save prompt plan without context
+    # DONE results from context A are getting saved into results for context B
+    # DONE able to save prompt plan without context
 
 
     if 'current_plan' not in st.session_state:
@@ -561,9 +561,10 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         process_returns(results)
         return results
 
-# FIX An error occurred: cannot access local variable 'gemini_title' where it is not associated with a value
 
-# FIX convert JSON string of result[0] to text only
+# DONE An error occurred: cannot access local variable 'gemini_title' where it is not associated with a value
+
+# DONE convert JSON string of result[0] to text only
 
 def process_returns(results):
     if results:
@@ -628,10 +629,10 @@ def download_pdf(filename, pdf_buffer=None):
     )
 
 
-# FIX - make sure all markdown headings are separated by /n/n and that there are no initial spaces before #
+# DONE - make sure all markdown headings are separated by /n/n and that there are no initial spaces before #
 
 
-# FIX - make sure all markdown headings are separated by /n/n and that there are no initial spaces before #
+# DONE- make sure all markdown headings are separated by /n/n and that there are no initial spaces before #
 
 
 def create_imprint_mission_statement(imprint_name):
