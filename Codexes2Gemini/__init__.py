@@ -44,8 +44,12 @@ ensure_directory_exists("resources/data_tables")
 ensure_directory_exists("resources/data_tables/LSI")
 ensure_directory_exists("processed_data")
 
-__version__ = "0.3.5.4"
+__version__ = "0.4.0"
 __announcements__ = """
+- Fixes 20 production issues.
+- Adds "Instruction Packs" to UI -- bundles of saved system & users prompts that can be loaded in one click.
+- Improvements to prompt library.
+- Fixes in resource packaging, json creation, error handling, debugging info.
 - Uses explicit package listings in setup.py as workaround to problem.
 - Fixes error in document assembly.
 - Significant, breaking clean-up of directory structure in repo.
