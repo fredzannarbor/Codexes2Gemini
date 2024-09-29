@@ -25,6 +25,7 @@ class PromptsPlan:
                  continuation_prompts: bool = False,
                  custom_user_prompt: str = "",
                  file_index: str = None,
+                 filter: str = "",
                  gemini_authors: str = "TK",
                  gemini_subtitle: str = "",
                  gemini_title: str = "TK",
@@ -78,6 +79,7 @@ class PromptsPlan:
         self.continuation_prompts = continuation_prompts
         self.custom_user_prompt = custom_user_prompt
         self.file_index = file_index
+        self.filter = filter
         self.generation_config = generation_config or {
             "max_output_tokens": 8192,
             "temperature": 1,

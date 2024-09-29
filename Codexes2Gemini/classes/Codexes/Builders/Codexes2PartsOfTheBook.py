@@ -141,9 +141,8 @@ class Codexes2Parts:
 
         for i, user_prompt in enumerate(user_prompts):
             self.logger.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
-            # st.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
-            # st.info(f"This user prompt is {user_prompt}")
-            full_output = " "
+
+            full_output = ""
             retry_count = 0
             max_retries = 3
 
@@ -160,9 +159,10 @@ class Codexes2Parts:
                                 st.warning(f"Category: {rating.category}, Probability: {rating.probability}")
                     self.logger.info(f"Response received, length: {self.count_tokens(response.text)} tokens")
                     json_response = self.create_response_dict(response)
-                    st.json(json_response, expanded=False)
+                    # st.json(json_response, expanded=False)
                     logging.warning(json_response["usage_metadata"])
                     full_output += response.text
+
                     full_output_tokens = self.count_tokens(full_output)
 
                     if full_output_tokens < plan.minimum_required_output_tokens:
@@ -183,7 +183,6 @@ class Codexes2Parts:
                 satisfactory_results.append(full_output)
                 self.logger.info(f"Output for prompt {i + 1} meets desired length. Appending to results.")
             else:
-
                 self.logger.warning(
                     f"Output for prompt {i + 1} does not meet desired length of {plan.minimum_required_output_tokens}. Discarding.")
 
@@ -208,9 +207,9 @@ class Codexes2Parts:
                     st.info(f"JSON output saved to {json_output_path}")
             else:
                 self.logger.warning("No satisfactory results were generated.")
-                satisfactory_results = "No satisfactory results were generated."
+                satisfactory_results = ["No satisfactory results were generated."]
                 st.warning("No satisfactory results were generated.")
-            st.info(f"processed prompt {i + 1}")
+            st.toast(f"processed prompt {i + 1}")
         return satisfactory_results
 
     def create_cache_from_context(self, context):

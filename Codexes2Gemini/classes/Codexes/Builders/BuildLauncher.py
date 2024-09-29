@@ -7,10 +7,10 @@ from importlib import resources
 from typing import Dict
 
 import google.generativeai as genai
-import pypandoc
 import streamlit as st
 
 from Codexes2Gemini.classes.Codexes.Builders.PromptGroups import PromptGroups
+# from classes.Codexes.Fetchers.pg19Fetcher_v2 import save_markdown_results_with_latex_to_pdf
 from ..Builders.CodexBuilder import CodexBuilder
 from ..Builders.PartsBuilder import PartsBuilder
 from ...Utilities.classes_utilities import configure_logger
@@ -237,18 +237,7 @@ class BuildLauncher:
         with open(unique_filename + '.json', 'w') as f:
             json.dump(result, f, indent=4)
         self.logger.info(f"Output written to {unique_filename}.md and {unique_filename}.json")
-        self.markdown2pdf(md_result, unique_filename)
-
-    def markdown2pdf(self, md_result, unique_filename):
-        mainfont = 'Skolar PE'
-        extra_args = ['--toc', '--toc-depth=2', '--pdf-engine=xelatex', '-V', f'mainfont={mainfont}',
-                      '--pdf-engine=xelatex']
-        try:
-            pypandoc.convert_text(md_result, 'pdf', format='markdown', outputfile=unique_filename + ".pdf",
-                                  extra_args=extra_args)
-            self.logger.info(f"PDF saved to {unique_filename}.pdf")
-        except FileNotFoundError:
-            self.logger.error("Pyandoc not found. Please install the pypandoc library to generate PDF.")
+        save_markdown_results_with_latex_to_pdf(self.logger, md_result, unique_filename)
 
 
 if __name__ == "__main__":

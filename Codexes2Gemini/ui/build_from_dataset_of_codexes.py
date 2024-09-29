@@ -25,6 +25,9 @@ from docx import Document
 
 from Codexes2Gemini.classes.Codexes.Metadata.metadatas2outputformats import metadatas2bookjson
 
+# TODO add bookjson
+# TODO add proofing prompt
+
 # print("Codexes2Gemini location:", Codexes2Gemini.__file__)
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -249,10 +252,8 @@ def extract_text_from_json(data):
 
 def prompts_plan_builder_ui(user_space: UserSpace):
     st.header("Data Set Explorer")
-    # DONE handle cache fail more gracefully
-    # DONE results from context A are getting saved into results for context B
-    # DONE able to save prompt plan without context
 
+    # initialize session state
 
     if 'current_plan' not in st.session_state:
         st.session_state.current_plan = {
@@ -273,7 +274,8 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             "complete_system_instruction": "",
             "system_instructions_dict": None,
             "name": "",
-            "selected_rows": None
+            "selected_rows": None,
+            "filter": ""
             #  "system_filter_submitted": system_filter_submitted
         }
 
@@ -373,12 +375,9 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             # --- Display and Edit Selected Rows ---
             if selected_rows:
                 st.info("Selected Rows:")
-
                 st.dataframe(selected_rows_df)
                 st.session_state.current_plan.update({"confirmed_data_set": True})
                 st.session_state.current_plan.update({"selected_rows": selected_rows})
-
-    #
 
     st.subheader("Step 2: Instructions and Prompts")
 
@@ -428,9 +427,15 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
 
     with st.form("filter-user-prompts2"):
-        user_filter = st.text_input("Filter user prompts")
-        filtered_user = filter_dict(user_prompts_dict, user_filter)
-
+        filter = st.text_input("Filter user prompts", "ADEPT")
+        submitted = st.form_submit_button("Filter Now")
+        if submitted:
+            st.session_state.current_plan.update(
+                {"filter": filter}
+            )
+    with st.form("present-filtered-prompts"):
+        filtered_user = filter_dict(user_prompts_dict, st.session_state.current_plan["filter"])
+        # st.write(filtered_user.keys())
         selected_user_prompt_keys = st.multiselect(
             "Select user prompt keys",
             options=list(filtered_user.keys()),
@@ -492,7 +497,6 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                 'selected_user_prompt_values': selected_user_prompt_values,
                 'custom_user_prompt': custom_user_prompt,
                 'user_prompt_override': user_prompt_override,
-                'user_prompts_dict': user_prompts_dict,
                 'selected_user_prompts_dict': selected_user_prompts_dict,
                 'complete_system_instruction': complete_system_instruction,
                 'system_instructions_dict': system_instructions_dict,
@@ -558,19 +562,20 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         )
 
         results = FT.fetch_pg19_data(skip_processed=st.session_state.current_plan['skip_processed'])
-        process_returns(results)
+        if isinstance(results, str):
+            logging.info("results is string")
+        elif isinstance(results, list):
+            logging.info("results is list")
+        st.info('checkpoint 5')
+        # provide_ui_access_to_results(results)
         return results
 
 
-# DONE An error occurred: cannot access local variable 'gemini_title' where it is not associated with a value
-
-# DONE convert JSON string of result[0] to text only
-
-def process_returns(results):
+def provide_ui_access_to_results(results):
     if results:
         assembled_documents = results2assembled_pandoc_markdown_with_latex(results)
         for i, document_content in enumerate(assembled_documents):
-            codexready_filename = f"output/codex_{i + 1}"
+            codexready_filename = f"ad_hoc_output/codex_{i + 1}"
             try:
                 with open(codexready_filename + ".md", "w") as f:
                     f.write(document_content)
@@ -662,7 +667,7 @@ def truncate_plan_values_for_display(plan):
     truncated_plan['context'] = truncated_plan['context'][:500] + "..." if len(
         truncated_plan['context']) > 1000 else truncated_plan['context']
     # drop key user_prompt_dict
-    truncated_plan['user_prompts_dict'] = {"prompt": "User prompt dict passed into function, available in debug log"}
+
 
     st.json(truncated_plan)
 
@@ -908,28 +913,28 @@ def run_build_launcher(selected_user_prompts, selected_system_instructions, user
     return results
 
 
-def display_nested_content(content):
-    if isinstance(content, list):
-        for item in content:
-            display_nested_content(item)
-    elif isinstance(content, str):
-        # Split the content into sections
-        sections = content.split('\n\n')
-        for section in sections:
-            if section.startswith('##'):
-                # This is a header
-                st.header(section.strip('# '))
-            elif section.startswith('**'):
-                # This is a bold section, probably a subheader
-                st.write(section)
-            elif section.startswith('*'):
-                # This is a bullet point
-                st.markdown(section)
-            else:
-                # This is regular text
-                st.write(section)
-    else:
-        st.write(content)
+# def display_nested_content(content):
+#     if isinstance(content, list):
+#         for item in content:
+#             display_nested_content(item)
+#     elif isinstance(content, str):
+#         # Split the content into sections
+#         sections = content.split('\n\n')
+#         for section in sections:
+#             if section.startswith('##'):
+#                 # This is a header
+#                 st.header(section.strip('# '))
+#             elif section.startswith('**'):
+#                 # This is a bold section, probably a subheader
+#                 st.write(section)
+#             elif section.startswith('*'):
+#                 # This is a bullet point
+#                 st.markdown(section)
+#             else:
+#                 # This is regular text
+#                 st.write(section)
+#     else:
+#         st.write(content)
 
 
 def apply_custom_css(css):
@@ -972,7 +977,7 @@ def run_streamlit_app():
         )
         if page == "Create Build Plans":
             final_results = prompts_plan_builder_ui(user_space)
-        #   markdown = process_returns(final_results)
+        #   markdown = provide_ui_access_to_results(final_results)
         elif page == "Run Saved Plans":
             upload_build_plan()
         elif page == "Multi-Context Processing":
