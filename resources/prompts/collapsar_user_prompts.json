@@ -24,8 +24,19 @@
       "Collapsar"
     ]
   },
-  "Collapsar Publishing Information": {
-    "prompt": "Please generate fifteen unique bibliographic key phrases for this document. Separate each phrase by a semicolon. Output begins: '# Bibliographic Key Phrases' followed by two new-line characters. Stop after fifteen phrases.",
+  "proofread (errors only)": {
+    "prompt": "Proofread this book draft and prepare a list identifying any clear errors. Follow the Chicago Manual of Style 18th edition.  Do not present revision ideas for \"consideration\", I am only interested in finding and correcting outright, embarrassing errors.",
+    "tags": [
+      "ADEPT",
+      "edit",
+      "CMOS",
+      "proofing",
+      "proofreading",
+      "Collapsar"
+    ]
+  },
+  "bibliographic key phrases": {
+    "prompt": "Please generate ten to twelve unique bibliographic key phrases for this document. Each phrase should be two to three words long. Separate each phrase by a semicolon. Output begins: '# Bibliographic Key Phrases' followed by two new-line characters. Do NOT repeat key phrases. Stop if you begin to repeat.",
     "tags": [
       "publishing",
       "bibliographic",
@@ -48,7 +59,7 @@
     ]
   },
   "Collapsar Create Condensed Matter": {
-    "prompt": "Backstory:\n\nCollapsar Classics was launched to bring 19th and early 20th century books to modern audiences in a fresh and convenient way. Each book is approximately 15,000 words and is presented in a phone-sized 4 x 6\" paperback format. Each Collapsar Classic includes a section called \"Condensed Matter\" (a play on front matter). Much like the Reader's Digest Condensed Books that were popular many decades ago, the Condensed Matters is meant to give you the best parts of the original in a much smaller space.\n\nYour Task:\n\nWrite the Condensed Matter section for the document in the context. The document in the context is permissioned public domain so you have complete freedom to quote from it.\nWork only on the Condensed Matter section. Do not refer to the backstory.\nYour goal is to write a highly readable version of the original.\nYou should use the exact words of the context frequently.\nYou may use transitional devices such as ellipses, dingbats, or bracketed comments.\nYou may make sparing use of framing devices in your own words.\nRemember, your overriding goal is to give modern readers the benefit of reading this document in as original a form as possible, but as much condensed experience. You must be clear what value they should expect, you must show the value, and you must show them that they have received it.\nWrite at least 5000 words.\nOutput must begin '# Condensed Matter' followed immediately by two new-line characters.",
+    "prompt": "Backstory:\n\nCollapsar Classics was launched to bring 19th and early 20th century books to modern audiences in a fresh and convenient way. Each book is approximately 15,000 words and is presented in a phone-sized 4 x 6\" paperback format. Each Collapsar Classic includes a section called \"Condensed Matter\" (a play on front matter). Much like the Reader's Digest Condensed Books that were popular many decades ago, the Condensed Matters is meant to give you the best parts of the original in a much smaller space.\n\nYour Task:\n\nWrite the Condensed Matter section for the document in the context. The document in the context is permissioned public domain so you have complete freedom to quote from it.\nWork only on the Condensed Matter section. Do not refer to the backstory.\nYour goal is to write a highly readable condensed version of the original.\nYou should use the exact words of the context frequently.\nYou may use transitional devices such as ellipses, dingbats, or bracketed comments.\nYou may make sparing use of framing devices in your own words.\nRemember, your overriding goal is to give modern readers the benefit of reading this document in as original a form as possible, but as much condensed as possible.\nOutput must begin '# Condensed Matter' followed immediately by two new-line characters.",
     "tags": [
       "publishing",
       "bibliographic",
@@ -149,7 +160,7 @@
     ]
   },
   "ELI complete idiot - abstract": {
-    "prompt": "Explain this to me like I am a complete idiot, someone who is both painfully stupid and willfully ignorant. You do not need to be tactful or polite.  Use no more than 100 words. Output begins with second level heading '## For Complete Idiots Only' followed by two new lines.",
+    "prompt": "Explain this to me like I am a complete idiot, someone who is both painfully stupid and willfully ignorant, but do not say that I am an idiot. Just start right out with the explanation.  Use no more than 100 words. Output begins with second level heading '## For Complete Idiots Only' followed by two new lines.",
     "tags": [
       "front matter",
       "humor",
@@ -344,7 +355,7 @@
     ]
   },
   "timeline-major": {
-    "prompt": "Create a timeline of the major events in the book in ascending chronological order. Output begins with heading level 1: '# Timeline'. Each event entry MUST be on its own line followed by TWO new line characters.  If it is clear when the event occurred, provide the time and date at the end of the entry.  If there is no reliable date or time provided for an event, do not include time or date.  If an event cannot reliably be placed in chronological order, omit it.",
+    "prompt": "Create a timeline of the major events in the book in ascending chronological order. Output begins with heading level 1: '# Timeline'. Each event entry MUST be on its own line followed by TWO new line characters.  ",
     "tags": [
       "back matter",
       "timeline",
