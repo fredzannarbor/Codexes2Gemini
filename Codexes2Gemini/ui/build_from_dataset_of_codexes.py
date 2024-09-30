@@ -519,7 +519,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             require_json_output = st.checkbox("Require JSON Output", value=False)
 
         with st.expander("Set Output Destinations"):
-            thisdoc_dir = st.text_input("Output directory", value=os.path.join(os.getcwd(), 'output', 'c2g'))
+            thisdoc_dir = st.text_input("Output directory", value=os.path.join(os.getcwd(), 'processed_data'))
             output_file = st.text_input("Output filename base", "output")
             log_level = st.selectbox("Log level", ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
             plan_name = st.text_input("Plan Name", value=st.session_state.current_plan.get('name', 'Current Plan'))
@@ -566,8 +566,9 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             logging.info("results is string")
         elif isinstance(results, list):
             logging.info("results is list")
-        st.info('checkpoint 5')
         # provide_ui_access_to_results(results)
+
+        st.success(f"Successfully built {len(results)} documents and saved them in the output folder {thisdoc_dir}")
         return results
 
 

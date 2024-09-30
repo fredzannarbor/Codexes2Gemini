@@ -172,7 +172,7 @@ class PG19FetchAndTrack:
                 }, f, indent=4)
 
             logging.info(f"Successfully saved results to JSON at {output_json_path}")
-            st.info(f"Successfully saved results to JSON at {output_json_path}")
+            st.toast(f"Successfully saved results to JSON at {output_json_path}")
         except Exception as e:
             print(f"Error saving results to JSON: {traceback.format_exc()}")
             st.error(f"Error saving results to JSON: {traceback.format_exc()}")
@@ -195,7 +195,7 @@ class PG19FetchAndTrack:
                     f.write(str(results))
 
             logging.info(f"Successfully saved file to markdown at {output_markdown_path}")
-            st.info(f"Successfully saved file to markdown at {output_markdown_path}")
+            st.toast(f"Successfully saved file to markdown at {output_markdown_path}")
         except Exception as e:
             print(f"Error saving results to Markdown: {traceback.format_exc()}")
             st.error(f"Error saving results to Markdown: {traceback.format_exc()}")
@@ -229,7 +229,7 @@ class PG19FetchAndTrack:
             pypandoc.convert_text(md_result, 'pdf', format='markdown', outputfile=output_pdf_path,
                                   extra_args=extra_args)
             logging.info(f"PDF saved to {output_pdf_path}")
-            st.info(f"Successfully saved PDF to {output_pdf_path}")
+            st.toast(f"Successfully saved PDF to {output_pdf_path}")
         except FileNotFoundError:
             logging.error("Pypandoc not found. Please install the pypandoc library to generate PDF.")
             st.error("Pypandoc not found. Please install the pypandoc library to generate PDF.")

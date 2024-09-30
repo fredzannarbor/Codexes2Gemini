@@ -355,7 +355,7 @@
     ]
   },
   "timeline-major": {
-    "prompt": "Create a timeline of the major events in the book in ascending chronological order. Output begins with heading level 1: '# Timeline'. Each event entry MUST be on its own line followed by TWO new line characters.  ",
+    "prompt": "Create a timeline of twenty to forty major events in the book in ascending chronological order. While respecting that some events are more major than others, try to draw the events from throughout the book and cover the timespan fairly. Output begins with heading level 1: '# Timeline'. Each event entry MUST be on its own line followed by TWO new line characters. If you begin to repeat yourself, STOP.",
     "tags": [
       "back matter",
       "timeline",
