@@ -29,8 +29,11 @@ class PromptsPlan:
                  gemini_authors: str = "TK",
                  gemini_subtitle: str = "",
                  gemini_title: str = "TK",
+                 gemini_authors_str="",
+                 gemini_summary="",
                  ISBN: str = "TBD",
                  generation_config: dict = None,
+                 imprint="Nimble Books LLC",
                  json_required: bool = False,
                  list_of_system_keys: str = None,
                  list_of_user_keys_to_use: List[str] = None,
@@ -86,9 +89,12 @@ class PromptsPlan:
             "top_k": 0,
             "top_p": 0.95,
         }
-        self.gemini_authors = gemini_authors or "TBD"
-        self.gemini_subtitle = gemini_subtitle or "TBD"
-        self.gemini_title = gemini_title or "TBD"
+        self.gemini_authors = gemini_authors or []
+        self.gemini_authors_str = gemini_authors_str or ""
+        self.gemini_subtitle = gemini_subtitle or ""
+        self.gemini_title = gemini_title or ""
+        self.gemini_summary = gemini_summary or ""
+        self.imprint = imprint or "ADEPT"
         self.ISBN = ISBN or "TBD"
         self.json_required = json_required
 

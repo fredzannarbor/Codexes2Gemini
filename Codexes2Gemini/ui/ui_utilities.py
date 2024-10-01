@@ -40,7 +40,7 @@ def create_latex_preamble(gemini_title="TBD", gemini_subtitle="TBD", gemini_auth
     # Wrap author field if longer than 30 characters
     if len(gemini_authors_str) > 30:
         gemini_authors_str = f"\\parbox[t]{{\\textwidth}}{{{gemini_authors_str}}}"
-
+    st.session_state.current_plan.update({"gemini_authors_str": gemini_authors_str})
     yaml_preamble = f"""---
 title: "{gemini_title}"
 author: '{gemini_authors_str}'
@@ -89,9 +89,12 @@ def results2assembled_pandoc_markdown_with_latex(results):
                 gemini_title = json_data.get("gemini_title", "TBD")
                 gemini_subtitle = json_data.get("gemini_subtitle", "TBD")
                 gemini_authors = json_data.get("gemini_authors", "TBD")
+                gemini_summary = json_data.get("gemini_summary", "TBD")
                 st.session_state.current_plan['gemini_title'] = gemini_title
                 st.session_state.current_plan['gemini_subtitle'] = gemini_subtitle
                 st.session_state.current_plan['gemini_authors'] = gemini_authors
+                st.session_state.current_plan['gemini_summary'] = gemini_summary
+
 
                 # Create and prepend LaTeX preamble
                 latex_preamble = create_latex_preamble(gemini_title, gemini_subtitle, gemini_authors)

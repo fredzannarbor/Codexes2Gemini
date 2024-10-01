@@ -275,7 +275,8 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             "system_instructions_dict": None,
             "name": "",
             "selected_rows": None,
-            "filter": ""
+            "filter": "",
+            "imprint": "Collapsar"
             #  "system_filter_submitted": system_filter_submitted
         }
 
@@ -517,6 +518,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             minimum_required_output = False
             minimum_required_output_tokens = 10
             require_json_output = st.checkbox("Require JSON Output", value=False)
+            imprint = st.selectbox("Imprint", ["Nimble Books LLC", "ADEPT", "Collapsar"], index=2)
 
         with st.expander("Set Output Destinations"):
             thisdoc_dir = st.text_input("Output directory", value=os.path.join(os.getcwd(), 'processed_data'))
@@ -539,7 +541,8 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                 "minimum_required_output": minimum_required_output,
                 "minimum_required_output_tokens": minimum_required_output_tokens,
                 "log_level": log_level,
-                "require_json_output": require_json_output
+                "require_json_output": require_json_output,
+                "imprint": imprint
             })
 
             st.success(f"Plan '{plan_name}' updated")

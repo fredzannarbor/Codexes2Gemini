@@ -1,8 +1,15 @@
 import csv
+import io
 import json
 import logging
 import os
 import random
+from importlib import resources
+
+from Codexes2Gemini.classes.Utilities.classes_utilities import load_spreadsheet
+
+import Codexes2Gemini
+import fitz
 import pandas as pd
 from datetime import datetime
 
@@ -100,7 +107,17 @@ class PG19FetchAndTrack:
 
             markdown_results_with_latex = results2assembled_pandoc_markdown_with_latex(results)
 
-            self.save_markdown_results_with_latex_to_pdf(markdown_results_with_latex, textfilename)
+            result_pdf_file_name = self.save_markdown_results_with_latex_to_pdf(markdown_results_with_latex,
+                                                                                textfilename)
+
+            if "collapsar" in st.session_state.current_plan["imprint"].lower():
+                ImprintText = "Collapsar Condensed Editions"
+                sheetname = "Standard 70 perfect"
+
+            bookjson_this_book = self.create_simple_bookjson(textfilename, results, result_pdf_file_name,
+                                                             ImprintText=ImprintText, sheetname=sheetname)
+
+            self.save_bookjson_this_book(textfilename, bookjson_this_book)
 
             self.update_processed_metadata(textfilename)
 
@@ -231,6 +248,72 @@ class PG19FetchAndTrack:
             logging.info(f"PDF saved to {output_pdf_path}")
             st.toast(f"Successfully saved PDF to {output_pdf_path}")
         except FileNotFoundError:
-            logging.error("Pypandoc not found. Please install the pypandoc library to generate PDF.")
-            st.error("Pypandoc not found. Please install the pypandoc library to generate PDF.")
-        return
+            logging.error("File not found.")
+            st.error("File not found.")
+            st.stop()
+        return output_pdf_path
+
+    def create_simple_bookjson(self, textfilename, results, result_pdf_file_name,
+                               ImprintText="Collapsar Condensed Editions", sheetname=None):
+        doc = fitz.open(result_pdf_file_name)
+        pagecount = doc.page_count
+        spinewidth = self.calculate_spinewidth(sheetname, pagecount)
+        # st.write(sheetname, pagecount, spinewidth)
+        book_json = dict(BookID="TBD", BookTitle=st.session_state.current_plan['gemini_title'],
+                         SubTitle=st.session_state.current_plan['gemini_subtitle'],
+                         Byline=st.session_state.current_plan['gemini_authors_str'],
+                         ImprintText=ImprintText, ImageFileName="", settings="duplex", distributor="LSI",
+                         InvertedColor="White", DominantColor="Black", BaseFont="Skolar PE Regular", trimsizewidth=4,
+                         trimsizeheight=6, spinewidth=spinewidth,
+                         backtext=(st.session_state.current_plan['gemini_summary'] or "TBD"))
+        st.write(book_json)
+        with open("test.json", "w") as f:
+            f.write(json.dumps(book_json))
+        return book_json
+
+    def calculate_spinewidth(self, sheetname, finalpagecount):
+
+        # TO DO - add resources link
+        file_name = os.path.join("resources/data_tables/LSI", "SpineWidthLookup.xlsx")
+
+        dict_of_sheets = pd.read_excel(file_name, sheet_name=None)
+
+        # get the sheet matching sheetname and make it a dataframe with column names "Pages" and "SpineWidth"
+
+        df = dict_of_sheets[sheetname]
+        df.columns = ["Pages", "SpineWidth"]
+
+        df["Pages"] = df["Pages"].astype(int)
+        df["SpineWidth"] = df["SpineWidth"].astype(float)  # if the page count is not a number, return an error
+        finalpagecount = int(finalpagecount)
+        effective_page_count = finalpagecount + (finalpagecount % 2)
+
+        if effective_page_count < df["Pages"].min():
+            return "Error: page count is less than the smallest page count in the sheet"
+        elif effective_page_count > df["Pages"].max():
+            return "Error: page count is greater than the largest page count in the sheet"
+        elif effective_page_count == df["Pages"].min():
+            return df["SpineWidth"].min()
+        elif effective_page_count == df["Pages"].max():
+            return df["SpineWidth"].max()
+        else:
+            return df.loc[df["Pages"] == effective_page_count, "SpineWidth"].iloc[0]
+
+        spinewidth = df.loc[df["Pages"] == effective_page_count, "SpineWidth"].iloc[0]
+
+    def save_bookjson_this_book(self, textfilename, bookjson_this_book):
+        # validate that bookjson_this_book is valid
+        output_json_filename = f"{textfilename}_book.json"
+        output_json_path = os.path.join(self.output_dir, output_json_filename)
+        os.makedirs(self.output_dir, exist_ok=True)
+        try:
+            with open(output_json_path, 'w') as f:
+                json.dump(bookjson_this_book, f, indent=4)
+
+            logging.info(f"Successfully saved bookjson results at {output_json_path}")
+            st.toast(f"Successfully saved bookjson at {output_json_path}")
+        except Exception as e:
+            print(f"Error saving results to JSON: {traceback.format_exc()}")
+            st.error(f"Error saving results to JSON: {traceback.format_exc()}")
+            logging.error(f"Error saving results to JSON: {traceback.format_exc()}")
+            return
