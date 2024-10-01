@@ -6,6 +6,8 @@ import os
 import random
 from importlib import resources
 
+from Codexes2Gemini.classes.Codexes.Distributors.LSI.create_LSI_ACS_spreadsheet import create_LSI_ACS_spreadsheet
+
 from Codexes2Gemini.classes.Utilities.classes_utilities import load_spreadsheet
 
 import Codexes2Gemini
@@ -18,6 +20,7 @@ import streamlit as st
 import traceback
 from Codexes2Gemini.classes.Codexes.Builders import Codexes2Parts
 from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
+from classes.Codexes.Metadata.Metadatas import Metadatas
 from ui.ui_utilities import results2assembled_pandoc_markdown_with_latex
 
 
@@ -80,6 +83,7 @@ class PG19FetchAndTrack:
 
         for row in st.session_state.current_plan["selected_rows"]:
             textfilename = row['textfilename']
+            metadata_this_row = Metadatas()
 
             # Check if file is already processed and skip_processed is on
             if skip_processed and self.processed_df[self.processed_df['textfilename'] == textfilename][
@@ -114,10 +118,16 @@ class PG19FetchAndTrack:
                 ImprintText = "Collapsar Condensed Editions"
                 sheetname = "Standard 70 perfect"
 
+            elif "adept" in st.session_state.current_plan["imprint"].lower():
+                ImprintText = "AI Lab for Book-Lovers"
+                sheetname = "White B&W Perfect"
+
             bookjson_this_book = self.create_simple_bookjson(textfilename, results, result_pdf_file_name,
                                                              ImprintText=ImprintText, sheetname=sheetname)
 
             self.save_bookjson_this_book(textfilename, bookjson_this_book)
+
+            self.save_LSI_metadata_to_ACS_spreadsheet(textfilename, metadata_this_row)
 
             self.update_processed_metadata(textfilename)
 
@@ -257,14 +267,24 @@ class PG19FetchAndTrack:
                                ImprintText="Collapsar Condensed Editions", sheetname=None):
         doc = fitz.open(result_pdf_file_name)
         pagecount = doc.page_count
-        spinewidth = self.calculate_spinewidth(sheetname, pagecount)
+        spinewidth, effective_page_count = self.calculate_spinewidth(sheetname, pagecount)
         # st.write(sheetname, pagecount, spinewidth)
+        st.info(st.session_state.current_plan['imprint'])
+        if "adept" in st.session_state.current_plan["imprint"].lower():
+            trimsizeheight = 11
+            trimsizewidth = 8.5
+        if "collapsar" in st.session_state.current_plan["imprint"].lower():
+            trimsizeheight = 6
+            trimsizewidth = 4
+
         book_json = dict(BookID="TBD", BookTitle=st.session_state.current_plan['gemini_title'],
                          SubTitle=st.session_state.current_plan['gemini_subtitle'],
                          Byline=st.session_state.current_plan['gemini_authors_str'],
                          ImprintText=ImprintText, ImageFileName="", settings="duplex", distributor="LSI",
-                         InvertedColor="White", DominantColor="Black", BaseFont="Skolar PE Regular", trimsizewidth=4,
-                         trimsizeheight=6, spinewidth=spinewidth,
+                         InvertedColor="White", DominantColor="Black", BaseFont="Skolar PE Regular",
+                         trimsizewidth=trimsizewidth,
+                         trimsizeheight=trimsizeheight, spinewidth=spinewidth,
+                         effective_page_count=effective_page_count,
                          backtext=(st.session_state.current_plan['gemini_summary'] or "TBD"))
         st.write(book_json)
         with open("test.json", "w") as f:
@@ -289,17 +309,17 @@ class PG19FetchAndTrack:
         effective_page_count = finalpagecount + (finalpagecount % 2)
 
         if effective_page_count < df["Pages"].min():
-            return "Error: page count is less than the smallest page count in the sheet"
+            return "Error: page count is less than the smallest page count in the sheet", effective_page_count
         elif effective_page_count > df["Pages"].max():
-            return "Error: page count is greater than the largest page count in the sheet"
+            return "Error: page count is greater than the largest page count in the sheet", effective_page_count
         elif effective_page_count == df["Pages"].min():
-            return df["SpineWidth"].min()
+            return df["SpineWidth"].min(), effective_page_count
         elif effective_page_count == df["Pages"].max():
-            return df["SpineWidth"].max()
+            return df["SpineWidth"].max(), effective_page_count
         else:
-            return df.loc[df["Pages"] == effective_page_count, "SpineWidth"].iloc[0]
+            return df.loc[df["Pages"] == effective_page_count, "SpineWidth"].iloc[0], effective_page_count
 
-        spinewidth = df.loc[df["Pages"] == effective_page_count, "SpineWidth"].iloc[0]
+        # spinewidth = df.loc[df["Pages"] == effective_page_count, "SpineWidth"].iloc[0]
 
     def save_bookjson_this_book(self, textfilename, bookjson_this_book):
         # validate that bookjson_this_book is valid
@@ -317,3 +337,11 @@ class PG19FetchAndTrack:
             st.error(f"Error saving results to JSON: {traceback.format_exc()}")
             logging.error(f"Error saving results to JSON: {traceback.format_exc()}")
             return
+
+    def save_LSI_metadata_to_ACS_spreadsheet(self, textfilename, metadata_this_row):
+        metadata_this_row_revised = self.complete_LSI_metadata(textfilename, metadata_this_row)
+        lsi_df = create_LSI_ACS_spreadsheet(metadata_this_row_revised)
+        return
+
+    def complete_LSI_metadata(self, textfilename, metadata_this_row):
+# proceed through
