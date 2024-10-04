@@ -1,37 +1,12 @@
 {
-  "gemini_get_basic_info": {
-    "prompt": "Please review the entire document provided in the context from beginning to end. Allocate your time equally throughout the document.  Carry out the following tasks in batch mode.\n1. Do your best to identify the official title, subtitle, and author(s) of the document. \n2. Do your best to identify the publisher, place of publication, and year of actual publication. \n3. Summarize the content of the document. Your goal is to create a summary that accurately describes all the most important elements of the document in a way that is flexible enough to be used by many prompts.\n4. Return a string that is valid JSON output surrounded only in braces and contains keys 'gemini_title','gemini_subtitle', 'gemini_authors', 'gemini_publisher', 'gemini_place_of_publication', 'gemini_year_of_actual_publication', and 'gemini_summary'. Do NOT enclose the json in triple backticks.",
+  "Analytic table of contents": {
+    "prompt": "Go through the entire book chapter by chapter and create an analytic table of contents for the book. Stop when you have described each chapter of the book. Do not repeat your wording from chapter to chapter. The tone of your writing should match the tone and style of the author. The string '# Analytic Table of Contents' should appear alone on the first line. You do not need to restate the title of the book, we already know it.  ",
     "tags": [
-      "publisher",
-      "author",
-      "title",
-      "abstract",
-      "publishing information",
-      "summary",
-      "metadata",
+      "table of contents",
+      "front matter",
+      "book structure",
+      "parts of the book",
       "ADEPT",
-      "Collapsar"
-    ]
-  },
-  "Collapsar abstracts 1": {
-    "prompt": "Please review this book manuscript. As you do the following tasks, remember to refer to the entire context.\n\n0. This is the beginning of the Abstracts section of the front matter. Output should begin with '#Abstracts' followed by two new-line characters.\n1. write a tldr in three words or less. Output begins with \"## TLDR (three words)\" followed by two new line characters and then the three words. ONLY provide three words, do not explain your thinking.\n2. Explain this document to me like I am five years old. Output begins with \"## ELI5\" followed by two new line characters.\n3. Write a scientific-style abstract. Output begins with \"## Scientific-Style Abstract\" followed by two new line characters.\n4. Do not include excerpts beginning 'Context'.",
-    "tags": [
-      "abstract",
-      "tldr",
-      "ELI5",
-      "scientific",
-      "ADEPT",
-      "Collapsar"
-    ]
-  },
-  "proofread (errors only)": {
-    "prompt": "Proofread this book draft and prepare a list identifying any clear errors. Follow the Chicago Manual of Style 18th edition.  Do not present revision ideas for \"consideration\", I am only interested in finding and correcting outright, embarrassing errors.",
-    "tags": [
-      "ADEPT",
-      "edit",
-      "CMOS",
-      "proofing",
-      "proofreading",
       "Collapsar"
     ]
   },
@@ -43,49 +18,6 @@
       "motivation",
       "audience",
       "audience",
-      "ADEPT",
-      "Collapsar"
-    ]
-  },
-  "Collapsar Modern Day Motivation": {
-    "prompt": "Create a \"motivation\" paragraph providing the reader with the benefits of reading this book. \nThe motivation should start with a first sentence that directly addresses a well-known issue or major topic of current importance to many people.  Use pointed, vivid langauge to illustrate why the document is relevant to this topic. \nBriefly describe the main focus or subject of the document, highlighting its content and the specific area it addresses, while linking it back to the issue.  \nProvide additional context for the document by linking it to current events, societal needs, technological trends, challenges,or ongoing debates in its field.  \nSpecifically mention any important methodologies, technologies, topics, or sources that are uniquely available in this document.\nClearly state why the document is a must-read for its intended audience, whether they are researchers, practitioners, policymakers, or the general public interested in the topic. \nEmphasize the benefits the reader will gain from engaging with the document, such as understanding cutting-edge developments, enhancing their knowledge on crucial issues, or applying the document's findings to real-world problems. \nMake sure to appeal to the curiosity and interests of potential readers. \nYour goal is to convincingly present the document's significance and articulate why it deserves their attention, starting from the very first sentence.  Output begins with heading level 1 '# Publisher's Note' followed by two new-line characters. Text continues in body text format. No further headings.",
-    "tags": [
-      "publishing",
-      "bibliographic",
-      "motivation",
-      "audience",
-      "ADEPT",
-      "Collapsar"
-    ]
-  },
-  "Collapsar Create Condensed Matter": {
-    "prompt": "Backstory:\n\nCollapsar Classics was launched to bring 19th and early 20th century books to modern audiences in a fresh and convenient way. Each book is approximately 15,000 words and is presented in a phone-sized 4 x 6\" paperback format. Each Collapsar Classic includes a section called \"Condensed Matter\" (a play on front matter). Much like the Reader's Digest Condensed Books that were popular many decades ago, the Condensed Matters is meant to give you the best parts of the original in a much smaller space.\n\nYour Task:\n\nWrite the Condensed Matter section for the document in the context. The document in the context is permissioned public domain so you have complete freedom to quote from it.\nWork only on the Condensed Matter section. Do not refer to the backstory.\nYour goal is to write a highly readable condensed version of the original.\nYou should use the exact words of the context frequently.\nYou may use transitional devices such as ellipses, dingbats, or bracketed comments.\nYou may make sparing use of framing devices in your own words.\nRemember, your overriding goal is to give modern readers the benefit of reading this document in as original a form as possible, but as much condensed as possible.\nOutput must begin '# Condensed Matter' followed immediately by two new-line characters.",
-    "tags": [
-      "publishing",
-      "bibliographic",
-      "motivation",
-      "audience",
-      "Collapsar"
-    ]
-  },
-  "Place in historical context": {
-    "prompt": "Your task is to place this work in its historical context. Please explain its significance at the time of publication; its role in discourse in subsequent years; why it may be of interest now, especially to any specific, pertinent, recent events or trends; and how it may be important as future decades unroll.\n\nYour work should be accurate and your factual assertions supported by real citations.  Output begins with heading level one '# Historical Context' followed by two new-line characters.  Do not include the title of the work in the heading.",
-    "tags": [
-      "publishing",
-      "bibliographic",
-      "motivation",
-      "audience",
-      "ADEPT",
-      "Collapsar"
-    ]
-  },
-  "Analytic table of contents": {
-    "prompt": "Go through the entire book chapter by chapter and create an analytic table of contents for the book. Stop when you have described each chapter of the book. Do not repeat your wording from chapter to chapter. The tone of your writing should match the tone and style of the author. The string '# Analytic Table of Contents' should appear alone on the first line. You do not need to restate the title of the book, we already know it.  ",
-    "tags": [
-      "table of contents",
-      "front matter",
-      "book structure",
-      "parts of the book",
       "ADEPT",
       "Collapsar"
     ]
@@ -106,6 +38,38 @@
       "bibliography",
       "book organization",
       "attribution"
+    ]
+  },
+  "Collapsar abstracts 1": {
+    "prompt": "Please review this book manuscript. As you do the following tasks, remember to refer to the entire context.\n\n0. This is the beginning of the Abstracts section of the front matter. Output should begin with '#Abstracts' followed by two new-line characters.\n1. write a tldr in three words or less. Output begins with \"## TLDR (three words)\" followed by two new line characters and then the three words. ONLY provide three words, do not explain your thinking.\n2. Explain this document to me like I am five years old. Output begins with \"## ELI5\" followed by two new line characters.\n3. Write a scientific-style abstract. Output begins with \"## Scientific-Style Abstract\" followed by two new line characters.\n4. Do not include excerpts beginning 'Context'.",
+    "tags": [
+      "abstract",
+      "tldr",
+      "ELI5",
+      "scientific",
+      "ADEPT",
+      "Collapsar"
+    ]
+  },
+  "Collapsar Create Condensed Matter": {
+    "prompt": "Backstory:\n\nCollapsar Classics was launched to bring 19th and early 20th century books to modern audiences in a fresh and convenient way. Each book is approximately 15,000 words and is presented in a phone-sized 4 x 6\" paperback format. Each Collapsar Classic includes a section called \"Condensed Matter\" (a play on front matter). Much like the Reader's Digest Condensed Books that were popular many decades ago, the Condensed Matters is meant to give you the best parts of the original in a much smaller space.\n\nYour Task:\n\nWrite the Condensed Matter section for the document in the context. The document in the context is permissioned public domain so you have complete freedom to quote from it.\nWork only on the Condensed Matter section. Do not refer to the backstory.\nYour goal is to write a highly readable condensed version of the original. \nYou must cover the entire scope of the original within your output window. Thus, your condensed prose should begin at or near the beginning of the original and end at or near the end of it.\nYou should use the exact words of the context frequently.\nYou may use transitional devices such as ellipses, dingbats, or bracketed comments.\nYou may make sparing use of framing devices in your own words.\nRemember, your overriding goal is to give modern readers the benefit of reading this document in as original a form as possible, but as much condensed as possible.\nOutput must begin '# Condensed Matter' followed immediately by two new-line characters.",
+    "tags": [
+      "publishing",
+      "bibliographic",
+      "motivation",
+      "audience",
+      "Collapsar"
+    ]
+  },
+  "Collapsar Modern Day Motivation": {
+    "prompt": "Create a \"motivation\" paragraph providing the reader with the benefits of reading this book. \nThe motivation should start with a first sentence that directly addresses a well-known issue or major topic of current importance to many people.  Use pointed, vivid langauge to illustrate why the document is relevant to this topic. \nBriefly describe the main focus or subject of the document, highlighting its content and the specific area it addresses, while linking it back to the issue.  \nProvide additional context for the document by linking it to current events, societal needs, technological trends, challenges,or ongoing debates in its field.  \nSpecifically mention any important methodologies, technologies, topics, or sources that are uniquely available in this document.\nClearly state why the document is a must-read for its intended audience, whether they are researchers, practitioners, policymakers, or the general public interested in the topic. \nEmphasize the benefits the reader will gain from engaging with the document, such as understanding cutting-edge developments, enhancing their knowledge on crucial issues, or applying the document's findings to real-world problems. \nMake sure to appeal to the curiosity and interests of potential readers. \nYour goal is to convincingly present the document's significance and articulate why it deserves their attention, starting from the very first sentence.  Output begins with heading level 1 '# Publisher's Note' followed by two new-line characters. Text continues in body text format. No further headings.",
+    "tags": [
+      "publishing",
+      "bibliographic",
+      "motivation",
+      "audience",
+      "ADEPT",
+      "Collapsar"
     ]
   },
   "core_audience_attributes": {
@@ -139,16 +103,6 @@
       "readers"
     ]
   },
-  "create_reboot_prompts": {
-    "prompt": "Create a series of prompts that can be used to write a modern reboot of the current document in the context.  Use a modern setting or theme that is pointed, topical, and/or funny.\n\nProvide in valid JSON format:\n\n-- a \"codexspec\" using the format provided below. \n-- system instruction\n-- prompts for each chapter\n\nFill in the codexspec as thoroughly as you can. It will be used as a context in the writing prompts.\n\nHere is an example of the codexspec.  Use the same keys for the JSON schema.\n{\n    \"title\": \"Titivillus: Let There Be Lihgt\",\n    \"idea\": \"The origin story of Titivillus, the demon who introduces errors into the work of authors, editors, publishers, and scribes, takes his story from the creation of angels to the invention of the written word.\",\n    \"author_voice\": \"CS Lewis crossed with Dorothy Parker: urbane, spiritual, darkly funny.\",\n    \"protagonist\": \"Titivillus\",\n    \"antagonist\": \"TBD\",\n    \"good guys\": \"various minor angels\",\n    \"bad guys\": \"various minor demons\",\n    \"settings\": \"Heaven; the Garden of Eden; Hell\",\n    \"locations\": \"The Tree of Life\",\n    \"themes\": \"\",\n    \"revelations\": \"\",\n    \"character_arcs\": \"\",\n    \"mcguffins\": \"\",\n    \"plot_twists\": \"\",\n    \"num_chapters\": 13,\n    \"num_scenes_per_chapter\": 5,\n    \"num_tokens_total\": 66666,\n    \"special_instructions\": \"\"\n  }\n  }\n  \nUse this JSON schema for the system instruction:\n      \n      {\"system instruction\": str}\n\n      return: list[dict]\n    \nUse this JSON schema for the prompts:\n\n{\"prompt\": str}\nReturn: list[dict]\n\nReturn these results using this JSON schema:\n\n{\n\"codexspecs\": [dict],\n\"system instruction\": [dict],\n\"prompts\": list[dict]\n}\n\n  ",
-    "tags": [
-      "bootstrap",
-      "prompts",
-      "reader persona",
-      "audience analysis",
-      "character creation"
-    ]
-  },
   "create_observables_for_reader": {
     "prompt": "Now we are going to create a list of positive and negative textual observables for the current reader persona. These are attributes of the text that are likely to influence her experience as she reads it.\n\nExamples: \nPositive:\n- striking language with deep emotional affect\n- unusual insights\n- short paragraphs\n\nNegative:\n- typos\n- old-fashioned thinking\n- disrespect for business\n\nPlease expand these lists consistent with the persona.",
     "tags": [
@@ -159,8 +113,18 @@
       "readers"
     ]
   },
+  "create_reboot_prompts": {
+    "prompt": "Create a series of prompts that can be used to write a modern reboot of the current document in the context.  Use a modern setting or theme that is pointed, topical, and/or funny.\n\nProvide in valid JSON format:\n\n-- a \"codexspec\" using the format provided below. \n-- system instruction\n-- prompts for each chapter\n\nFill in the codexspec as thoroughly as you can. It will be used as a context in the writing prompts.\n\nHere is an example of the codexspec.  Use the same keys for the JSON schema.\n{\n    \"title\": \"Titivillus: Let There Be Lihgt\",\n    \"idea\": \"The origin story of Titivillus, the demon who introduces errors into the work of authors, editors, publishers, and scribes, takes his story from the creation of angels to the invention of the written word.\",\n    \"author_voice\": \"CS Lewis crossed with Dorothy Parker: urbane, spiritual, darkly funny.\",\n    \"protagonist\": \"Titivillus\",\n    \"antagonist\": \"TBD\",\n    \"good guys\": \"various minor angels\",\n    \"bad guys\": \"various minor demons\",\n    \"settings\": \"Heaven; the Garden of Eden; Hell\",\n    \"locations\": \"The Tree of Life\",\n    \"themes\": \"\",\n    \"revelations\": \"\",\n    \"character_arcs\": \"\",\n    \"mcguffins\": \"\",\n    \"plot_twists\": \"\",\n    \"num_chapters\": 13,\n    \"num_scenes_per_chapter\": 5,\n    \"num_tokens_total\": 66666,\n    \"special_instructions\": \"\"\n  }\n  }\n  \nUse this JSON schema for the system instruction:\n      \n      {\"system instruction\": str}\n\n      return: list[dict]\n    \nUse this JSON schema for the prompts:\n\n{\"prompt\": str}\nReturn: list[dict]\n\nReturn these results using this JSON schema:\n\n{\n\"codexspecs\": [dict],\n\"system instruction\": [dict],\n\"prompts\": list[dict]\n}\n\n  ",
+    "tags": [
+      "bootstrap",
+      "prompts",
+      "reader persona",
+      "audience analysis",
+      "character creation"
+    ]
+  },
   "ELI complete idiot - abstract": {
-    "prompt": "Explain this to me like I am a complete idiot, someone who is both painfully stupid and willfully ignorant, but do not say that I am an idiot. Just start right out with the explanation.  Use no more than 100 words. Output begins with second level heading '## For Complete Idiots Only' followed by two new lines.",
+    "prompt": "Explain this in terms suitable for someone who is both painfully stupid and willfully ignorant. Do not describe the reader; provide only the explanation.  Use no more than 50 words. Output begins with second level heading '## For Complete Idiots Only' followed by two new lines.",
     "tags": [
       "front matter",
       "humor",
@@ -181,17 +145,22 @@
       "Collapsar"
     ]
   },
-  "glossary-lay-reader": {
-    "prompt": "Create an alphabetical glossary explaining technical terms that a lay reader might not understand. Output begins with heading level 1: '# Glossary for Lay Readers' followed by two new-line characters.   Each glossary entry is body text, flush left, and is NOT a heading.  Each glossary entry MUST be on its own line followed by two new-line characters.",
+  "gemini_get_basic_info": {
+    "prompt": "Please review the entire document provided in the context from beginning to end. Allocate your time equally throughout the document.  Carry out the following tasks in batch mode.\n1. Do your best to identify the official title, subtitle, and author(s) of the document. \n2. Do your best to identify the publisher, place of publication, and year of actual publication. \n3. Summarize the content of the document. Your goal is to create a summary that accurately describes all the most important elements of the document in a way that is flexible enough to be used by many prompts.\n4. Return a string that is valid JSON output surrounded only in braces and contains keys 'gemini_title','gemini_subtitle', 'gemini_authors', 'gemini_publisher', 'gemini_place_of_publication', 'gemini_year_of_actual_publication', and 'gemini_summary'. Do NOT enclose the json in triple backticks.",
     "tags": [
-      "back matter",
-      "glossary",
-      "technical terms",
-      "lay reader"
+      "publisher",
+      "author",
+      "title",
+      "abstract",
+      "publishing information",
+      "summary",
+      "metadata",
+      "ADEPT",
+      "Collapsar"
     ]
   },
   "glossary-browsable": {
-    "prompt": "Your task is to create a browsable glossary of old-fashioned, foreign-language, or technical terms Unlike a normal (boring) glossary, your discussion should go beyond definitions and may include opinionated comments on the subject matter from your perspective as a modern reader. . Output begins with heading level 1: '# Browsable Glossary '.  Each glossary entry is body text, flush left, and is NOT a heading.  Each glossary entry MUST be on its own line followed by two new-line characters.\"",
+    "prompt": "Your task is to create a browsable glossary of old-fashioned, foreign-language, or technical terms. Unlike a normal (boring) glossary, your discussion should sometimes go beyond definitions and may include remarks that are opinionated, pointed, skeptical, or insightful. \n\nOutput begins with heading level 1: '# Browsable Glossary'.  \n\nEach glossary entry is body text, flush left, and is NOT a heading.  \n\nEach glossary entry MUST be on its own line followed by two new-line characters.",
     "tags": [
       "back matter",
       "glossary",
@@ -199,6 +168,15 @@
       "lay reader",
       "ADEPT",
       "Collapsar"
+    ]
+  },
+  "glossary-lay-reader": {
+    "prompt": "Create an alphabetical glossary explaining technical terms that a lay reader might not understand. Output begins with heading level 1: '# Glossary for Lay Readers' followed by two new-line characters.   Each glossary entry is body text, flush left, and is NOT a heading.  Each glossary entry MUST be on its own line followed by two new-line characters.",
+    "tags": [
+      "back matter",
+      "glossary",
+      "technical terms",
+      "lay reader"
     ]
   },
   "glossary-modern-readers": {
@@ -300,12 +278,34 @@
       "evaluation"
     ]
   },
+  "Place in historical context": {
+    "prompt": "Your task is to place this work in its historical context. Please explain its significance at the time of publication; its role in discourse in subsequent years; why it may be of interest now, especially to any specific, pertinent, recent events or trends; and how it may be important as future decades unroll.\n\nYour work should be accurate and your factual assertions grounded in accurate citations to real works.  Output begins with heading level one '# Historical Context' followed by two new-line characters.  Do not include the title of the work in the heading.",
+    "tags": [
+      "publishing",
+      "bibliographic",
+      "motivation",
+      "audience",
+      "ADEPT",
+      "Collapsar"
+    ]
+  },
   "plain_text_no_markdown": {
     "prompt": "All responses should be plain text. Separate paragraphs by two returns. Do not use markdown. Do not use bolding. Do not use underlining. Do not use header levels.\n\n",
     "tags": [
       "plain text",
       "formatting",
       "no markdown"
+    ]
+  },
+  "proofread (errors only)": {
+    "prompt": "Proofread this book draft and prepare a list identifying any clear errors. Follow the Chicago Manual of Style 18th edition.  Do not present revision ideas for \"consideration\", I am only interested in finding and correcting outright, embarrassing errors.",
+    "tags": [
+      "ADEPT",
+      "edit",
+      "CMOS",
+      "proofing",
+      "proofreading",
+      "Collapsar"
     ]
   },
   "reading_level": {
@@ -337,6 +337,17 @@
       "Collapsar"
     ]
   },
+  "review_for_accuracy": {
+    "prompt": "Please review this document for factual accuracy and report all errors that you find. In particular:\n\n-- make sure that all information provided about books or journal articles is correct. If any of the following are provided, verify them: title, subtitle, author(s), publication date, place of publication, and publisher.\n-- for real people in nonfiction, please verify that they are real people and that their name is spelled correctly.\n-- make sure that all dates given are accurate.\n\n\nPlease provide links to sources for corrections.",
+    "tags": [
+      "copy edit",
+      "fact check",
+      "proofreading",
+      "editing",
+      "ADEPT",
+      "Collapsar"
+    ]
+  },
   "semantic_analysis": {
     "prompt": "Please review this book manuscript. \n1. Outline the semantic structure of the book as best you can. A typical semantic structure is Parts > {Front Matter, Body, Back Matter} => {Foreword, Chapters, Indexes} => {Scenes, Content}.  Very concisely (10 words or less) identify each semantic unit and summarize it. Do NOT add your own numbering.",
     "tags": [
@@ -355,7 +366,7 @@
     ]
   },
   "timeline-major": {
-    "prompt": "Create a timeline of twenty to forty major events in the book in ascending chronological order. While respecting that some events are more major than others, try to draw the events from throughout the book and cover the timespan fairly. Output begins with heading level 1: '# Timeline'. Each event entry MUST be on its own line followed by TWO new line characters. If you begin to repeat yourself, STOP.",
+    "prompt": "Create a timeline of twenty to forty major events in the book in ascending chronological order. While respecting that some events are more major than others, try to draw the events from throughout the book and cover the timespan fairly. \n\nOutput begins with heading level 1: '# Timeline'. \n\nEach event entry MUST be on its own line followed by TWO new line characters. \n\nIf you begin to repeat yourself, STOP.",
     "tags": [
       "back matter",
       "timeline",
