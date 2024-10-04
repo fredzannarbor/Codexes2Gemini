@@ -1,5 +1,5 @@
 #  Copyright (c) 2023. Fred Zimmerman.  Personal or educational use only.  All commercial and enterprise use must be licensed, contact wfz@nimblebooks.com
-
+import logging
 import math
 from textwrap import shorten
 
@@ -10,21 +10,15 @@ from Codexes2Gemini.classes.Codexes.Metadata.metadatas2distributor_reqts import 
     get_rendition_string, \
     calculate_pub_date, create_draft_book_description, get_recommended_BISAC_categories, get_LSI_ACS_keywords, \
     calculate_min_max_age_grade, process_acrobat_toc, get_rendition_index, estimate_price
-
+import streamlit as st
 
 def create_LSI_ACS_spreadsheet(metadatas, config=None):
-    print('creating LSI ACS')
-    # hoist inner directory
-    # print(metadatas.keys())
+    logging.info("beginning to create ISBN spreadsheet")
     metadatas = metadatas.get_all_attributes()
     isbn = metadatas['ISBN']
-    print(isbn)
-    # tmetadatas_df = pd.DataFrame.from_dict(metadatas, orient="index")
-    # metadatas_df.sort_index(inplace=True)
-    # print(metadatas_df)
+
     rendition_string, LSI_ACS_publisher, imprint, usd2gbp, jacket_filepath, interior_filepath, cover_filepath = initialize_LSI_ACS_variables(
         metadatas)
-
     c = CurrencyConverter(fallback_on_missing_rate=True)
     df = pd.DataFrame(index=range(1))
     df["Lightning Source Account #"] = "6024045"
@@ -89,7 +83,8 @@ def create_LSI_ACS_spreadsheet(metadatas, config=None):
     except Exception as e:
         print(f"Exception: {e}")
     try:
-        metadatas['Annotation / Summary'] = create_draft_book_description(metadatas)
+        # metadatas['Annotation / Summary'] = create_draft_book_description(metadatas)
+        metadatas['Annotation / Summary'] = st.session_state.current_plan["gemini_summary"]
         df['Annotation / Summary'] = metadatas['Annotation / Summary']
     except Exception as e:
         print(e)
