@@ -5,6 +5,10 @@ import logging
 import os
 import random
 from importlib import resources
+from textwrap import shorten
+
+from Codexes2Gemini.classes.Codexes.Metadata.metadatas2distributor_reqts import process_acrobat_toc, \
+    calculate_min_max_age_grade, get_LSI_ACS_keywords, create_draft_book_description, calculate_pub_date
 
 from Codexes2Gemini.classes.Codexes.Distributors.LSI.create_LSI_ACS_spreadsheet import create_LSI_ACS_spreadsheet
 
@@ -100,6 +104,9 @@ class PG19FetchAndTrack:
             with open(filepath, "r") as f:
                 context = f.read()
 
+            # non-LLM context processing
+
+
             # Process the context (replace with your actual processing logic)
             results = self.process_single_context(context, row)
 
@@ -116,7 +123,7 @@ class PG19FetchAndTrack:
 
             if "collapsar" in st.session_state.current_plan["imprint"].lower():
                 ImprintText = "Collapsar Condensed Editions"
-                sheetname = "Standard 70 perfect"
+                sheetname = "White B&W Perfect"  # "Standard 70 perfect"
 
             elif "adept" in st.session_state.current_plan["imprint"].lower():
                 ImprintText = "AI Lab for Book-Lovers"
@@ -127,7 +134,11 @@ class PG19FetchAndTrack:
 
             self.save_bookjson_this_book(textfilename, bookjson_this_book)
 
-            self.save_LSI_metadata_to_ACS_spreadsheet(textfilename, metadata_this_row)
+            # Create any metadata that is missing from the row so far
+            # metadata_this_row = self.complete_LSI_metadata(textfilename, metadata_this_row)
+
+            # In this step, proceed column-by-column through the ACS spreadsheet
+            # self.create_LSI_ACS_spreadsheet(textfilename, metadata_this_row)
 
             self.update_processed_metadata(textfilename)
 
@@ -339,9 +350,67 @@ class PG19FetchAndTrack:
             return
 
     def save_LSI_metadata_to_ACS_spreadsheet(self, textfilename, metadata_this_row):
-        metadata_this_row_revised = self.complete_LSI_metadata(textfilename, metadata_this_row)
-        lsi_df = create_LSI_ACS_spreadsheet(metadata_this_row_revised)
+
+        #lsi_df = create_LSI_ACS_spreadsheet(metadata_this_row)
         return
 
     def complete_LSI_metadata(self, textfilename, metadata_this_row):
-# proceed through
+        """Completes the LSI metadata for a given text file.
+
+        Args:
+            textfilename (str): The name of the text file.
+            metadata_this_row (Metadatas): The metadata object for the current row.
+
+        Returns:
+            Metadatas: The completed metadata object.
+        """
+        # 1. Load book_json
+        bookjson_filepath = os.path.join(self.output_dir, f"{textfilename}_book.json")
+        with open(bookjson_filepath, 'r') as f:
+            book_json = json.load(f)
+
+        # 2. Extract necessary data from book_json
+        metadata_this_row.ISBN = book_json['BookID']
+        metadata_this_row.title = book_json['BookTitle']
+        metadata_this_row.author = book_json['Byline']
+        metadata_this_row['final page count'] = book_json['effective_page_count']
+
+        # 3. Extract/generate other required metadata
+
+        # 3.1 Publication Date
+        metadata_this_row['publication date'] = calculate_pub_date()
+        print(metadata_this_row['publication date'])
+
+        # 3.2 Annotation/Summary
+        metadata_this_row['Annotation / Summary'] = st.session_state.current_plan['gemini_summary']
+        # create_draft_book_description(metadata_this_row))
+
+        # 3.3 Keywords
+        metadata_this_row = get_LSI_ACS_keywords(metadata_this_row, "Bibliographic Keyword Phrases")
+
+        # 3.4 Audiences
+
+        metadata_this_row['Audience'] = 'General/Trade'  # default
+        # 3.4.1  Age and Grade Ranges
+
+        metadata_this_row = calculate_min_max_age_grade(metadata_this_row)
+
+        # 3.5 TLDR
+        metadata_this_row['TLDR'] = shorten(metadata_this_row.get_attribute('extractive_summary'), 250)
+
+        # 3.6 Table of Contents
+        metadata_this_row['toc'] = process_acrobat_toc(metadata_this_row)
+
+        # 3.7 Color Interior
+        metadata_this_row['color_interior'] = book_json.get('color_interior', False)
+
+        # 3.8 Recommended Price (already calculated in book_json)
+        metadata_this_row['recommended price'] = book_json['US Suggested List Price']
+
+        # 4. Set file paths (adjust based on your file structure)
+        safeISBN = str(metadata_this_row['ISBN'].replace('-', '')[0])
+        metadata_this_row['jacket_filepath'] = ''
+        metadata_this_row['interior_filepath'] = os.path.join(self.output_dir, f"{safeISBN}_interior.pdf")
+        metadata_this_row['cover_filepath'] = os.path.join(self.output_dir, f"{safeISBN}_cover.pdf")
+
+        return metadata_this_row
