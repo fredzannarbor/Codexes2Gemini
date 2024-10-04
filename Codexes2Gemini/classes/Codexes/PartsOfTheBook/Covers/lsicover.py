@@ -159,8 +159,24 @@ def createStyles(BaseFont, BoldFont, invertedcolor="White"):
         scribus.createParagraphStyle("Slogan", linespacingmode=1, alignment=1, charstyle="Slogan")
         scribus.createCharStyle(name="NimbleN", font="Phosphate Inline", fontsize=18, features='outline',
                                 fillcolor=invertedcolor)
+
         scribus.createParagraphStyle("NimbleN", linespacingmode=1, alignment=1, charstyle="NimbleN")
-    except Exception as e:
+        scribus.createCharStyle("Duplex", font=BaseFont, fontsize=10, features='', fillcolor=invertedcolor)
+
+        scribus.setCharStyle("Duplex")  # Select the style to modify
+
+        # Apply properties from the image
+        scribus.setLineSpacingMode(scribus.AUTOMATIC_LINESPACING, "Duplex")
+        scribus.setTextAlignment(scribus.ALIGN_LEFT, "Duplex")
+        scribus.setLanguage("en_US", "Duplex")
+        scribus.setParStyle("Body Text", "Duplex")  # Assuming "Body Text" is your paragraph style
+        scribus.setFillShade(100.0, "Duplex")
+        scribus.setStrokeColor("Black", "Duplex")
+        scribus.setStrokeShade(100.0, "Duplex")
+        scribus.setShadowColor("None", "Duplex")
+        scribus.setShadowShade(100.0, "Duplex")
+
+except Exception as e:
         print(e)
         scribus.messageBox("Error", "Could not create styles", scribus.ICON_WARNING, scribus.BUTTON_OK)
 
@@ -378,7 +394,10 @@ def main(headless, bookjsonfilepath, outputfilepath):
 
     btb = scribus.createText(coverwidth - trimsizewidth, 0.25, trimsizewidth - (2 * textsafety), trimsizeheight - 0.25,
                              "FrontTextBox")
-    scribus.setTextDistances(0.5, 0.5, 0.5, 0.5, btb)
+    if "condensed" in settings.lower():
+        scribus.setTextDistances(0.25, 0.25, 0.25, 0.25, btb)
+    else:
+        scribus.setTextDistances(0.5, 0.5, 0.5, 0.5, btb)
 
     scribus.setTextColor(invertedcolor, btb)
     # Define the paragraphs and their associated styles
@@ -420,7 +439,10 @@ def main(headless, bookjsonfilepath, outputfilepath):
 
     columns = scribus.setColumns(2, BackTextBox)
     scribus.setColumnGap(0.1666, BackTextBox)
-    scribus.setTextDistances(0.5, 0.5, 0.5, 0.5, BackTextBox)
+    if "condensed" in settings.lower():
+        scribus.setTextDistances(0.25, 0.25, 0.25, 0.25, BackTextBox)
+    else:
+        scribus.setTextDistances(0.5, 0.5, 0.5, 0.5, BackTextBox)
     scribus.setTextColor(invertedcolor, BackTextBox)
     scribus.insertText(backtext, 0, BackTextBox)
     scribus.setParagraphStyle("Body Text", BackTextBox)
@@ -495,6 +517,56 @@ def main(headless, bookjsonfilepath, outputfilepath):
     except Exception as e:
         print(f'could not save file: {e}')
 
+    if "duplex" in settings.lower():
+        scribus.gotoPage(2)
+        #
+        scribus.setActiveLayer("Fill")
+        duplex_fill_width = trimsizewidth + spinesafety + edgesafety
+        scribus.createRect(topLeftX - 2, topLeftY, duplex_fill_width, fillheight, "FillBoxInteriorLeft")
+        scribus.createRect(topLeftX - 2, topLeftY, duplex_fill_width, fillheight, "FillBoxInteriorRight")
+        scribus.setFillColor(dominantcolor, "FillBoxInteriorLeft")
+        scribus.setFillColor(dominantcolor, "FillBoxInteriorRight")
+
+        scribus.setActiveLayer("Front Text")
+        # Create front inside cover text layer
+        front_inside_left_cover = scribus.createText(coverwidth - trimsizewidth, 0.25, duplex_fill_width,
+                                                     trimsizeheight - 0.25, "front_inside_left_cover")
+        front_inside_right_cover = scribus.createText(coverwidth - trimsizewidth, 0.25, duplex_fill_width,
+                                                      trimsizeheight - 0.25, "front_inside_right_cover")
+
+        if "condensed" in settings.lower():
+            title_text_distance = 0.25
+        else:
+            title_text_distance = 0.5
+
+        scribus.setTextDistances(title_text_distance, title_text_distance, title_text_distance, title_text_distance,
+                                 "front_inside_right_cover")
+        scribus.setTextDistances(title_text_distance, title_text_distance, title_text_distance, title_text_distance,
+                                 "front_inside_left_cover")
+
+        # Set text color
+        scribus.setTextColor(invertedcolor, front_inside_left_cover)
+        scribus.setTextColor(invertedcolor, front_inside_right_cover)
+
+        # Define the paragraphs and their associated styles
+        paragraphs_left = [("About this Book", "SubTitle"),
+                           (
+                           "Collapsar Condensed Editions introduce readers to the classics into an engaging and convenient new format without compromising on quality.\n\nEach pocket-sized paperback includes a carefully justified selection of the most important passages in their original work; specially written 'condensed matter' that captures the spirit and language of the original; essays placing the work in its historic context and explaining why it is important today; and abstracts, learning aids, glossaries, and timelines. \n\nOur meticulous approach ensures every word serves a purpose. We bring the past alive in a way that's both engaging and insightful, leaving you with a deeper understanding of the topic and a desire to explore more.\n\nFred Zimmerman, Publisher",
+                           "Body Text")]
+
+        paragraphs_right = [("More Like This", "SubTitle")]
+
+
+        # Add paragraphs to the frame and apply specific style
+        front_inside_left_cover = add_styled_paragraphs_to_text_frame(front_inside_left_cover, paragraphs_left)
+        front_inside_right_cover = add_styled_paragraphs_to_text_frame(front_inside_right_cover, paragraphs_right)
+
+    save_sla_to_pdf(ISBN, outputfilepath)
+
+    return
+
+
+def save_sla_to_pdf(ISBN, outputfilepath):
     pdf = scribus.PDFfile()
     pdf.file = outputfilepath_pdf
     pdf.quality = 1
@@ -504,49 +576,20 @@ def main(headless, bookjsonfilepath, outputfilepath):
     basefilename = os.path.basename(outputfilepath)
     basefilename_split = os.path.splitext(basefilename)[0]
     print(f"basefilename_split: {basefilename_split}")
-
     dirpath = os.path.dirname(outputfilepath)
     outputfilepath_ISBN = os.path.join(dirpath, ISBN + '_cover_' + basefilename_split[:23] + '.pdf')
     print(outputfilepath_ISBN)
-
     pdf.file = outputfilepath_ISBN
     try:
         pdf.save()
+        scribus.messageBox("Save Successful", f"saved to outputfilepath_ISBN: {outputfilepath_ISBN}",
+                           scribus.ICON_WARNING, scribus.BUTTON_OK)
     except Exception as e:
         traceback.print_exc()
         exit()
 
-    if settings.lower() == "duplex":
-        scribus.gotoPage(2)
-        #
-        scribus.createRect(topLeftX, topLeftY, fillwidth, fillheight, "FillBoxDuplex")
-        scribus.setFillColor(dominantcolor, "FillBoxDuplex")
-
-        # Create front inside cover text layer
-        front_inside_cover = scribus.createText(coverwidth - trimsizewidth, 0.25, trimsizewidth - (textsafety),
-                                                trimsizeheight - 0.25, "front_inside_cover")
-        title_text_distance = 0.5
-        scribus.setTextDistances(title_text_distance, title_text_distance, title_text_distance, title_text_distance,
-                                 front_inside_cover)
-
-        # Set text color
-        scribus.setTextColor(invertedcolor, front_inside_cover)
-
-        # Define the paragraphs and their associated styles
-        paragraphs = [("collapsar header", "SubTitle"),
-                      ("collapsar body", "Body Text")]
-
-        # Add paragraphs to the frame and apply specific style
-        front_inside_cover = add_styled_paragraphs_to_text_frame(front_inside_cover, paragraphs)
-
-    return
-
 
 if __name__ == "__main__":
-    ##     os.makedirs("output/bookcovers")
-    print('--- Entering lsicover.py in Codexes2Gemini---')
-    # if not os.path.exists("output/bookcovers"):
-    #    os.makedirs("output/bookcovers")
 
     import argparse
 
@@ -555,7 +598,10 @@ if __name__ == "__main__":
                            default="test/bookjson/test.json")
     argparser.add_argument("-o", "--outputfilepath", required=False, help="Path to write output file",
                            default="output/bookcovers/test.sla")
-    argparser.add_argument('--headless', dest='headless', action='store_true', help='Run in headless mode')
+    # add --headless as true if present
+    argparser.add_argument("--headless", action='store_true',
+                           help="Run the script in headless mode")  # Adding help text is optional but recommended
+
     args = argparser.parse_args()
 
     bookjsonfilepath = args.bookjson
@@ -566,3 +612,4 @@ if __name__ == "__main__":
     headless = args.headless
 
     main(headless, bookjsonfilepath, outputfilepath)
+
