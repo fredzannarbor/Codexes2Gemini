@@ -1,0 +1,5 @@
+rendition_string,color_interior,unit_cost,cost_per_page,page_limit
+POD: 8.5 x 11 in or 280 x 216 mm Case Laminate on White,FALSE,6.74,0.0237,1200
+POD: 8.5 x 11 in or 280 x 216 mm Case Laminate on White,TRUE,7.74,0.0439,1200
+POD: 8.5 x 11 in or 280 x 216 mm Perfect Bound on White,FALSE,1.57,0.0241,1200
+POD: 8.5 x 11 in or 280 x 216 mm Perfect Bound on White,TRUE,1.57,0.04477,1200
