@@ -6,6 +6,7 @@ from importlib import resources
 import streamlit as st
 
 import pandas as pd
+import traceback
 
 
 def load_data_table(file_name):
@@ -212,11 +213,12 @@ def create_draft_book_description(metadatas):
         book_description = metadatas['motivation'] + '\n' + metadatas['submit_synopsis'] + '\n' + metadatas[
             'description_of_annotations'] + '\n' + metadatas['source_text']
         book_description = book_description.replace("\n\n", "\n")
+        book_description = "test"
         print("created full book description")
         # print(book_description)
     except Exception as e:
-        print('Exception: ', e)
-        print('couldna assemble bd')
+        st.error(traceback.format_exc())
+        print('couldnae assemble bd')
         # zabook_description = "**DRAFT** \n" + metadatas_df['Book Description'][1] + '\n' + metadatas_df['Book Cover Blurb'][1] + '\n ' + metadatas_df['description_of_annotations'][1]
     return book_description
 
