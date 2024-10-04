@@ -16,7 +16,15 @@
     ]
   },
   "markdown": {
-    "prompt": "When markdown is requested, use pandoc markdown, which allows optional Latex.\n\nBe sure all heading level strings ('#', '##', etc.) are preceded and followed by new line characters.\n\nBe sure all heading level strings begin a line and are not preceded by spaces. \n\nText following a heading level begins as body text.\n \nFootnotes, glossary entries, and index entries should all be separated by double new line characters.",
+    "prompt": "When markdown is requested, use pandoc markdown, which allows optional Latex.\n\nBe sure all heading level strings ('#', '##', etc.) are preceded and followed by new line characters.\n\nBe sure all heading level strings begin a line and are not preceded by spaces. \n\nText following a heading level begins as body text.\n \nFootnotes, glossary entries, and index entries MUST all be separated by double new line characters.",
+    "tags": [
+      "emojis",
+      "LaTeX",
+      "formatting"
+    ]
+  },
+  "focus": {
+    "prompt": "Focus on the writing outputs that you were asked to generate. Do not add conversational devices like follow-up or clarification.",
     "tags": [
       "emojis",
       "LaTeX",
