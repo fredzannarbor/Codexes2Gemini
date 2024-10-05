@@ -75,7 +75,6 @@ class PG19FetchAndTrack:
         Returns:
             all_results list of results from processing the contexts.
         """
-        # FIX - cannot find 'pages2textstrings'
         # TODO - allow user to upload any data set in correct format
 
         all_results = []
@@ -111,12 +110,14 @@ class PG19FetchAndTrack:
             results = self.process_single_context(context, row)
 
             # Save results to plain Markdown
-            self.save_results_to_markdown(textfilename, results)
+            # self.save_results_to_markdown(textfilename, results)
 
             # Save results to JSON
             self.save_results_to_json(textfilename, results)
 
             markdown_results_with_latex = results2assembled_pandoc_markdown_with_latex(results)
+
+            self.save_results_to_markdown(textfilename, markdown_results_with_latex)
 
             result_pdf_file_name = self.save_markdown_results_with_latex_to_pdf(markdown_results_with_latex,
                                                                                 textfilename)
@@ -148,7 +149,7 @@ class PG19FetchAndTrack:
 
         return all_results
 
-    def fetch_pg19_metadata(self, number_of_context_files_to_process):
+    def fetch_pg19_metadata(self, number_of_context_files_to_process, selection_strategy):
         """Fetches metadata for N random PG19 entries.
 
         Args:
@@ -156,25 +157,13 @@ class PG19FetchAndTrack:
 
         Returns:
             list: A list of lists, where each inner list represents a row of metadata."""
-        with open(self.metadata_file, "r") as f:
-            reader = csv.reader(f)
-            next(reader)  # Skip header row
-            rows = list(reader)
-            return random.sample(rows, number_of_context_files_to_process)  # first random
-
-    def v2_fetch_pg19_metadata(self, number_of_context_files_to_process, selection_strategy):
-        """Fetches metadata for N random PG19 entries.
-
-        Args:
-            number_of_context_files_to_process (int): The number of random entries to fetch.
-
-        Returns:
-            list: A list of lists, where each inner list represents a row of metadata."""
+        st.info(selection_strategy)
         if selection_strategy == "Random":
             with open(self.metadata_file, "r") as f:
                 reader = csv.reader(f)
                 next(reader)  # Skip header row
                 rows = list(reader)
+                return random.sample(rows, number_of_context_files_to_process)
         elif selection_strategy == "User Upload":
             rows = st.session_state()
             return random.sample(rows, number_of_context_files_to_process)  # first random
