@@ -56,7 +56,7 @@ class PromptsPlan:
                  selected_user_prompt_keys: List[str] = None,
                  selected_user_prompt_values: List[str] = None,
                  selected_user_prompts_dict: Dict[str, Any] = None,
-                 skip_processed: bool = False,
+                 skip_processed: bool = True,
                  system_instructions_dict: Dict[str, Any] = None,
                  system_instructions_dict_file_path: str = None,
                  system_filter_submitted: bool = False,
