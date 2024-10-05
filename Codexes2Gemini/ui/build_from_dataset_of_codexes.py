@@ -315,25 +315,25 @@ def prompts_plan_builder_ui(user_space: UserSpace):
     st.subheader("Step 1: Context Selection")
 
     with st.form("Select Data Set"):
-        context_choice = st.radio("Choose context source:", ["PG19", "User Upload"], index=0)
+        selection_strategy = st.radio("Choose context source:", ["Random", "User Upload"], index=0)
         uploaded_file = st.file_uploader("Upload CSV file (PG19 format)", type=["csv"],
                                          help="Will be ignored unless you choose Upload option.")
         number_of_context_files_to_process = st.number_input("Number of Context Files to Process (PG19 only)",
                                                              min_value=1, value=3,
-                                                             disabled=(context_choice == "User Upload"))
-        skip_processed = st.checkbox("Skip Already Processed Files (PG19 only)", value=False,
-                                     disabled=(context_choice == "User Upload"))
+                                                             disabled=(selection_strategy == "User Upload"))
+        skip_processed = st.checkbox("Skip Already Processed Files from PG19", value=True,
+                                     disabled=(selection_strategy == "User Upload"))
         st.session_state.current_plan.update({"skip_processed": skip_processed})
 
-        st.session_state.current_plan.update({"context_choice": context_choice})
-        confirmed_data_set = st.form_submit_button("Confirm Data Set Selection")
+        st.session_state.current_plan.update({"context_choice": selection_strategy})
+        initial_documents = st.form_submit_button("Initial Document Selection")
         st.session_state.current_plan.update({"number_of_context_files_to_process": number_of_context_files_to_process})
 
-        # --- Data Selection and Approval ---
-        if confirmed_data_set:
+        # --- Initial Data Selection --
+        if initial_documents:
             selected_rows = []  # Initialize empty list for selected rows
 
-            if context_choice == "User Upload":
+            if selection_strategy == "User Upload":
                 if uploaded_file:
                     try:
                         selected_rows_df = pd.read_csv(uploaded_file, header=None,  # No header row
@@ -358,15 +358,16 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
 
 
-            elif context_choice == "PG19":
+            elif selection_strategy == "Random":
                 try:
                     file_index = FT.create_file_index()
                     st.session_state.current_plan.update({"file_index": file_index})
                     st.success("Created file index")
-                    selected_rows = FT.fetch_pg19_metadata(number_of_context_files_to_process)
-                    st.write(selected_rows)
+                    selected_rows = FT.fetch_pg19_metadata(number_of_context_files_to_process, selection_strategy)
+
                     selected_rows_df = pd.DataFrame(selected_rows,
                                                     columns=['textfilename', 'Title', 'Publication Year', 'URI'])
+
 
                     selected_rows = selected_rows_df.to_dict('records')
 
@@ -375,10 +376,19 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
             # --- Display and Edit Selected Rows ---
             if selected_rows:
-                st.info("Selected Rows:")
-                st.dataframe(selected_rows_df)
+                # st.info("Selected Rows:")
+                edited_df = st.data_editor(selected_rows_df, num_rows="dynamic")
                 st.session_state.current_plan.update({"confirmed_data_set": True})
-                st.session_state.current_plan.update({"selected_rows": selected_rows})
+
+                st.session_state.current_plan.update({"selected_rows": edited_df.to_dict('records')})
+
+                st.session_state.selected_rows_df = edited_df
+
+                st.rerun()
+
+        if 'selected_rows_df' in st.session_state:
+            st.subheader("Selected Rows:")
+            edited_df = st.data_editor(st.session_state.selected_rows_df, num_rows="dynamic")
 
     st.subheader("Step 2: Instructions and Prompts")
 
@@ -554,7 +564,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
     logging.info(f"skipping previously processed files: {st.session_state.current_plan['skip_processed']}")
     logging.info(f"selected_rows: {st.session_state.current_plan['selected_rows']}")
 
-    if st.button(f"Build From Data Set {context_choice}"):  #
+    if st.button(f"Build From Data Set {selection_strategy}"):  #
         # st.write(st.session_state.current_plan["selected_rows"])
         PP = PromptsPlan(
             name=st.session_state.current_plan['name'],
