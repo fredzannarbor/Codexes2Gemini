@@ -35,7 +35,7 @@ def create_latex_preamble(gemini_title="TBD", gemini_subtitle="TBD", gemini_auth
         gemini_authors_str = gemini_authors
     if gemini_subtitle is None:
         gemini_subtitle = " "
-    if "\"" or ":" in gemini_authors_str:
+    if "\"" or ":" in gemini_authors_str and len(gemini_authors_str > 0):
         gemini_authors_str = gemini_authors_str.replace("\"", "'").replace(":", "")
     # Wrap author field if longer than 30 characters
     if len(gemini_authors_str) > 30:
