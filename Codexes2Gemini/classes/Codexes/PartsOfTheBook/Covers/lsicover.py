@@ -176,7 +176,7 @@ def createStyles(BaseFont, BoldFont, invertedcolor="White"):
         scribus.setShadowColor("None", "Duplex")
         scribus.setShadowShade(100.0, "Duplex")
 
-except Exception as e:
+    except Exception as e:
         print(e)
         scribus.messageBox("Error", "Could not create styles", scribus.ICON_WARNING, scribus.BUTTON_OK)
 
@@ -522,12 +522,12 @@ def main(headless, bookjsonfilepath, outputfilepath):
         #
         scribus.setActiveLayer("Fill")
         duplex_fill_width = trimsizewidth + spinesafety + edgesafety
-        scribus.createRect(topLeftX - 2, topLeftY, duplex_fill_width, fillheight, "FillBoxInteriorLeft")
-        scribus.createRect(topLeftX - 2, topLeftY, duplex_fill_width, fillheight, "FillBoxInteriorRight")
+        scribus.createRect(topLeftX - 4, topLeftY, duplex_fill_width, fillheight, "FillBoxInteriorLeft")
+        scribus.createRect(topLeftX + 2, topLeftY, duplex_fill_width, fillheight, "FillBoxInteriorRight")
         scribus.setFillColor(dominantcolor, "FillBoxInteriorLeft")
         scribus.setFillColor(dominantcolor, "FillBoxInteriorRight")
 
-        scribus.setActiveLayer("Front Text")
+        scribus.setActiveLayer("FrontText")
         # Create front inside cover text layer
         front_inside_left_cover = scribus.createText(coverwidth - trimsizewidth, 0.25, duplex_fill_width,
                                                      trimsizeheight - 0.25, "front_inside_left_cover")
