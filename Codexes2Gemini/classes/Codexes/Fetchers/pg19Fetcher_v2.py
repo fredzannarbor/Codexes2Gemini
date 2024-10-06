@@ -258,9 +258,9 @@ class PG19FetchAndTrack:
             logging.info(f"PDF saved to {output_pdf_path}")
             st.toast(f"Successfully saved PDF to {output_pdf_path}")
         except FileNotFoundError:
-            logging.error("File not found.")
-            st.error("File not found.")
-            st.stop()
+            logging.error(f"Conversion of latex markdown to PDF for {output_pdf_path} failed.")
+            st.error(f"Conversion of latex markdown to PDF for {output_pdf_path} failed.")
+            # st.stop()
         return output_pdf_path
 
     def create_simple_bookjson(self, textfilename, results, result_pdf_file_name,
