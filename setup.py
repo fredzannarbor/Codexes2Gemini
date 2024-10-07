@@ -1,20 +1,38 @@
+
 from setuptools import setup, find_packages
 import os
 
 # TODO fix build of datasets2gemini entry point in testpypi
 print(os.listdir('Codexes2Gemini'))
 print(os.listdir('.'))
+
+
+def run_streamlit_ui():
+    """Wrapper function to change working directory before running Streamlit UI."""
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(script_dir)
+    from Codexes2Gemini.ui.streamlit_ui import main
+    main()
+
+
+def run_build_from_dataset():
+    """Wrapper for dataset2gemini entry point."""
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(script_dir)
+    from Codexes2Gemini.ui.build_from_dataset_of_codexes import main
+    main()
+
 setup(
     name='Codexes2Gemini',
-    version='0.4.1.0',  # Update your version number
+    version='0.4.3.3',  # Update your version number
     python_requires='>=3.11',
     description='Humans and AIs making books richer, more diverse, and more surprising.',
     url='https://github.com/fredzannarbor/Codexes2Gemini',
     entry_points={
         'console_scripts': [
-            'codexes2gemini-ui = Codexes2Gemini.ui.streamlit_ui:main',
-            'codexes2gemini-ui-1455 = Codexes2Gemini.ui.streamlit_ui:main',
-            'dataset2gemini = Codexes2Gemini.ui.build_from_dataset_of_codexes:main'
+            'codexes2gemini-ui = setup:run_streamlit_ui',
+            'codexes2gemini-ui-1455 = setup:run_streamlit_ui',  # Use the wrapper here
+            'dataset2gemini = setup:run_build_from_dataset'  # Use the wrapper here
         ]
     },
     author='Fred_Zimmerman',
