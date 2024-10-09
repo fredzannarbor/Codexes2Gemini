@@ -48,12 +48,7 @@ user_space = load_user_space()
 GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
 
 
-# DONE - allow optional re-use of gutenberg ids
-# DONE - allow upload of CSV of selected rows
 # TODO - enable revised_rows = st.data_editor
-# DONE - create markdown LaTex prologue using ADEPT for 4 x 6 page
-# DONE- add 12 titles to file
-
 
 
 

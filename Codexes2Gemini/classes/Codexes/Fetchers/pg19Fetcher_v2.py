@@ -91,7 +91,8 @@ class PG19FetchAndTrack:
             # Check if file is already processed and skip_processed is on
             if skip_processed and self.processed_df[self.processed_df['textfilename'] == textfilename][
                 'processed'].any():
-                print(f"Skipping already processed file: {textfilename}")
+                st.info(f"Skipping already processed file: {textfilename}")
+                logging.info(f"Skipping already processed file: {textfilename}")
                 continue
 
             filepath = file_index.get(textfilename)

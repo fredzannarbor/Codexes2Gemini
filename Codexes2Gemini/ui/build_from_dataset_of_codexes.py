@@ -315,7 +315,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
     st.subheader("Step 1: Context Selection")
 
     with st.form("Select Data Set"):
-        selection_strategy = st.radio("Choose context source:", ["Random", "User Upload"], index=0)
+        selection_strategy = st.radio("Choose context selection strategy:", ["Random", "User Upload"], index=0)
         uploaded_file = st.file_uploader("Upload CSV file (PG19 format)", type=["csv"],
                                          help="Will be ignored unless you choose Upload option.")
         number_of_context_files_to_process = st.number_input("Number of Context Files to Process (PG19 only)",
@@ -648,10 +648,6 @@ def download_pdf(filename, pdf_buffer=None):
     )
 
 
-# DONE - make sure all markdown headings are separated by /n/n and that there are no initial spaces before #
-
-
-# DONE- make sure all markdown headings are separated by /n/n and that there are no initial spaces before #
 
 
 def create_imprint_mission_statement(imprint_name):

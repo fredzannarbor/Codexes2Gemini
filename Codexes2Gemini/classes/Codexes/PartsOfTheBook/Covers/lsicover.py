@@ -161,24 +161,24 @@ def createStyles(BaseFont, BoldFont, invertedcolor="White"):
                                 fillcolor=invertedcolor)
 
         scribus.createParagraphStyle("NimbleN", linespacingmode=1, alignment=1, charstyle="NimbleN")
-        scribus.createCharStyle("Duplex", font=BaseFont, fontsize=10, features='', fillcolor=invertedcolor)
-
-        scribus.setCharStyle("Duplex")  # Select the style to modify
-
-        # Apply properties from the image
-        scribus.setLineSpacingMode(scribus.AUTOMATIC_LINESPACING, "Duplex")
-        scribus.setTextAlignment(scribus.ALIGN_LEFT, "Duplex")
-        scribus.setLanguage("en_US", "Duplex")
-        scribus.setParStyle("Body Text", "Duplex")  # Assuming "Body Text" is your paragraph style
-        scribus.setFillShade(100.0, "Duplex")
-        scribus.setStrokeColor("Black", "Duplex")
-        scribus.setStrokeShade(100.0, "Duplex")
-        scribus.setShadowColor("None", "Duplex")
-        scribus.setShadowShade(100.0, "Duplex")
+        # scribus.createCharStyle("Duplex", font=BaseFont, fontsize=10, features='', fillcolor=invertedcolor)
+        #
+        # scribus.setCharStyle("Duplex")  # Select the style to modify
+        #
+        # # Apply properties from the image
+        # scribus.setLineSpacingMode(scribus.AUTOMATIC_LINESPACING, "Duplex")
+        # scribus.setTextAlignment(scribus.ALIGN_LEFT, "Duplex")
+        # scribus.setLanguage("en_US", "Duplex")
+        # scribus.setParStyle("Body Text", "Duplex")  # Assuming "Body Text" is your paragraph style
+        # scribus.setFillShade(100.0, "Duplex")
+        # scribus.setStrokeColor("Black", "Duplex")
+        # scribus.setStrokeShade(100.0, "Duplex")
+        # scribus.setShadowColor("None", "Duplex")
+        # scribus.setShadowShade(100.0, "Duplex")
 
     except Exception as e:
-        print(e)
-        scribus.messageBox("Error", "Could not create styles", scribus.ICON_WARNING, scribus.BUTTON_OK)
+        a = traceback.print_exc()
+        scribus.messageBox("Error", f"Could not create styles: {a}", scribus.ICON_WARNING, scribus.BUTTON_OK)
 
     return
 
@@ -394,7 +394,7 @@ def main(headless, bookjsonfilepath, outputfilepath):
 
     btb = scribus.createText(coverwidth - trimsizewidth, 0.25, trimsizewidth - (2 * textsafety), trimsizeheight - 0.25,
                              "FrontTextBox")
-    if "condensed" in settings.lower():
+    if "duplex" in settings.lower():
         scribus.setTextDistances(0.25, 0.25, 0.25, 0.25, btb)
     else:
         scribus.setTextDistances(0.5, 0.5, 0.5, 0.5, btb)
