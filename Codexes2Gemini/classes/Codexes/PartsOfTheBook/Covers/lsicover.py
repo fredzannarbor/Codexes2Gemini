@@ -2,7 +2,6 @@
 
 # TO create bookjson fields for back inside and front inside cover
 # TODO bookjsons fields into variables
-# TODO create back inside cover box
 
 import sys
 import traceback
@@ -127,8 +126,7 @@ def createStyles(BaseFont, BoldFont, invertedcolor="White"):
     try:
         scribus.createCharStyle(name="Title 1", font=BoldFont, fontsize=48, features='smallcaps,outline',
                                 fillcolor=invertedcolor)
-        scribus.createCharStyle(name="Title 1", font=BoldFont, fontsize=48, features='smallcaps,outline',
-                                fillcolor=invertedcolor)
+
 
         scribus.createParagraphStyle("Title 1", linespacingmode=1,
                                      alignment=1, charstyle="Title 1")
@@ -161,6 +159,33 @@ def createStyles(BaseFont, BoldFont, invertedcolor="White"):
                                 fillcolor=invertedcolor)
 
         scribus.createParagraphStyle("NimbleN", linespacingmode=1, alignment=1, charstyle="NimbleN")
+        try:
+            scribus.createCharStyle(name="SmallTrimTitle1", font=BoldFont, fontsize=20, features='smallcaps,outline',
+                                    fillcolor=invertedcolor)
+
+            scribus.createParagraphStyle("SmallTrimTitle1", linespacingmode=1,
+                                         alignment=1, charstyle="SmallTrimTitle1")
+
+            scribus.createCharStyle(name="SmallTrimImprint", font=BaseFont, fontsize=13, features='smallcaps,outline',
+                                    fillcolor=invertedcolor)
+            scribus.createParagraphStyle("SmallTrimImprint", linespacingmode=1, alignment=1,
+                                         charstyle="SmallTrimImprint")
+            scribus.createCharStyle(name="SmallTrimSlogan", font=BaseFont, fontsize=11, features='',
+                                    fillcolor=invertedcolor)
+            scribus.createParagraphStyle("SmallTrimSlogan", linespacingmode=1, alignment=1, charstyle="SmallTrimSlogan")
+            scribus.createCharStyle(name="SmallTrimBodyText", font=BaseFont,
+                                    fontsize=10, features='', fillcolor=invertedcolor)
+            scribus.createParagraphStyle("SmallTrimBodyText", linespacingmode=1,
+                                         alignment=3, charstyle="SmallTrimText")
+            scribus.createCharStyle(name="SmallTrimByline", font=BoldFont,
+                                    fontsize=14, features='smallcaps,outline', fillcolor=invertedcolor)
+            scribus.createParagraphStyle("SmallTrimByline", linespacingmode=1,
+                                         alignment=1, charstyle="SmallTrimByline")
+        except Exception as e:
+            a = traceback.format_exc()
+            print(a)
+
+
         # scribus.createCharStyle("Duplex", font=BaseFont, fontsize=10, features='', fillcolor=invertedcolor)
         #
         # scribus.setCharStyle("Duplex")  # Select the style to modify
@@ -359,7 +384,7 @@ def main(headless, bookjsonfilepath, outputfilepath):
         coverwidth = coverwidth - 2
         leftfronttext = coverwidth - textsafety - trimsizewidth - (spinesafety / 2) - textsafety
         topLeftX = coverwidth - fillwidth
-        scribus.messageBox('leftfronttext', str(leftfronttext), scribus.ICON_WARNING, scribus.BUTTON_OK)
+        scribus.messageBox('leftfronttext width', str(leftfronttext), scribus.ICON_WARNING, scribus.BUTTON_OK)
     else:
         leftfronttext = coverwidth - textsafety - trimsizewidth - (spinesafety / 2) - textsafety
         topLeftX = coverwidth - fillwidth
@@ -382,27 +407,35 @@ def main(headless, bookjsonfilepath, outputfilepath):
     if imagefilename:
         scribus.loadImage(imagefilename, "FrontCoverImage")
     else:
-        # scribus.valueDialog(imagefilename, 'Full path to front cover image')
+        scribus.valueDialog(imagefilename, 'Full path to front cover image')
 
         print('no image loaded')
-        # scribus.loadImage(imagefilename, "FrontCoverImage")
+        scribus.loadImage(imagefilename, "FrontCoverImage")
+
+
 
     btb = scribus.createText(coverwidth - trimsizewidth, 0.25, trimsizewidth - (textsafety), trimsizeheight - 0.25,
                              "FrontTextBox")
+
     title_text_distance = 0.5
     scribus.setTextDistances(title_text_distance, title_text_distance, title_text_distance, title_text_distance, btb)
 
-    btb = scribus.createText(coverwidth - trimsizewidth, 0.25, trimsizewidth - (2 * textsafety), trimsizeheight - 0.25,
-                             "FrontTextBox")
+
     if "duplex" in settings.lower():
         scribus.setTextDistances(0.25, 0.25, 0.25, 0.25, btb)
     else:
         scribus.setTextDistances(0.5, 0.5, 0.5, 0.5, btb)
 
     scribus.setTextColor(invertedcolor, btb)
-    # Define the paragraphs and their associated styles
-    paragraphs = [(booktitle, "Title 1"),
-                  (subtitle, "Title 1")]
+    # Define the paragraphs and their associated styles\
+
+    if trimsizeheight >= 8.0:
+        paragraphs = [(booktitle, "Title 1"),
+                      (subtitle, "Title 1")]
+    else:
+        paragraphs = [(booktitle, "SmallTrimTitle1"),
+                      (subtitle, "SmallTrimTitle1")]
+
 
     # Add paragraphs to the frame and apply specific style
     btb = add_styled_paragraphs_to_text_frame(btb, paragraphs)
@@ -414,7 +447,11 @@ def main(headless, bookjsonfilepath, outputfilepath):
     # check if byline is a single line
     if '\n' in byline:
         byline.replace('\n', ' ')
-    bylineparagraphs = [(byline, "Byline")]
+    if trimsizeheight >= 8.0:
+        bylineparagraphs = [(byline, "Byline")]
+    else:
+        bylineparagraphs = [(byline, "SmallTrimByline")]
+
 
     bylineBox = add_styled_paragraphs_to_text_frame(bylineBox, bylineparagraphs)
 
@@ -423,7 +460,11 @@ def main(headless, bookjsonfilepath, outputfilepath):
                                     invertedcolor=invertedcolor, imprinttext=imprinttext, editor_byline=editor_byline,
                                     slogan=slogan, color="Nimble Reference Red", title_text_distance=0.5)
 
-    imprintparagraphs = [(imprinttext, "Imprint"), (editor_byline, "Imprint"), (slogan, "Slogan")]
+    if trimsizeheight > 8.0:
+        imprintparagraphs = [(imprinttext, "Imprint"), (editor_byline, "Imprint"), (slogan, "Slogan")]
+    else:
+        imprintparagraphs = [(imprinttext, "SmallTrimImprint"), (editor_byline, "SmallTrimImprint"),
+                             (slogan, "SmallTrimSlogan")]
 
     imprintbox = add_styled_paragraphs_to_text_frame(imprintbox, imprintparagraphs)
 
@@ -437,11 +478,13 @@ def main(headless, bookjsonfilepath, outputfilepath):
                                          trimsizewidth - textsafety,
                                          trimsizeheight * 0.67, "BackTextBox")
 
-    columns = scribus.setColumns(2, BackTextBox)
-    scribus.setColumnGap(0.1666, BackTextBox)
-    if "condensed" in settings.lower():
+    if trimsizeheight <= 8.0:
+        columns = scribus.setColumns(1, BackTextBox)
+        scribus.setColumnGap(0.1666, BackTextBox)
         scribus.setTextDistances(0.25, 0.25, 0.25, 0.25, BackTextBox)
     else:
+        columns = scribus.setColumns(2, BackTextBox)
+        scribus.setColumnGap(0.1666, BackTextBox)
         scribus.setTextDistances(0.5, 0.5, 0.5, 0.5, BackTextBox)
     scribus.setTextColor(invertedcolor, BackTextBox)
     scribus.insertText(backtext, 0, BackTextBox)
