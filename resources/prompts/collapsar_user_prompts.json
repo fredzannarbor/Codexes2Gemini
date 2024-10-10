@@ -10,6 +10,17 @@
       "Collapsar"
     ]
   },
+  "about_the_author_classic": {
+    "prompt": "Your task is to write an \"About the Author\" section for the front matter of this document. \nFirst, review the document carefully to be certain that you have correctly identified its author.\nNow provide a summary of the author's life, emphasizing:\n- capsule biography\n- significant connections with contemporary figures who are still well known\n- motivation for writing the document, situation while doing so, post-publication impact\n- aspects of identity and experience that are particularly relevant to modern readers, for good or ill\n- modern figures who might be considered similar or analogous\n- very concise summation of achievements as an author",
+    "tags": [
+      "author",
+      "front matter",
+      "metadata",
+      "parts of the book",
+      "ADEPT",
+      "Collapsar"
+    ]
+  },
   "bibliographic key phrases": {
     "prompt": "Please generate ten to twelve unique bibliographic key phrases for this document. Each phrase should be two to three words long. Separate each phrase by a semicolon. Output begins: '# Bibliographic Key Phrases' followed by two new-line characters. Do NOT repeat key phrases. Stop if you begin to repeat.",
     "tags": [
