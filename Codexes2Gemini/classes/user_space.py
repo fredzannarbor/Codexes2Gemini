@@ -22,7 +22,7 @@ class SavedContext:
         self.tags = tags or []
 
 
-class InstructionPack:
+class PromptPack:
     def __init__(self, name, system_instructions, user_prompts, custom_prompt, override):
         self.name = name
         self.system_instructions = system_instructions
@@ -76,11 +76,11 @@ class UserSpace:
                any(filter_text.lower() in tag.lower() for tag in context.tags)
         }
 
-    def get_instruction_packs(self) -> Dict[str, InstructionPack]:
-        """Returns a dictionary of saved instruction packs.
+    def get_instruction_packs(self) -> Dict[str, PromptPack]:
+        """Returns a dictionary of saved PromptPacks.
 
         Returns:
-            Dict[str, InstructionPack]: A dictionary where keys are pack names and values are InstructionPack objects.
+            Dict[str, PromptPack]: A dictionary where keys are pack names and values are InstructionPack objects.
         """
         if not hasattr(self, 'instruction_packs'):
             self.instruction_packs = {}
@@ -170,39 +170,39 @@ class UserSpace:
 
     def create_instruction_pack(self, pack_name: str, system_instructions: List[str],
                                 user_prompts: Dict[str, str], custom_prompt: str, override: bool):
-        """Creates a new InstructionPack and saves it to the UserSpace.
+        """Creates a new PromptPack and saves it to the UserSpace.
 
         Args:
-            pack_name (str): The name of the new instruction pack.
+            pack_name (str): The name of the new PromptPack.
             system_instructions (List[str]): A list of system instruction keys.
             user_prompts (Dict[str, str]): A dictionary of user prompt keys and their corresponding prompts.
             custom_prompt (str): A custom user prompt.
             override (bool): Whether the custom prompt should override other user prompts.
         """
         if pack_name in self.get_instruction_packs():
-            raise ValueError(f"Instruction pack '{pack_name}' already exists.")
+            raise ValueError(f"PromptPack '{pack_name}' already exists.")
 
-        pack = InstructionPack(pack_name, system_instructions, user_prompts, custom_prompt, override)
+        pack = PromptPack(pack_name, system_instructions, user_prompts, custom_prompt, override)
         self.save_instruction_pack(pack)
 
-    def read_instruction_pack(self, pack_name: str) -> InstructionPack:
+    def read_instruction_pack(self, pack_name: str) -> PromptPack:
         """Reads an InstructionPack from the UserSpace.
 
         Args:
-            pack_name (str): The name of the instruction pack to read.
+            pack_name (str): The name of the PromptPack to read.
 
         Returns:
-            InstructionPack: The InstructionPack object if found, otherwise None.
+            PromptPack: The InstructionPack object if found, otherwise None.
         """
         return self.get_instruction_packs().get(pack_name)
 
     def update_instruction_pack(self, pack_name: str, system_instructions: Optional[List[str]] = None,
                                 user_prompts: Optional[Dict[str, str]] = None,
                                 custom_prompt: Optional[str] = None, override: Optional[bool] = None):
-        """Updates an existing InstructionPack in the UserSpace.
+        """Updates an existing PromptPack in the UserSpace.
 
         Args:
-            pack_name (str): The name of the instruction pack to update.
+            pack_name (str): The name of the PromptPack to update.
             system_instructions (List[str], optional): The updated list of system instruction keys.
             user_prompts (Dict[str, str], optional): The updated dictionary of user prompt keys and prompts.
             custom_prompt (str, optional): The updated custom user prompt.
@@ -210,7 +210,7 @@ class UserSpace:
         """
         pack = self.read_instruction_pack(pack_name)
         if not pack:
-            raise ValueError(f"Instruction pack '{pack_name}' not found.")
+            raise ValueError(f"PromptPack '{pack_name}' not found.")
 
         if system_instructions is not None:
             pack.system_instructions = system_instructions
@@ -224,28 +224,28 @@ class UserSpace:
         self.save_instruction_pack(pack)
 
     def destroy_instruction_pack(self, pack_name: str):
-        """Deletes an InstructionPack from the UserSpace.
+        """Deletes an PromptPack from the UserSpace.
 
         Args:
-            pack_name (str): The name of the instruction pack to delete.
+            pack_name (str): The name of the PromptPack to delete.
         """
         if pack_name not in self.get_instruction_packs():
-            raise ValueError(f"Instruction pack '{pack_name}' not found.")
+            raise ValueError(f"PromptPack '{pack_name}' not found.")
 
         del self.instruction_packs[pack_name]
         save_user_space(self)
 
     def rename_instruction_pack(self, old_name: str, new_name: str):
-        """Renames an InstructionPack in the UserSpace.
+        """Renames an PromptPack in the UserSpace.
 
         Args:
-            old_name (str): The current name of the instruction pack.
-            new_name (str): The new name for the instruction pack.
+            old_name (str): The current name of the PromptPack.
+            new_name (str): The new name for the PromptPack.
         """
         if old_name not in self.get_instruction_packs():
-            raise ValueError(f"Instruction pack '{old_name}' not found.")
+            raise ValueError(f"PromptPack '{old_name}' not found.")
         if new_name in self.get_instruction_packs():
-            raise ValueError(f"Instruction pack '{new_name}' already exists.")
+            raise ValueError(f"PromptPack '{new_name}' already exists.")
 
         pack = self.instruction_packs[old_name]
         pack.name = new_name
@@ -253,11 +253,11 @@ class UserSpace:
         del self.instruction_packs[old_name]
         save_user_space(self)
 
-    def save_instruction_pack(self, pack: InstructionPack):
-        """Saves an instruction pack.
+    def save_instruction_pack(self, pack: PromptPack):
+        """Saves an PromptPack.
 
         Args:
-            pack (InstructionPack): The InstructionPack object to save.
+            pack (PromptPack): The InstructionPack object to save.
         """
         if not hasattr(self, 'instruction_packs'):
             self.instruction_packs = {}

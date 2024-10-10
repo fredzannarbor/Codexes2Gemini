@@ -47,7 +47,7 @@ from Codexes2Gemini.classes.Codexes.Fetchers.pg19Fetcher_v2 import PG19FetchAndT
 
 from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
 from Codexes2Gemini.classes.Utilities.classes_utilities import configure_logger, load_spreadsheet
-from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space, InstructionPack
+from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space, PromptPack
 from Codexes2Gemini import __version__, __announcements__
 from Codexes2Gemini.ui.multi_context_page import MultiContextUI as MCU
 from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
@@ -392,12 +392,12 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
     st.subheader("Step 2: Instructions and Prompts")
 
-    with st.expander("Optional: Load Instruction Pack"):
+    with st.expander("Optional: Load PromptPack"):
         with st.form("load-instruction-pack"):
             instruction_packs = user_space.get_instruction_packs()
 
-            # Display a selectbox to choose an instruction pack
-            selected_pack_name = st.selectbox("Select Instruction Pack", ["-- None --"] + list(instruction_packs.keys()))
+            # Display a selectbox to choose an PromptPack
+            selected_pack_name = st.selectbox("Select PromptPack", ["-- None --"] + list(instruction_packs.keys()))
             loaded = st.form_submit_button("Load This Pack")
             if loaded:
                 if selected_pack_name != "-- None --":
@@ -411,7 +411,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                     })
                     st.rerun()
                 else:
-                    st.warning("No instruction pack selected, no effect.")
+                    st.warning("No PromptPack selected, no effect.")
 
     with st.form("filter-system-instructions"):
         system_filter = st.text_input("Filter system instructions")
@@ -480,18 +480,18 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                 "user_prompts_dict": selected_user_prompts_dict,
             })
 
-    with st.expander("Optional: Save Instruction Pack", expanded=False):
+    with st.expander("Optional: Save PromptPack", expanded=False):
         with st.form("save-instruction-pack"):
             pack_name = st.text_input("Pack Name")
 
             if st.form_submit_button("Save Pack"):
-                pack = InstructionPack(pack_name,
-                                       st.session_state.current_plan["selected_system_instruction_keys"],
-                                       st.session_state.current_plan['selected_user_prompts_dict'],
-                                       st.session_state.current_plan['custom_user_prompt'],
-                                       st.session_state.current_plan['user_prompt_override'])
+                pack = PromptPack(pack_name,
+                                  st.session_state.current_plan["selected_system_instruction_keys"],
+                                  st.session_state.current_plan['selected_user_prompts_dict'],
+                                  st.session_state.current_plan['custom_user_prompt'],
+                                  st.session_state.current_plan['user_prompt_override'])
                 user_space.save_instruction_pack(pack)
-                st.success(f"Instruction pack '{pack_name}' saved.")
+                st.success(f"PromptPack '{pack_name}' saved.")
 
     with st.form("save-instructions-continue"):
         instructions_submitted = st.form_submit_button(
@@ -793,8 +793,7 @@ def user_space_app(user_space: UserSpace):
             st.success("All contexts cleared")
             st.rerun()
 
-
-    st.header("Instruction Packs")
+    st.header("PromptPacks")
     instruction_packs = user_space.get_instruction_packs()
 
     if instruction_packs:
@@ -812,10 +811,10 @@ def user_space_app(user_space: UserSpace):
             for pack_name in packs_to_delete:
                 del user_space.instruction_packs[pack_name]
             save_user_space(user_space)
-            st.success("Selected instruction packs deleted.")
+            st.success("Selected PromptPacks deleted.")
             st.rerun()
     else:
-        st.info("No instruction packs saved yet.")
+        st.info("No PromptPacks saved yet.")
 
     st.header("Save Prompts")
     prompt_name = st.text_input("Prompt Name (optional)")
