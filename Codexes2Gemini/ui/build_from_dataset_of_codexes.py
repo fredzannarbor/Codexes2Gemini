@@ -47,7 +47,7 @@ from Codexes2Gemini.classes.Codexes.Fetchers.pg19Fetcher_v2 import PG19FetchAndT
 
 from Codexes2Gemini.classes.Codexes.Builders.BuildLauncher import BuildLauncher
 from Codexes2Gemini.classes.Utilities.classes_utilities import configure_logger, load_spreadsheet
-from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space, PromptPack
+from Codexes2Gemini.classes.user_space import UserSpace, PromptPack
 from Codexes2Gemini import __version__, __announcements__
 from Codexes2Gemini.ui.multi_context_page import MultiContextUI as MCU
 from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
@@ -56,7 +56,7 @@ from Codexes2Gemini.ui.ui_utilities import results2assembled_pandoc_markdown_wit
 
 logger = configure_logger("DEBUG")
 logging.info("--- Began logging ---")
-user_space = load_user_space()
+user_space = UserSpace.load_user_space
 # logger.debug(f"user_space: {user_space}")
 
 GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
@@ -394,14 +394,14 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
     with st.expander("Optional: Load PromptPack"):
         with st.form("load-instruction-pack"):
-            instruction_packs = user_space.get_instruction_packs()
+            prompt_packs = user_space.get_prompt_packs()
 
             # Display a selectbox to choose an PromptPack
-            selected_pack_name = st.selectbox("Select PromptPack", ["-- None --"] + list(instruction_packs.keys()))
+            selected_pack_name = st.selectbox("Select PromptPack", ["-- None --"] + list(prompt_packs.keys()))
             loaded = st.form_submit_button("Load This Pack")
             if loaded:
                 if selected_pack_name != "-- None --":
-                    selected_pack = instruction_packs[selected_pack_name]
+                    selected_pack = prompt_packs[selected_pack_name]
 
                     st.session_state.current_plan.update({
                         "selected_system_instruction_keys": selected_pack.system_instructions,
@@ -486,12 +486,18 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
             if st.form_submit_button("Save Pack"):
                 pack = PromptPack(pack_name,
-                                  st.session_state.current_plan["selected_system_instruction_keys"],
+                                  st.session_state.current_plan["selected_system_instruction_values"],
                                   st.session_state.current_plan['selected_user_prompts_dict'],
                                   st.session_state.current_plan['custom_user_prompt'],
                                   st.session_state.current_plan['user_prompt_override'])
-                user_space.save_instruction_pack(pack)
-                st.success(f"PromptPack '{pack_name}' saved.")
+
+                try:
+                    user_space.save_prompt_pack(pack)
+                    user_space.save_prompt_pack_to_json(pack)
+
+                except Exception as e:
+                    st.error(f"Error saving PromptPack: {e}")
+                    logging.error(traceback.format_exc())
 
     with st.form("save-instructions-continue"):
         instructions_submitted = st.form_submit_button(
@@ -759,7 +765,7 @@ def user_space_app(user_space: UserSpace):
     if st.button("Save Filter"):
         try:
             user_space.save_filter(filter_name, json.loads(filter_data))
-            save_user_space(user_space)
+            user_space.save_user_space(user_space)
             st.success("Filter saved")
         except json.JSONDecodeError:
             st.error("Invalid JSON for filter data")
@@ -772,7 +778,7 @@ def user_space_app(user_space: UserSpace):
         st.table(filter_df)
         if st.button("Clear All Filters"):
             user_space.filters = {}
-            save_user_space(user_space)
+            user_space.save_user_space(user_space)
             st.success("All filters cleared")
             st.rerun()
 
@@ -789,27 +795,27 @@ def user_space_app(user_space: UserSpace):
         st.table(context_df)
         if st.button("Clear All Contexts"):
             user_space.saved_contexts = {}
-            save_user_space(user_space)
+            user_space.save_user_space(user_space)
             st.success("All contexts cleared")
             st.rerun()
 
     st.header("PromptPacks")
-    instruction_packs = user_space.get_instruction_packs()
+    prompt_packs = user_space.get_prompt_packs()
 
-    if instruction_packs:
+    if prompt_packs:
         pack_df = pd.DataFrame(
             [(name, ", ".join(pack.system_instructions), ", ".join(pack.user_prompts.keys()),
               pack.custom_prompt[:50] + "..." if len(pack.custom_prompt) > 50 else pack.custom_prompt,
               pack.override)
-             for name, pack in instruction_packs.items()],
+             for name, pack in prompt_packs.items()],
             columns=["Name", "System Instructions", "User Prompt Keys", "Custom Prompt Preview", "Override"]
         )
         st.table(pack_df)
 
-        packs_to_delete = st.multiselect("Select packs to delete", list(instruction_packs.keys()))
+        packs_to_delete = st.multiselect("Select packs to delete", list(prompt_packs.keys()))
         if st.button("Delete Selected Packs") and packs_to_delete:
             for pack_name in packs_to_delete:
-                del user_space.instruction_packs[pack_name]
+                del user_space.prompt_packs[pack_name]
             save_user_space(user_space)
             st.success("Selected PromptPacks deleted.")
             st.rerun()
@@ -971,7 +977,7 @@ def run_streamlit_app():
     with st.expander("About", expanded=False):
         st.caption(f"Version {__version__}:  {__announcements__}")
 
-    user_space = load_user_space()
+    user_space = UserSpace.load_user_space()
 
 
     if not hasattr(user_space, 'prompts'):

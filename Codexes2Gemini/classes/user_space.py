@@ -1,11 +1,16 @@
+import json
+import logging
 import os
 import pickle
 import time
+import traceback
 from datetime import datetime
 from typing import Dict, List, Optional
+import streamlit as st
 
 # Define a maximum size for the pickle file (in bytes)
 MAX_PICKLE_SIZE = 100 * 1024 * 1024  # 100 MB
+
 
 class SavedContext:
     """
@@ -16,6 +21,7 @@ class SavedContext:
         content (str): The content of the saved context.
         tags (List[str], optional): A list of tags associated with the context. Defaults to an empty list.
     """
+
     def __init__(self, name: str, content: str, tags: Optional[List[str]] = None):
         self.name = name
         self.content = content
@@ -29,6 +35,7 @@ class PromptPack:
         self.user_prompts = user_prompts
         self.custom_prompt = custom_prompt
         self.override = override
+
 
 class UserSpace:
     """
@@ -76,15 +83,15 @@ class UserSpace:
                any(filter_text.lower() in tag.lower() for tag in context.tags)
         }
 
-    def get_instruction_packs(self) -> Dict[str, PromptPack]:
+    def get_prompt_packs(self) -> Dict[str, PromptPack]:
         """Returns a dictionary of saved PromptPacks.
 
         Returns:
-            Dict[str, PromptPack]: A dictionary where keys are pack names and values are InstructionPack objects.
+            Dict[str, PromptPack]: A dictionary where keys are pack names and values are PromptPackobjects.
         """
-        if not hasattr(self, 'instruction_packs'):
-            self.instruction_packs = {}
-        return self.instruction_packs
+        if not hasattr(self, 'prompt_packs'):
+            self.prompt_packs = {}
+        return self.prompt_packs
 
     def get_unique_name(self, name: str) -> str:
         """Returns a unique name based on the given name, avoiding collisions with existing names.
@@ -104,8 +111,6 @@ class UserSpace:
             while f"{name}_{counter}" in existing_names:
                 counter += 1
             return f"{name}_{counter}"
-
-
 
     def save_result(self, result: str):
         """Saves a generated result to the results list.
@@ -168,8 +173,8 @@ class UserSpace:
         timestamp = time.time()  # this gives a timestamp
         self.__dict__[key] = {"result": result, "time": timestamp}
 
-    def create_instruction_pack(self, pack_name: str, system_instructions: List[str],
-                                user_prompts: Dict[str, str], custom_prompt: str, override: bool):
+    def create_prompt_pack(self, pack_name: str, system_instructions: List[str],
+                           user_prompts: Dict[str, str], custom_prompt: str, override: bool):
         """Creates a new PromptPack and saves it to the UserSpace.
 
         Args:
@@ -179,26 +184,26 @@ class UserSpace:
             custom_prompt (str): A custom user prompt.
             override (bool): Whether the custom prompt should override other user prompts.
         """
-        if pack_name in self.get_instruction_packs():
+        if pack_name in self.get_prompt_packs():
             raise ValueError(f"PromptPack '{pack_name}' already exists.")
 
         pack = PromptPack(pack_name, system_instructions, user_prompts, custom_prompt, override)
         self.save_instruction_pack(pack)
 
-    def read_instruction_pack(self, pack_name: str) -> PromptPack:
-        """Reads an InstructionPack from the UserSpace.
+    def read_prompt_pack(self, pack_name: str) -> PromptPack:
+        """Reads an PromptPackfrom the UserSpace.
 
         Args:
             pack_name (str): The name of the PromptPack to read.
 
         Returns:
-            PromptPack: The InstructionPack object if found, otherwise None.
+            PromptPack: The PromptPackobject if found, otherwise None.
         """
-        return self.get_instruction_packs().get(pack_name)
+        return self.get_prompt_packs().get(pack_name)
 
-    def update_instruction_pack(self, pack_name: str, system_instructions: Optional[List[str]] = None,
-                                user_prompts: Optional[Dict[str, str]] = None,
-                                custom_prompt: Optional[str] = None, override: Optional[bool] = None):
+    def update_prompt_pack(self, pack_name: str, system_instructions: Optional[List[str]] = None,
+                           user_prompts: Optional[Dict[str, str]] = None,
+                           custom_prompt: Optional[str] = None, override: Optional[bool] = None):
         """Updates an existing PromptPack in the UserSpace.
 
         Args:
@@ -208,7 +213,7 @@ class UserSpace:
             custom_prompt (str, optional): The updated custom user prompt.
             override (bool, optional): Whether the custom prompt should override other user prompts.
         """
-        pack = self.read_instruction_pack(pack_name)
+        pack = self.read_prompt_pack(pack_name)
         if not pack:
             raise ValueError(f"PromptPack '{pack_name}' not found.")
 
@@ -223,99 +228,180 @@ class UserSpace:
 
         self.save_instruction_pack(pack)
 
-    def destroy_instruction_pack(self, pack_name: str):
+    def destroy_prompt_pack(self, pack_name: str):
         """Deletes an PromptPack from the UserSpace.
 
         Args:
             pack_name (str): The name of the PromptPack to delete.
         """
-        if pack_name not in self.get_instruction_packs():
+        if pack_name not in self.get_prompt_packs():
             raise ValueError(f"PromptPack '{pack_name}' not found.")
 
-        del self.instruction_packs[pack_name]
-        save_user_space(self)
+        del self.prompt_packs[pack_name]
+        self.save_user_space(self)
 
-    def rename_instruction_pack(self, old_name: str, new_name: str):
+    def rename_prompt_pack(self, old_name: str, new_name: str):
         """Renames an PromptPack in the UserSpace.
 
         Args:
             old_name (str): The current name of the PromptPack.
             new_name (str): The new name for the PromptPack.
         """
-        if old_name not in self.get_instruction_packs():
+        if old_name not in self.get_prompt_packs():
             raise ValueError(f"PromptPack '{old_name}' not found.")
-        if new_name in self.get_instruction_packs():
+        if new_name in self.get_prompt_packs():
             raise ValueError(f"PromptPack '{new_name}' already exists.")
 
-        pack = self.instruction_packs[old_name]
+        pack = self.prompt_packs[old_name]
         pack.name = new_name
-        self.instruction_packs[new_name] = pack
-        del self.instruction_packs[old_name]
-        save_user_space(self)
+        self.prompt_packs[new_name] = pack
+        del self.prompt_packs[old_name]
+        self.save_user_space(self)
 
-    def save_instruction_pack(self, pack: PromptPack):
+    def save_prompt_pack(self, pack: PromptPack):
         """Saves an PromptPack.
 
         Args:
-            pack (PromptPack): The InstructionPack object to save.
+            pack (PromptPack): The PromptPackobject to save.
         """
-        if not hasattr(self, 'instruction_packs'):
-            self.instruction_packs = {}
-        self.instruction_packs[pack.name] = pack
-        save_user_space(self)
-def save_user_space(user_space: UserSpace):
-    """Saves the UserSpace object to a pickle file.
+        if not hasattr(self, 'prompt_packs'):
+            self.prompt_packs = {}
+        self.prompt_packs[pack.name] = pack
+        self.save_user_space()
 
-    Args:
-        user_space (UserSpace): The UserSpace object to save.
-    """
-    try:
-        # Check if the pickle file already exists and its size
-        file_path = f"user_space_{user_space.name}.pkl"
-        if os.path.exists(file_path):
-            file_size = os.path.getsize(file_path)
-            if file_size > MAX_PICKLE_SIZE:
-                print(f"Warning: Pickle file '{file_path}' is larger than {MAX_PICKLE_SIZE} bytes. Not saving.")
-                return
+    def save_user_space(self):
+        """Saves the UserSpace object to a pickle file.
 
-        # Save the UserSpace object to a pickle file
-        with open(file_path, 'wb') as f:
-            pickle.dump(user_space, f)
-    except Exception as e:
-        print(f"Error saving UserSpace: {e}")
+        Args:
+            user_space (UserSpace): The UserSpace object to save.
+        """
+        try:
+            # Check if the pickle file already exists and its size
+            file_path = f"user_space_{self.name}.pkl"
+            if os.path.exists(file_path):
+                file_size = os.path.getsize(file_path)
+                if file_size > MAX_PICKLE_SIZE:
+                    print(f"Warning: Pickle file '{file_path}' is larger than {MAX_PICKLE_SIZE} bytes. Not saving.")
+                    return
 
+            # Save the UserSpace object to a pickle file
+            with open(file_path, 'wb') as f:
+                pickle.dump(self, f)
+        except Exception as e:
+            print(f"Error saving UserSpace: {e}")
 
-def load_user_space(name: str = "Default") -> UserSpace:
-    """Loads the UserSpace object from a pickle file.
+    def load_user_space(name: str = "Default"):
+        """Loads the UserSpace object from a pickle file.
 
-    Args:
-        name (str): The name of the UserSpace to load. Defaults to "Default".
+        Args:
+            name (str): The name of the UserSpace to load. Defaults to "Default".
 
-    Returns:
-        UserSpace: The loaded UserSpace object.
-    """
-    try:
-        # Check if the pickle file exists and its size
-        file_path = f"user_space_{name}.pkl"
-        if os.path.exists(file_path):
-            file_size = os.path.getsize(file_path)
-            if file_size > MAX_PICKLE_SIZE:
-                print(f"Warning: Pickle file '{file_path}' is larger than {MAX_PICKLE_SIZE} bytes. Not loading.")
+        Returns:
+            UserSpace: The loaded UserSpace object.
+        """
+        try:
+            # Check if the pickle file exists and its size
+            file_path = f"user_space_{name}.pkl"
+            if os.path.exists(file_path):
+                file_size = os.path.getsize(file_path)
+
+                if file_size > MAX_PICKLE_SIZE:
+                    print(f"Warning: Pickle file '{file_path}' is larger than {MAX_PICKLE_SIZE} bytes. Not loading.")
+                    return UserSpace(name)
+
+                if file_size == 0:
+                    print("Warning: Pickle file is empty. Returning a new UserSpace object.")
+                    return UserSpace(name)
+
+                # Load the UserSpace object from the pickle file
+                with open(file_path, 'rb') as f:
+                    loaded_object = pickle.load(f)
+
+                    # Check if the loaded object is of the correct class
+                    if isinstance(loaded_object, UserSpace):
+                        return loaded_object
+                    else:
+                        print(f"Warning: Loaded object is not of type UserSpace. Returning a new UserSpace object.")
+                        return UserSpace(name)
+            else:  # create new userspace object
                 return UserSpace(name)
 
-        # Load the UserSpace object from the pickle file
-        with open(file_path, 'rb') as f:
-            loaded_object = pickle.load(f)
+        except FileNotFoundError:
+            return UserSpace(name)
+        except Exception as e:
+            print(f"Error loading UserSpace: {e}")
+            logging.error(f"Error loading UserSpace {traceback.format_exc()}")
+            return UserSpace(name)
 
-            # Check if the loaded object is of the correct class
-            if isinstance(loaded_object, UserSpace):
-                return loaded_object
-            else:
-                print(f"Warning: Loaded object is not of type UserSpace. Returning a new UserSpace object.")
-                return UserSpace(name)
+    # def save_prompt_pack_to_json(self):
+    #     """Saves an PromptPack to a JSON file.
+    #
+    #     Args:
+    #         pack (PromptPack): The PromptPackobject to save.
+    #     """
+    #
+    #     # make sure user_data exists
+    #     st.info(f"user_data/{self.name}")
+    #     if not os.path.exists(f"user_data/{self.name}"):
+    #         os.makedirs(f"user_data/{self.name}")
+    #
+    #     try:
+    #         with open(f"user_data/{self.name}/prompt_pack_{self.name}.json", "w") as f:
+    #             json.dump(self.__dict__, f, indent=4)
+    #             logging.info(f"PromptPack {self.name} saved successfully to user_data/{self.name}/prompt_pack_{self.name}.json")
+    #             st.info(f"PromptPack {self.name} saved successfully to user_data/{self.name}/prompt_pack_{self.name}.json")
+    #     except Exception as e:
+    #         print(f"Error saving PromptPack to JSON: {traceback.format_exc()}")
+    #         logging.error(f"Error saving PromptPack to JSON: {traceback.format_exc()}")
 
-    except FileNotFoundError:
-        return UserSpace(name)
-    except Exception as e:
-        print(f"Error loading UserSpace: {e}")
-        return UserSpace(name)
+    def load_prompt_pack_from_json(self, pack_name):
+        """Loads an PromptPack from a JSON file.
+
+        Args:
+            pack_name (str): The name of the PromptPack to load.
+
+        Returns:
+            PromptPack: The loaded PromptPackobject if found, otherwise None.
+        """
+        try:
+            with open(f"user_data/{self.name}/prompt_pack_{pack_name}.json", "r") as f:
+                pack_data = json.load(f)
+            return PromptPack(**pack_data)
+        except FileNotFoundError:
+            return None
+        except Exception as e:
+            print(f"Error loading PromptPack from JSON: {e}")
+            logging.error(f"Error loading PromptPack from JSON: {traceback.format_exc()}")
+            return None
+
+    #
+    # def save_prompt_plan_to_json(self, plan, plan_name):
+    #     """Saves a prompt plan to a JSON file.
+    #
+    #     Args:
+    #         plan (Dict): The prompt plan data.
+    #         plan_name (str): The name of the prompt plan.
+    #     """
+    #     try:
+    #         with open(f"user_data/{self.name}/prompt_plan_{plan_name}.json", "w") as f:
+    #             json.dump(plan, f, indent=4)
+    #     except Exception as e:
+    #         print(f"Error saving prompt plan to JSON: {e}")
+    #         logging.error(f"Error saving prompt plan to JSON: {traceback.format_exc()}")
+
+    def save_prompt_pack_to_json(self, pack):
+        """Saves a PromptPack to a JSON file.
+
+        Args:
+            pack (PromptPack): The PromptPackobject to save.
+        """
+        # make sure user_data / self.name exists
+        if not os.path.exists(f"user_data/{self.name}"):
+            os.makedirs(f"user_data/{self.name}")
+
+        try:
+            with open(f"user_data/{self.name}/prompt_pack_{pack.name}.json", "w") as f:
+                json.dump(pack.__dict__, f, indent=4)
+        except Exception as e:
+            print(f"Error saving PromptPack to JSON: {e}")
+            logging.error(f"Error saving PromptPack to JSON: {traceback.format_exc()}")
