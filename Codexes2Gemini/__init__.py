@@ -44,8 +44,10 @@ ensure_directory_exists("resources/data_tables")
 ensure_directory_exists("resources/data_tables/LSI")
 ensure_directory_exists("processed_data")
 
-__version__ = "0.4.3.3"
+__version__ = "0.4.4.0"
 __announcements__ = """
+- Adds ability to save and load PromptPacks as JSON
+- renames InstructionPacks to PromptPacks for clarity, consistency
 - Fixes incorrect path assignment for dataset2gemini cli.
 - Makes pdf creation of latex markdown fail gracefully.
 - Adds data editor to allow removing docs from selection.
