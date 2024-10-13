@@ -1,4 +1,5 @@
 import base64
+import copy
 import io
 import json
 import os
@@ -24,6 +25,9 @@ from Codexes2Gemini.classes.Codexes.Metadata.Metadatas import Metadatas
 from docx import Document
 
 from Codexes2Gemini.classes.Codexes.Metadata.metadatas2outputformats import metadatas2bookjson
+from Codexes2Gemini.classes.Codexes.Builders import Codexes2Parts
+
+# from classes.Codexes.Builders.collapsar_classics import CODEXES2PARTS
 
 # TODO add bookjson
 # TODO add proofing prompt
@@ -355,14 +359,12 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                     except Exception as e:
                         st.error(f"Error reading CSV: {e}")
 
-
-
-
             elif selection_strategy == "Random":
                 try:
                     file_index = FT.create_file_index()
+
                     st.session_state.current_plan.update({"file_index": file_index})
-                    st.success("Created file index")
+                    st.success(f"Created file index of {len(file_index)} files")
                     selected_rows = FT.fetch_pg19_metadata(number_of_context_files_to_process, selection_strategy)
 
                     selected_rows_df = pd.DataFrame(selected_rows,
@@ -374,17 +376,25 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                 except Exception as e:
                     st.error(f"Error fetching PG19 data: {e}")
 
+            st.info(f"selected rows: {len(selected_rows)}, strategy: {selection_strategy}")
+            FT.file_index = file_index
+
             # --- Display and Edit Selected Rows ---
             if selected_rows:
                 # st.info("Selected Rows:")
-                edited_df = st.data_editor(selected_rows_df, num_rows="dynamic")
+                for row in selected_rows:
+                    st.write(row)
+                    basic_info = get_gemini_basic_info(FT, row)
+                    st.write(basic_info)
+
+                edited_df = st.data_editor(selected_rows_df, num_rows="dynamic", key="3")
                 st.session_state.current_plan.update({"confirmed_data_set": True})
 
                 st.session_state.current_plan.update({"selected_rows": edited_df.to_dict('records')})
 
                 st.session_state.selected_rows_df = edited_df
 
-                st.rerun()
+            # st.rerun()
 
         if 'selected_rows_df' in st.session_state:
             st.subheader("Selected Rows:")
@@ -572,7 +582,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
     if st.button(f"Build From Data Set {selection_strategy}"):  #
         # st.write(st.session_state.current_plan["selected_rows"])
-        PP = PromptsPlan(
+        PPba = PromptsPlan(
             name=st.session_state.current_plan['name'],
             require_json_output=st.session_state.current_plan.get('require_json_output', False),
             context=st.session_state.current_plan.get('context', ''),  # Add context if available
@@ -589,6 +599,38 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
         st.success(f"Successfully built {len(results)} documents and saved them in the output folder {thisdoc_dir}")
         return results
+
+
+def get_gemini_basic_info(FT, row):
+    # copy FT instance
+    # st.write(f"{len(FT.file_index)} files in FT.file_index" )
+    filepath = FT.file_index.get(row['textfilename'])
+    st.info(f"filepath is {filepath}")
+    if filepath is None:
+        st.error(f"Warning: Could not find file for {row['textfilename']}")
+        return
+    with open(filepath, "r") as f:
+        context = f.read()
+        st.write(context[0:250])
+
+    basicInfoPlan = PromptsPlan(
+        name="basicInfoPlan",
+        require_json_output=True,
+        context=context,
+        selected_user_prompts_dict={
+            "gemini_get_basic_info":
+                "Please review the entire document provided in the context from beginning to end. Allocate your time equally throughout the document.  Carry out the following tasks in batch mode.\n1. Do your best to identify the official title, subtitle, and author(s) of the document. \n2. Do your best to identify the publisher, place of publication, and year of actual publication. \n3. Summarize the content of the document. Your goal is to create a summary that accurately describes all the most important elements of the document in a way that is flexible enough to be used by many prompts.\n4. Return valid JSON output that contains keys 'gemini_title','gemini_subtitle', 'gemini_authors', 'gemini_publisher', 'gemini_place_of_publication', 'gemini_year_of_actual_publication', and 'gemini_summary'. Single and double quotation marks within the JSON output MUST be escaped. Do NOT enclose the json in triple backticks."},
+        complete_system_instruction="You are a careful, meticulous researcher. You are careful to state facts accurately.\nY\nYou are industrious, energetic, and proactive. You complete tasks without waiting for approval."
+    )
+    logging.info(f"{basicInfoPlan.show_all_keys()}")
+
+    C2P = Codexes2Parts()
+    row_result = C2P.process_codex_to_book_part(basicInfoPlan)
+    # st.write(row_result)
+    return row_result
+
+
+
 
 
 def provide_ui_access_to_results(results):

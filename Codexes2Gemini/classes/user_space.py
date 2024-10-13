@@ -12,6 +12,9 @@ import streamlit as st
 MAX_PICKLE_SIZE = 100 * 1024 * 1024  # 100 MB
 
 
+# TO DO Warning: Pickle file is empty. Returning a new UserSpace object.
+# TO DO seems to be running selected doc #1 multiple times
+
 class SavedContext:
     """
     Represents a saved context with its name, content, and optional tags.
@@ -269,7 +272,7 @@ class UserSpace:
         self.prompt_packs[pack.name] = pack
         self.save_user_space()
 
-    def save_user_space(self):
+    def save_user_space(self):  # Add self as argument
         """Saves the UserSpace object to a pickle file.
 
         Args:
@@ -286,9 +289,10 @@ class UserSpace:
 
             # Save the UserSpace object to a pickle file
             with open(file_path, 'wb') as f:
-                pickle.dump(self, f)
+                pickle.dump(self, f)  # Pass self to pickle.dump
         except Exception as e:
             print(f"Error saving UserSpace: {e}")
+            st.error(traceback.format_exc())
 
     def load_user_space(name: str = "Default"):
         """Loads the UserSpace object from a pickle file.
@@ -333,26 +337,6 @@ class UserSpace:
             logging.error(f"Error loading UserSpace {traceback.format_exc()}")
             return UserSpace(name)
 
-    # def save_prompt_pack_to_json(self):
-    #     """Saves an PromptPack to a JSON file.
-    #
-    #     Args:
-    #         pack (PromptPack): The PromptPackobject to save.
-    #     """
-    #
-    #     # make sure user_data exists
-    #     st.info(f"user_data/{self.name}")
-    #     if not os.path.exists(f"user_data/{self.name}"):
-    #         os.makedirs(f"user_data/{self.name}")
-    #
-    #     try:
-    #         with open(f"user_data/{self.name}/prompt_pack_{self.name}.json", "w") as f:
-    #             json.dump(self.__dict__, f, indent=4)
-    #             logging.info(f"PromptPack {self.name} saved successfully to user_data/{self.name}/prompt_pack_{self.name}.json")
-    #             st.info(f"PromptPack {self.name} saved successfully to user_data/{self.name}/prompt_pack_{self.name}.json")
-    #     except Exception as e:
-    #         print(f"Error saving PromptPack to JSON: {traceback.format_exc()}")
-    #         logging.error(f"Error saving PromptPack to JSON: {traceback.format_exc()}")
 
     def load_prompt_pack_from_json(self, pack_name):
         """Loads an PromptPack from a JSON file.
@@ -374,20 +358,6 @@ class UserSpace:
             logging.error(f"Error loading PromptPack from JSON: {traceback.format_exc()}")
             return None
 
-    #
-    # def save_prompt_plan_to_json(self, plan, plan_name):
-    #     """Saves a prompt plan to a JSON file.
-    #
-    #     Args:
-    #         plan (Dict): The prompt plan data.
-    #         plan_name (str): The name of the prompt plan.
-    #     """
-    #     try:
-    #         with open(f"user_data/{self.name}/prompt_plan_{plan_name}.json", "w") as f:
-    #             json.dump(plan, f, indent=4)
-    #     except Exception as e:
-    #         print(f"Error saving prompt plan to JSON: {e}")
-    #         logging.error(f"Error saving prompt plan to JSON: {traceback.format_exc()}")
 
     def save_prompt_pack_to_json(self, pack):
         """Saves a PromptPack to a JSON file.

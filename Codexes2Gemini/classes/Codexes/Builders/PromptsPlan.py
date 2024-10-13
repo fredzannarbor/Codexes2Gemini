@@ -268,7 +268,7 @@ class PromptsPlan:
             self.logger.error(f"Error saving configuration: {e}")
 
     def update_from_dict(self, config: Dict[str, Any]) -> None:
-        """Update the PromptGroups object from a dictionary."""
+        """Update the PromptsPlan object from a dictionary."""
         for key, value in config.items():
             if hasattr(self, key):
                 setattr(self, key, value)
@@ -293,3 +293,58 @@ class PromptsPlan:
     def __repr__(self) -> str:
         """Detailed string representation of the PromptGroups object."""
         return f"PromptGroups({self.to_dict()})"
+
+    def get(self, attribute):
+        return getattr(self, attribute, None)
+
+    def set(self, attribute, value):
+        setattr(self, attribute, value)
+
+    # show all non-empty key names without values
+    # show key names only
+
+    def show_all_non_empty_keys(self):
+        keys = []
+        for key, value in self.__dict__.items():
+            if value is not None and value != "":
+                keys.append(key)
+        return keys
+
+    def show_all_keys(self):
+        keys = []
+        for key, value in self.__dict__.items():
+            keys.append(key)
+        return keys
+
+    def show_all_key_value_pairs(self):
+        key_value_pairs = []
+        for key, value in self.__dict__.items():
+            key_value_pairs.append(f"{key}: {value}")
+        return key_value_pairs
+
+    def show_all_key_value_pairs_as_string(self):
+        key_value_pairs = []
+        for key, value in self.__dict__.items():
+            key_value_pairs.append(f"{key}: {value}")
+        return "\n".join(key_value_pairs)
+
+    def show_all_key_value_pairs_as_json(self):
+        return json.dumps(self.__dict__, indent=4)
+
+    def show_all_key_value_pairs_as_markdown(self):
+        key_value_pairs = []
+        for key, value in self.__dict__.items():
+            key_value_pairs.append(f"- **{key}**: {value}")
+        return "\n".join(key_value_pairs)
+
+    def show_all_key_value_pairs_as_html(self):
+        key_value_pairs = []
+        for key, value in self.__dict__.items():
+            key_value_pairs.append(f"<tr><td>{key}</td><td>{value}</td></tr>")
+        return f"<table>{''.join(key_value_pairs)}</table>"
+
+    def show_all_key_value_pairs_as_csv(self):
+        key_value_pairs = []
+        for key, value in self.__dict__.items():
+            key_value_pairs.append(f"{key},{value}")
+        return "\n".join(key_value_pairs)

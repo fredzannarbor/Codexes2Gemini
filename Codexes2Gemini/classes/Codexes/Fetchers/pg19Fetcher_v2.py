@@ -34,7 +34,7 @@ class PG19FetchAndTrack:
     def __init__(self, metadata_file, data_dirs,
                  processed_csv='processed_metadata.csv',
                  output_dir='processed_data',
-                 number_of_context_files_to_process=3):  # Default N to 3
+                 number_of_context_files_to_process=3, file_index={}):  # Default N to 3
         self.metadata_file = metadata_file
         self.data_dirs = data_dirs
         self.processed_csv = processed_csv
@@ -42,6 +42,7 @@ class PG19FetchAndTrack:
         self.number_of_context_files_to_process = number_of_context_files_to_process
         self.load_processed_metadata()
         self.CODEXES2PARTS = Codexes2Parts()  # Initialize Codexes2Parts here
+        self.file_index = file_index
 
     def load_processed_metadata(self):
         if os.path.exists(self.processed_csv):
@@ -64,6 +65,7 @@ class PG19FetchAndTrack:
                     if os.path.exists(filepath):
                         file_index[textfilename] = filepath
                         break
+        # st.write(f"len(file_index) is {len(file_index)}")
         return file_index
 
     def fetch_pg19_data(self, skip_processed):
@@ -108,6 +110,7 @@ class PG19FetchAndTrack:
 
 
             # Process the context (replace with your actual processing logic)
+            # FIX create new, simpler processing function
             results = self.process_single_context(context, row)
 
             # Save results to plain Markdown
@@ -119,22 +122,31 @@ class PG19FetchAndTrack:
             markdown_results_with_latex = results2assembled_pandoc_markdown_with_latex(results)
 
             self.save_results_to_markdown(textfilename, markdown_results_with_latex)
+            pdf_creation_on = False
+            # FIX graceful failure of latex textwidth]
+            if pdf_creation_on:
+                try:
+                    result_pdf_file_name = self.save_markdown_results_with_latex_to_pdf(markdown_results_with_latex,
+                                                                                        textfilename)
+                    if "collapsar" in st.session_state.current_plan["imprint"].lower():
+                        ImprintText = "Collapsar Condensed Editions"
+                        sheetname = "White B&W Perfect"  # "Standard 70 perfect"
 
-            result_pdf_file_name = self.save_markdown_results_with_latex_to_pdf(markdown_results_with_latex,
-                                                                                textfilename)
+                    elif "adept" in st.session_state.current_plan["imprint"].lower():
+                        ImprintText = "AI Lab for Book-Lovers"
+                        sheetname = "White B&W Perfect"
 
-            if "collapsar" in st.session_state.current_plan["imprint"].lower():
-                ImprintText = "Collapsar Condensed Editions"
-                sheetname = "White B&W Perfect"  # "Standard 70 perfect"
+                    bookjson_this_book = self.create_simple_bookjson(textfilename, results, result_pdf_file_name,
+                                                                     ImprintText=ImprintText, sheetname=sheetname)
 
-            elif "adept" in st.session_state.current_plan["imprint"].lower():
-                ImprintText = "AI Lab for Book-Lovers"
-                sheetname = "White B&W Perfect"
+                    self.save_bookjson_this_book(textfilename, bookjson_this_book)
+                except Exception as e:
+                    logging.error(f"{e}: \n{traceback.format_exc()}")
+                    st.error(f"error saving to PDF: {e}\n{traceback.format_exc()}")
+                    result_pdf_file_name = "unknown.pdf"
+            else:
+                st.info(f"temporarily disabled PDF and bookjson file creation")
 
-            bookjson_this_book = self.create_simple_bookjson(textfilename, results, result_pdf_file_name,
-                                                             ImprintText=ImprintText, sheetname=sheetname)
-
-            self.save_bookjson_this_book(textfilename, bookjson_this_book)
 
             # Create any metadata that is missing from the row so far
             # metadata_this_row = self.complete_LSI_metadata(textfilename, metadata_this_row)
@@ -158,7 +170,7 @@ class PG19FetchAndTrack:
 
         Returns:
             list: A list of lists, where each inner list represents a row of metadata."""
-        st.info(selection_strategy)
+        #st.info(selection_strategy)
         if selection_strategy == "Random":
             with open(self.metadata_file, "r") as f:
                 reader = csv.reader(f)
@@ -169,8 +181,7 @@ class PG19FetchAndTrack:
             rows = st.session_state()
             return random.sample(rows, number_of_context_files_to_process)  # first random
 
-
-    def process_single_context(self, context, row):
+    def process_single_context(self, context, row, plan=None):
         """Processes a single context and returns the results.
 
         Args:
@@ -181,7 +192,9 @@ class PG19FetchAndTrack:
             list: A list of results from processing the context.
         """
         st.session_state.current_plan.update({"context": context, "row": row})
-        plan = PromptsPlan(**st.session_state.current_plan)
+        if plan is None:
+            plan = PromptsPlan(**st.session_state.current_plan)
+        st.write(plan.get_prompts())
         satisfactory_results = self.CODEXES2PARTS.process_codex_to_book_part(plan)
 
         return satisfactory_results

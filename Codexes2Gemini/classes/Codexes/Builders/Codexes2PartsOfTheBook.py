@@ -15,6 +15,7 @@ import streamlit as st
 from google.generativeai import caching
 
 from Codexes2Gemini.classes.Utilities.classes_utilities import configure_logger
+from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
 from ..Builders.PromptGroups import PromptGroups
 
 GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
@@ -119,12 +120,12 @@ class Codexes2Parts:
 
         return response_dict
 
-    def process_codex_to_book_part(self, plan: PromptGroups):
-
-        self.logger.debug(f"Starting process_codex_to_book_part with plan: {plan}")
+    def process_codex_to_book_part(self, plan):
+        st.write(f"Starting process_codex_to_book_part with plan: {plan}")
         self.make_thisdoc_dir(plan)
         context = self.read_and_prepare_context(plan)
         self.logger.debug(f"Context prepared, length: {self.count_tokens(context)} tokens")
+
         # TODO: make sure this is available for all builder functions
         cache = self.create_cache_from_context(context)
 
@@ -135,82 +136,45 @@ class Codexes2Parts:
         self.logger.debug(f"System prompt assembled, length: {self.count_tokens(system_prompt)}")
 
         user_prompts = plan.get_prompts()
-        self.logger.info(f"\nUser prompts retrieved: {user_prompts}")
 
-        satisfactory_results = []
+        if not isinstance(user_prompts, list):
+            self.logger.error(f"Unexpected data type for prompts: {type(user_prompts)}")
+            return self.results  # Return early to avoid errors
 
-        for i, user_prompt in enumerate(user_prompts):
-            self.logger.info(f"Processing user prompt {i + 1}/{len(user_prompts)}")
+        for user_prompt in user_prompts:
+
+            self.logger.info(f"Processing user prompt: {user_prompt}")
 
             full_output = ""
             retry_count = 0
             max_retries = 3
 
-            full_output_tokens = self.count_tokens(full_output)
-
-            while full_output_tokens < plan.minimum_required_output_tokens and retry_count < max_retries:
+            while self.count_tokens(full_output) < plan.minimum_required_output_tokens and retry_count < max_retries:
                 try:
-
                     response = self.gemini_get_response(plan, system_prompt, user_prompt, context, model)
-                    if "The `response.text` quick accessor requires the response to contain a valid `Part`, but none were returned." in response:
-                        for candidate in response.candidates:
-                            for rating in candidate.safety_ratings:
-                                print(f"Category: {rating.category}, Probability: {rating.probability}")
-                                st.warning(f"Category: {rating.category}, Probability: {rating.probability}")
                     self.logger.info(f"Response received, length: {self.count_tokens(response.text)} tokens")
-                    json_response = self.create_response_dict(response)
-                    # st.json(json_response, expanded=False)
-                    logging.warning(json_response["usage_metadata"])
+
                     full_output += response.text
 
-                    full_output_tokens = self.count_tokens(full_output)
-
-                    if full_output_tokens < plan.minimum_required_output_tokens:
+                    if self.count_tokens(full_output) < plan.minimum_required_output_tokens:
                         self.logger.info(
-                            f"Output length ({full_output_tokens})  tokens is less than desired length ({plan.minimum_required_output_tokens}). Retrying.")
+                            f"Output length is less than desired length. Retrying.")
                         retry_count += 1
                 except Exception as e:
                     self.logger.error(f"Error in gemini_get_response: {e}")
                     retry_count += 1
                     self.logger.info(f"Retrying due to error. Retry count: {retry_count}")
 
-            self.logger.info(f"Final output length for prompt {i + 1}: {full_output_tokens}")
-            self.logger.info(f"full output tokens: {full_output_tokens}\n")
-            self.logger.info(f"plan.minimum_required_output: {plan.minimum_required_output}")
-            self.logger.info(f"plan.minimum_required_output_tokens: {plan.minimum_required_output_tokens}")
+            self.logger.info(f"Final output length for prompt: {self.count_tokens(full_output)}")
 
-            if full_output_tokens >= plan.minimum_required_output_tokens:
-                satisfactory_results.append(full_output)
-                self.logger.info(f"Output for prompt {i + 1} meets desired length. Appending to results.")
+            if self.count_tokens(full_output) >= plan.minimum_required_output_tokens:
+                self.results.append(full_output)
+                self.logger.info(f"Output for prompt meets desired length. Appending to results.")
             else:
                 self.logger.warning(
-                    f"Output for prompt {i + 1} does not meet desired length of {plan.minimum_required_output_tokens}. Discarding.")
+                    f"Output for prompt does not meet desired length. Discarding.")
 
-            if satisfactory_results:
-                self.logger.info(f"Returning satisfactory results of {self.count_tokens(satisfactory_results)}")
-                safety_feedback = {}
-                if plan.require_json_output:
-                    if response.candidates[0].finish_reason == "SAFETY":
-
-                        for candidate in response.candidates:
-                            for rating in candidate.safety_ratings:
-                                safety_feedback.update({rating.category: rating.probability})
-
-                    output_data = {
-                        "text": response.text,
-                        "prompt_feedback": safety_feedback,
-                    }
-                    json_output_path = f"{plan.thisdoc_dir}/{plan.output_file_path}_{str(uuid.uuid4())[:6]}.json"
-                    with open(json_output_path, 'w') as json_file:
-                        json.dump(output_data, json_file, indent=4)
-                    self.logger.info(f"JSON output saved to {json_output_path}")
-                    st.info(f"JSON output saved to {json_output_path}")
-            else:
-                self.logger.warning("No satisfactory results were generated.")
-                satisfactory_results = ["No satisfactory results were generated."]
-                st.warning("No satisfactory results were generated.")
-            st.toast(f"processed prompt {i + 1}")
-        return satisfactory_results
+        return self.results
 
     def create_cache_from_context(self, context):
         if self.count_tokens(context) > 32768:
@@ -249,7 +213,7 @@ class Codexes2Parts:
 
         logging.info(f"Cache with display name '{display_name}' not found for model '{model_name}'.")
 
-    def process_plan_to_codex(self, plan: PromptGroups):
+    def process_plan_to_codex(self, plan: PromptsPlan):
         """
         Handler for mode == "codex"
         Assumes normal plan object, only difference is mode
@@ -373,6 +337,10 @@ class Codexes2Parts:
 
     def read_and_prepare_context(self, plan):
         context_content = plan.context or ""
+        # st.write(context_content)
+
+        if isinstance(context_content, list):
+            context_content = "\n\n".join(context_content)
 
         if plan.context_file_paths:
             for file_path in plan.context_file_paths:
