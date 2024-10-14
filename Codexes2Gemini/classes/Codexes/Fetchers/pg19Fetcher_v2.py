@@ -75,7 +75,7 @@ class PG19FetchAndTrack:
             skip_processed (bool): Whether to skip already processed files.
 
         Returns:
-            all_results list of results from processing the contexts.
+            None
         """
         # TODO - allow user to upload any data set in correct format
 
@@ -106,15 +106,8 @@ class PG19FetchAndTrack:
             with open(filepath, "r") as f:
                 context = f.read()
 
-            # non-LLM context processing
-
-
-            # Process the context (replace with your actual processing logic)
-            # FIX create new, simpler processing function
             results = self.process_single_context(context, row)
-
-            # Save results to plain Markdown
-            # self.save_results_to_markdown(textfilename, results)
+            st.info("processed single context")
 
             # Save results to JSON
             self.save_results_to_json(textfilename, results)
@@ -146,13 +139,6 @@ class PG19FetchAndTrack:
                     result_pdf_file_name = "unknown.pdf"
             else:
                 st.info(f"temporarily disabled PDF and bookjson file creation")
-
-
-            # Create any metadata that is missing from the row so far
-            # metadata_this_row = self.complete_LSI_metadata(textfilename, metadata_this_row)
-
-            # In this step, proceed column-by-column through the ACS spreadsheet
-            # self.create_LSI_ACS_spreadsheet(textfilename, metadata_this_row)
 
             self.update_processed_metadata(textfilename)
 
@@ -194,7 +180,7 @@ class PG19FetchAndTrack:
         st.session_state.current_plan.update({"context": context, "row": row})
         if plan is None:
             plan = PromptsPlan(**st.session_state.current_plan)
-        st.write(plan.get_prompts())
+        # st.write(plan.get_prompts())
         satisfactory_results = self.CODEXES2PARTS.process_codex_to_book_part(plan)
 
         return satisfactory_results

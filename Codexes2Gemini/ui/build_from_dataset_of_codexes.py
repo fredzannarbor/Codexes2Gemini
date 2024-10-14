@@ -582,14 +582,14 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
     if st.button(f"Build From Data Set {selection_strategy}"):  #
         # st.write(st.session_state.current_plan["selected_rows"])
-        PPba = PromptsPlan(
-            name=st.session_state.current_plan['name'],
-            require_json_output=st.session_state.current_plan.get('require_json_output', False),
-            context=st.session_state.current_plan.get('context', ''),  # Add context if available
-            selected_user_prompts_dict=st.session_state.current_plan['selected_user_prompts_dict'],
-            complete_system_instruction=st.session_state.current_plan['complete_system_instruction']
-        )
-
+        # PPba = PromptsPlan(
+        #     name=st.session_state.current_plan['name'],
+        #     require_json_output=st.session_state.current_plan.get('require_json_output', False),
+        #     context=st.session_state.current_plan.get('context', ''),  # Add context if available
+        #     selected_user_prompts_dict=st.session_state.current_plan['selected_user_prompts_dict'],
+        #     complete_system_instruction=st.session_state.current_plan['complete_system_instruction']
+        # )
+        # FIX loop is concatenating results incorrectly
         results = FT.fetch_pg19_data(skip_processed=st.session_state.current_plan['skip_processed'])
         if isinstance(results, str):
             logging.info("results is string")

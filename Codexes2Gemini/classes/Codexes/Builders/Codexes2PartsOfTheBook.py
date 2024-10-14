@@ -121,7 +121,7 @@ class Codexes2Parts:
         return response_dict
 
     def process_codex_to_book_part(self, plan):
-        st.write(f"Starting process_codex_to_book_part with plan: {plan}")
+        st.info(f"Starting process_codex_to_book_part with plan: {plan}")
         self.make_thisdoc_dir(plan)
         context = self.read_and_prepare_context(plan)
         self.logger.debug(f"Context prepared, length: {self.count_tokens(context)} tokens")
@@ -140,6 +140,8 @@ class Codexes2Parts:
         if not isinstance(user_prompts, list):
             self.logger.error(f"Unexpected data type for prompts: {type(user_prompts)}")
             return self.results  # Return early to avoid errors
+
+        self.results = []  # Reset self.results for each new book
 
         for user_prompt in user_prompts:
 
@@ -173,7 +175,8 @@ class Codexes2Parts:
             else:
                 self.logger.warning(
                     f"Output for prompt does not meet desired length. Discarding.")
-
+        st.write('---')
+        st.write(self.results)
         return self.results
 
     def create_cache_from_context(self, context):
