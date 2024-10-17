@@ -44,8 +44,11 @@ ensure_directory_exists("resources/data_tables")
 ensure_directory_exists("resources/data_tables/LSI")
 ensure_directory_exists("processed_data")
 
-__version__ = "0.4.4.0"
+__version__ = "0.4.6.0"
 __announcements__ = """
+- Adds initial version of direct enhancement of LSI_ACS spreadsheet
+Adds default PromptPacks
+- Fixes result concatenation regression
 - Adds ability to save and load PromptPacks as JSON
 - renames InstructionPacks to PromptPacks for clarity, consistency
 - Fixes incorrect path assignment for dataset2gemini cli.
