@@ -170,7 +170,7 @@ def tokens_to_millions(tokens):
 def read_file_content(file):
     file_name = file.name.lower()
     content = ""
-    st.write(file_name)
+    # st.write(file_name)
     try:
         if file_name.endswith('.txt'):
             raw_data = file.getvalue()
@@ -383,9 +383,14 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             if selected_rows:
                 # st.info("Selected Rows:")
                 for row in selected_rows:
-                    st.write(row)
-                    basic_info = get_gemini_basic_info(FT, row)
-                    st.write(basic_info)
+                    # st.write(row)
+                    basic_info = gemini_get_basic_info(FT, row)
+                    extracted_values = parse_and_get_basic_info(basic_info)
+                    st.session_state.current_plan.update(extracted_values)
+                #  st.write(extracted_values)
+
+
+
 
                 edited_df = st.data_editor(selected_rows_df, num_rows="dynamic", key="3")
                 st.session_state.current_plan.update({"confirmed_data_set": True})
@@ -402,20 +407,29 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
     st.subheader("Step 2: Instructions and Prompts")
 
+    # st.write(st.session_state.current_plan.keys())
+
     with st.expander("Optional: Load PromptPack"):
         with st.form("load-instruction-pack"):
             prompt_packs = user_space.get_prompt_packs()
 
             # Display a selectbox to choose an PromptPack
-            selected_pack_name = st.selectbox("Select PromptPack", ["-- None --"] + list(prompt_packs.keys()))
+            selected_pack_name = st.selectbox("Select PromptPack", ["-- None --"] + list(prompt_packs.keys()), index=1)
+            st.info(selected_pack_name)
             loaded = st.form_submit_button("Load This Pack")
             if loaded:
                 if selected_pack_name != "-- None --":
                     selected_pack = prompt_packs[selected_pack_name]
-
+                    st.info(selected_pack_name)
+                    if isinstance(selected_pack.user_prompts, dict):
+                        st.info("is dict")
+                        show_these_prompt_keys = list(selected_pack.user_prompts.keys())
+                    if isinstance(selected_pack.user_prompts, list):
+                        st.info("is list")
+                        show_these_prompt_keys = selected_pack.user_prompts
                     st.session_state.current_plan.update({
                         "selected_system_instruction_keys": selected_pack.system_instructions,
-                        "selected_user_prompt_keys": list(selected_pack.user_prompts.keys()),
+                        "selected_user_prompt_keys": show_these_prompt_keys,
                         "custom_user_prompt": selected_pack.custom_prompt,
                         "user_prompt_override": selected_pack.override
                     })
@@ -581,15 +595,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
     logging.info(f"selected_rows: {st.session_state.current_plan['selected_rows']}")
 
     if st.button(f"Build From Data Set {selection_strategy}"):  #
-        # st.write(st.session_state.current_plan["selected_rows"])
-        # PPba = PromptsPlan(
-        #     name=st.session_state.current_plan['name'],
-        #     require_json_output=st.session_state.current_plan.get('require_json_output', False),
-        #     context=st.session_state.current_plan.get('context', ''),  # Add context if available
-        #     selected_user_prompts_dict=st.session_state.current_plan['selected_user_prompts_dict'],
-        #     complete_system_instruction=st.session_state.current_plan['complete_system_instruction']
-        # )
-        # FIX loop is concatenating results incorrectly
+        #st.write(st.session_state.current_plan.keys())
         results = FT.fetch_pg19_data(skip_processed=st.session_state.current_plan['skip_processed'])
         if isinstance(results, str):
             logging.info("results is string")
@@ -601,7 +607,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         return results
 
 
-def get_gemini_basic_info(FT, row):
+def gemini_get_basic_info(FT, row):
     # copy FT instance
     # st.write(f"{len(FT.file_index)} files in FT.file_index" )
     filepath = FT.file_index.get(row['textfilename'])
@@ -611,7 +617,7 @@ def get_gemini_basic_info(FT, row):
         return
     with open(filepath, "r") as f:
         context = f.read()
-        st.write(context[0:250])
+        st.write(context[0:100], context[300:400])
 
     basicInfoPlan = PromptsPlan(
         name="basicInfoPlan",
@@ -626,10 +632,39 @@ def get_gemini_basic_info(FT, row):
 
     C2P = Codexes2Parts()
     row_result = C2P.process_codex_to_book_part(basicInfoPlan)
-    # st.write(row_result)
+    extracted_values = parse_and_get_basic_info(row_result)
+    # st.write(extracted_values)
+    # st.session_state.current_plan.update(extracted_values)
+    #st.write(st.session_state.current_plan.keys())
     return row_result
 
 
+def parse_and_get_basic_info(row_result):
+    """
+    Extracts values from specific keys in a JSON string.
+
+    Args:
+        json_string (str): A JSON string containing the data.
+
+    Returns:
+        dict: A dictionary containing the extracted values.
+    """
+    try:
+        data = json.loads(row_result[0])  # Parse the JSON string
+        # st.write(data)
+        extracted_values = {
+            "gemini_title": data.get("gemini_title"),
+            "gemini_subtitle": data.get("gemini_subtitle"),
+            "gemini_authors": data.get("gemini_authors"),
+            "gemini_publisher": data.get("gemini_publisher"),
+            "gemini_place_of_publication": data.get("gemini_place_of_publication"),
+            "gemini_year_of_publication": data.get("gemini_year_of_actual_publication"),
+            "gemini_summary": data.get("gemini_summary")
+        }
+        return extracted_values
+    except json.JSONDecodeError:
+        print("Error: Invalid JSON string.")
+        return {}
 
 
 
@@ -858,7 +893,7 @@ def user_space_app(user_space: UserSpace):
         if st.button("Delete Selected Packs") and packs_to_delete:
             for pack_name in packs_to_delete:
                 del user_space.prompt_packs[pack_name]
-            save_user_space(user_space)
+            user_space.save_user_space(user_space)
             st.success("Selected PromptPacks deleted.")
             st.rerun()
     else:
@@ -869,7 +904,7 @@ def user_space_app(user_space: UserSpace):
     prompt = st.text_area("Prompt")
     if st.button("Save Prompt"):
         user_space.save_prompt(prompt_name, prompt)
-        save_user_space(user_space)
+        user_space.save_user_space(user_space)
         st.success("Prompt saved")
 
     if user_space.prompts:
@@ -880,7 +915,7 @@ def user_space_app(user_space: UserSpace):
         st.table(prompt_df)
         if st.button("Clear All Prompts"):
             user_space.prompts = {}
-            save_user_space(user_space)
+            user_space.save_user_space(user_space)
             st.success("All prompts cleared")
             st.rerun()
 
@@ -894,7 +929,7 @@ def user_space_app(user_space: UserSpace):
         st.table(result_df)
         if st.button("Clear All Results"):
             user_space.results = []
-            save_user_space(user_space)
+            user_space.save_user_space(user_space)
             st.success("All results cleared")
             st.rerun()
 
@@ -914,13 +949,13 @@ def user_space_app(user_space: UserSpace):
                 unsafe_allow_html=True)
         if st.button("Clear All Prompt Plans"):
             user_space.prompt_plans = []
-            save_user_space(user_space)
+            user_space.save_user_space(user_space)
             st.success("All prompt plans cleared")
             st.rerun()
 
     if st.button("Clear Entire UserSpace"):
         user_space = UserSpace()
-        save_user_space(user_space)
+        user_space.save_user_space(user_space)
         st.success("UserSpace has been cleared.")
         st.rerun()
 
@@ -1025,7 +1060,7 @@ def run_streamlit_app():
     if not hasattr(user_space, 'prompts'):
         st.warning("Loaded UserSpace object is invalid. Creating a new UserSpace.")
         user_space = UserSpace()
-        save_user_space(user_space)
+        user_space.save_user_space(user_space)
     try:
         # Create pages using st.sidebar.selectbox
         page = st.sidebar.selectbox(

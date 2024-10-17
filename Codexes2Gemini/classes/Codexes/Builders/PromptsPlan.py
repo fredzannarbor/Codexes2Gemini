@@ -27,9 +27,13 @@ class PromptsPlan:
                  file_index: str = None,
                  filter: str = "",
                  gemini_authors: str = "TK",
+                 gemini_authors_str="",
+                 gemini_authors_no_latex_str="",
+                 gemini_publisher: str = "TK",
+                 gemini_year_of_publication: int = 2024 or None,
+                 gemini_place_of_publication: str = "TK",
                  gemini_subtitle: str = "",
                  gemini_title: str = "TK",
-                 gemini_authors_str="",
                  gemini_summary="",
                  ISBN: str = "TBD",
                  generation_config: dict = None,
@@ -60,8 +64,8 @@ class PromptsPlan:
                  system_instructions_dict: Dict[str, Any] = None,
                  system_instructions_dict_file_path: str = None,
                  system_filter_submitted: bool = False,
-
                  thisdoc_dir: str = "",
+                 title="TK",
                  user_keys: List[str] = None,
                  use_all_user_keys: bool = False,
                  user_prompt: str = "",
@@ -91,6 +95,11 @@ class PromptsPlan:
         }
         self.gemini_authors = gemini_authors or []
         self.gemini_authors_str = gemini_authors_str or ""
+        self.gemini_authors_no_latex_str = gemini_authors_no_latex_str or ""
+        self.gemini_publisher = gemini_publisher or ""
+        self.gemini_year_of_publication = gemini_year_of_publication or None
+        self.gemini_place_of_publication = gemini_place_of_publication or ""
+
         self.gemini_subtitle = gemini_subtitle or ""
         self.gemini_title = gemini_title or ""
         self.gemini_summary = gemini_summary or ""
@@ -127,6 +136,7 @@ class PromptsPlan:
         self.system_filter_submitted = system_filter_submitted
         self.system_instructions_dict_file_path = system_instructions_dict_file_path
         self.thisdoc_dir = thisdoc_dir
+        self.title = title
         self.use_all_user_keys = use_all_user_keys
         self.user_keys = user_keys or []
         self.user_prompt = user_prompt

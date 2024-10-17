@@ -28,8 +28,6 @@ from classes.Codexes.Metadata.Metadatas import Metadatas
 from ui.ui_utilities import results2assembled_pandoc_markdown_with_latex
 
 
-# TODO - make forms honor selected row(s) thorughout session
-
 class PG19FetchAndTrack:
     def __init__(self, metadata_file, data_dirs,
                  processed_csv='processed_metadata.csv',
@@ -115,28 +113,30 @@ class PG19FetchAndTrack:
             markdown_results_with_latex = results2assembled_pandoc_markdown_with_latex(results)
 
             self.save_results_to_markdown(textfilename, markdown_results_with_latex)
-            pdf_creation_on = False
+            pdf_creation_on = True
             # FIX graceful failure of latex textwidth]
             if pdf_creation_on:
                 try:
                     result_pdf_file_name = self.save_markdown_results_with_latex_to_pdf(markdown_results_with_latex,
                                                                                         textfilename)
-                    if "collapsar" in st.session_state.current_plan["imprint"].lower():
-                        ImprintText = "Collapsar Condensed Editions"
-                        sheetname = "White B&W Perfect"  # "Standard 70 perfect"
-
-                    elif "adept" in st.session_state.current_plan["imprint"].lower():
-                        ImprintText = "AI Lab for Book-Lovers"
-                        sheetname = "White B&W Perfect"
-
-                    bookjson_this_book = self.create_simple_bookjson(textfilename, results, result_pdf_file_name,
-                                                                     ImprintText=ImprintText, sheetname=sheetname)
-
-                    self.save_bookjson_this_book(textfilename, bookjson_this_book)
                 except Exception as e:
                     logging.error(f"{e}: \n{traceback.format_exc()}")
                     st.error(f"error saving to PDF: {e}\n{traceback.format_exc()}")
                     result_pdf_file_name = "unknown.pdf"
+
+                if "collapsar" in st.session_state.current_plan["imprint"].lower():
+                    ImprintText = "Collapsar Classic"
+                    sheetname = "White B&W Perfect"  # "Standard 70 perfect"
+
+                elif "adept" in st.session_state.current_plan["imprint"].lower():
+                    ImprintText = "AI Lab for Book-Lovers"
+                    sheetname = "White B&W Perfect"
+
+                bookjson_this_book = self.create_simple_bookjson(textfilename, results, result_pdf_file_name,
+                                                                 ImprintText=ImprintText, sheetname=sheetname)
+
+                self.save_bookjson_this_book(textfilename, bookjson_this_book)
+
             else:
                 st.info(f"temporarily disabled PDF and bookjson file creation")
 
@@ -264,7 +264,7 @@ class PG19FetchAndTrack:
         return output_pdf_path
 
     def create_simple_bookjson(self, textfilename, results, result_pdf_file_name,
-                               ImprintText="Collapsar Condensed Editions", sheetname=None):
+                               ImprintText="Collapsar Classics", sheetname=None):
         doc = fitz.open(result_pdf_file_name)
         pagecount = doc.page_count
         spinewidth, effective_page_count = self.calculate_spinewidth(sheetname, pagecount)
@@ -277,9 +277,10 @@ class PG19FetchAndTrack:
             trimsizeheight = 6
             trimsizewidth = 4
 
+        st.write(st.session_state.current_plan.keys())
         book_json = dict(BookID="TBD", BookTitle=st.session_state.current_plan['gemini_title'],
                          SubTitle=st.session_state.current_plan['gemini_subtitle'],
-                         Byline=st.session_state.current_plan['gemini_authors_str'],
+                         Byline=st.session_state.current_plan['gemini_authors_no_latex_str'],
                          ImprintText=ImprintText, ImageFileName="", settings="duplex", distributor="LSI",
                          InvertedColor="White", DominantColor="Black", BaseFont="Skolar PE Regular",
                          trimsizewidth=trimsizewidth,
