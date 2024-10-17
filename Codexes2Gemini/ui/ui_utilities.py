@@ -30,7 +30,7 @@ def create_latex_preamble(gemini_title="TBD", gemini_subtitle="TBD", gemini_auth
                           documentclass="book", output="pdf_document", fontsize=10, mainfont=None):
 
     if isinstance(gemini_authors, list):
-        gemini_authors_str = "\n".join([f"- {author}" for author in gemini_authors])
+        gemini_authors_str = "\n".join([f"{author}" for author in gemini_authors])
     else:
         gemini_authors_str = gemini_authors
     if gemini_subtitle is None:
@@ -38,15 +38,17 @@ def create_latex_preamble(gemini_title="TBD", gemini_subtitle="TBD", gemini_auth
     if "\"" or ":" in gemini_authors_str and len(gemini_authors_str > 0):
         gemini_authors_str = gemini_authors_str.replace("\"", "'").replace(":", "")
     # Wrap author field if longer than 30 characters
+    gemini_authors_no_latex_str = gemini_authors_str.replace("\\", "")
     if len(gemini_authors_str) > 30:
         gemini_authors_str = f"\\parbox[t]{{\\textwidth}}{{{gemini_authors_str}}}"
+    st.session_state.current_plan.update({"gemini_authors_no_latex_str": gemini_authors_no_latex_str})
     st.session_state.current_plan.update({"gemini_authors_str": gemini_authors_str})
     yaml_preamble = f"""---
 title: "{gemini_title}"
 author: '{gemini_authors_str}'
 subtitle: "{gemini_subtitle}"
 header-includes:
-  - \\usepackage[paperwidth={paperwidth}in, paperheight={paperheight}in, top={top}in, bottom=0.25in, right=0.25in, left=0.5in, includehead, includefoot]{{geometry}} # 
+  - \\usepackage[paperwidth={paperwidth}in, paperheight={paperheight}in, top={top}in, bottom={bottom}in, right={right}in, left={left}in, includehead, includefoot]{{geometry}} # 
   - \\usepackage{{fancyhdr}}
   - \\pagestyle{{fancy}}
   - \\fancyhf{{}}
