@@ -284,7 +284,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             #  "system_filter_submitted": system_filter_submitted
         }
 
-    user_prompts_dict = load_json_file("collapsar_user_prompts.json")
+    user_prompts_dict = load_json_file("standard_user_prompts.json")
     system_instructions_dict = load_json_file("system_instructions.json")
     st.session_state.current_plan.update({"approved_titles": False})
     # selected_rows = pd.read_csv("resources/data_tables/collapsar/sample_row.csv")
@@ -1005,28 +1005,28 @@ def run_build_launcher(selected_user_prompts, selected_system_instructions, user
     return results
 
 
-# def display_nested_content(content):
-#     if isinstance(content, list):
-#         for item in content:
-#             display_nested_content(item)
-#     elif isinstance(content, str):
-#         # Split the content into sections
-#         sections = content.split('\n\n')
-#         for section in sections:
-#             if section.startswith('##'):
-#                 # This is a header
-#                 st.header(section.strip('# '))
-#             elif section.startswith('**'):
-#                 # This is a bold section, probably a subheader
-#                 st.write(section)
-#             elif section.startswith('*'):
-#                 # This is a bullet point
-#                 st.markdown(section)
-#             else:
-#                 # This is regular text
-#                 st.write(section)
-#     else:
-#         st.write(content)
+def display_nested_content(content):
+    if isinstance(content, list):
+        for item in content:
+            display_nested_content(item)
+    elif isinstance(content, str):
+        # Split the content into sections
+        sections = content.split('\n\n')
+        for section in sections:
+            if section.startswith('##'):
+                # This is a header
+                st.header(section.strip('# '))
+            elif section.startswith('**'):
+                # This is a bold section, probably a subheader
+                st.write(section)
+            elif section.startswith('*'):
+                # This is a bullet point
+                st.markdown(section)
+            else:
+                # This is regular text
+                st.write(section)
+    else:
+        st.write(content)
 
 
 def apply_custom_css(css):
@@ -1047,6 +1047,7 @@ body {
 def run_streamlit_app():
     st.set_page_config(layout="wide", initial_sidebar_state="expanded", page_title="Codexes2Gemini Streamlit ui Demo",
                        page_icon=":book:")
+    show_debugging_info()
     st.title("Codexes2Gemini")
     st.markdown("""
     _Humans and AIs working together to make books richer, more diverse, and more surprising._
@@ -1080,6 +1081,21 @@ def run_streamlit_app():
     except Exception as e:
         st.error(f"An error occurred: {e}")
         st.error(traceback.format_exc())
+
+
+def show_debugging_info():
+    venv_name = os.environ.get('VIRTUAL_ENV')
+
+    # If a virtual environment is active, print its name
+    if venv_name:
+        st.info(f"Current virtual environment: {os.path.basename(venv_name)}")
+    else:
+        st.warning("No virtual environment active.")
+    with st.expander("Debugging info"):
+
+        st.info(os.path.abspath(os.getcwd()))
+
+    return
 
 
 
