@@ -243,6 +243,7 @@ class PG19FetchAndTrack:
         self.processed_df.to_csv(self.processed_csv, index=False)
 
     def save_markdown_results_with_latex_to_pdf(self, md_result, textfilename, extra_args=None):
+        """Saves markdown to PDF, handling Pandoc errors gracefully."""
         output_pdf_filename = f"{textfilename}.pdf"
         output_pdf_path = os.path.join(self.output_dir, output_pdf_filename)
         os.makedirs(self.output_dir, exist_ok=True)
@@ -253,15 +254,21 @@ class PG19FetchAndTrack:
             if isinstance(md_result, list):
                 md_result = ''.join(md_result)
 
-            pypandoc.convert_text(md_result, 'pdf', format='markdown', outputfile=output_pdf_path,
-                                  extra_args=extra_args)
+            pypandoc.convert_text(md_result, 'pdf', format='markdown',
+                                  outputfile=output_pdf_path, extra_args=extra_args)
             logging.info(f"PDF saved to {output_pdf_path}")
             st.toast(f"Successfully saved PDF to {output_pdf_path}")
-        except FileNotFoundError:
-            logging.error(f"Conversion of latex markdown to PDF for {output_pdf_path} failed.")
-            st.error(f"Conversion of latex markdown to PDF for {output_pdf_path} failed.")
-            # st.stop()
-        return output_pdf_path
+
+        except Exception as e:  # Catch any exception here
+            logging.error(f"Error saving to PDF: {e}\n{traceback.format_exc()}")
+            st.error(f"Error saving to PDF: {e}\n{traceback.format_exc()}")
+
+            # TODO (optional):
+            # 1. Attempt to sanitize the Markdown (e.g., remove problematic LaTeX)
+            # 2. Retry the conversion with pypandoc
+            # 3. If retry fails, save the problematic Markdown to a separate file
+
+        return output_pdf_path  # Return the path even if there was an error
 
     def create_simple_bookjson(self, textfilename, results, result_pdf_file_name,
                                ImprintText="Collapsar Classics", sheetname=None):
