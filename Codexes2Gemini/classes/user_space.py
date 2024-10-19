@@ -89,7 +89,7 @@ class UserSpace:
                 ["gemini_get_basic_info", "bibliographic_key_phrases", "motivation", "truth_in_publishing",
                  "about_the_author_classic", "place_in_historical_context", "abstracts_x4", "ELI_idiot",
                  "mnemonics_abstract", "analytic_toc", "most_important_passages_with_reasoning",
-                 "condensed_matter", "glossary_browsable", "timeline_major"],
+                 "glossary_browsable", "timeline_major"],
                 "",
                 False
             ),
@@ -119,6 +119,10 @@ class UserSpace:
                 "Add at end of other user prompts",
 
             ),
+
+            "rebooter": PromptPack("rebooter",
+                                   ["proactive", "focus", "creative"],
+                                   ["create_reboot_prompts"], "", False)
         }
 
     def get_filtered_contexts(self, filter_text: str) -> Dict[str, SavedContext]:
