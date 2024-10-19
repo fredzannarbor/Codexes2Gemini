@@ -1,9 +1,14 @@
+import datetime
 import json
 import logging
+import os
+import subprocess
 import traceback
 from importlib import resources
 from io import BytesIO
 import tempfile
+import re
+import pandas as pd
 import pypandoc
 import streamlit as st
 from rich import print
@@ -35,6 +40,18 @@ def create_latex_preamble(gemini_title="TBD", gemini_subtitle="TBD", gemini_auth
         gemini_authors_str = gemini_authors
     if gemini_subtitle is None:
         gemini_subtitle = " "
+
+        # FIX unescaped single quotes in LATEX YAML, example:
+    """
+
+    ---
+title: "THE
+ADVOCATE"
+author: '\parbox[t]{\textwidth}{CHARLES HEAVYSEGE,
+Author of 'Saul', 'Jephthah's Daughter.'
+&c., &c., &c.}'
+subtitle: "A NOVEL"
+    """
     if "\"" or ":" in gemini_authors_str and len(gemini_authors_str > 0):
         gemini_authors_str = gemini_authors_str.replace("\"", "'").replace(":", "")
     # Wrap author field if longer than 30 characters
@@ -142,6 +159,34 @@ def flatten_and_stringify(data):
         return str(data)
 
 
+def get_version_as_dict():
+    try:
+        mtime = os.path.getmtime('.git/FETCH_HEAD')
+    except OSError:
+        mtime = 0
+    last_modified_date = datetime.fromtimestamp(mtime)
+
+    version_line = subprocess.check_output(["git", "describe", "--long"]).decode("utf-8").strip()
+
+    last_commit_message = str(subprocess.check_output(['git', 'log', '-1', '--pretty=%B']).decode('utf-8').strip())
+
+    update_line = last_modified_date.strftime("%Y-%m-%d %H:%M:%S")
+    current_branch = 'unknown'
+    branches = subprocess.check_output(['git', 'branch']).decode('utf-8').strip().split('\n')
+    # loop through list and select the current branch
+    for branch in branches:
+        if branch.startswith('*'):
+            current_branch = branch[2:]
+
+    data = {"version": version_line, "current branch": current_branch, "last updated": update_line,
+            'most recent commit message': last_commit_message}
+    # data = version_line, update_line, last_commit_message
+
+    datalist = [version_line, current_branch, update_line, last_commit_message]
+
+    df = pd.DataFrame(data, index=[0]).T.rename(columns={0: ''})
+
+    return data
 def markdown2pdf_buffer(document_content, unique_filename,
                         extra_args=['--toc', '--toc-depth=2', '--pdf-engine=xelatex']):
     #st.write(extra_args)
