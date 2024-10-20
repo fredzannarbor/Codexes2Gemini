@@ -35,7 +35,7 @@ def create_latex_preamble(gemini_title="TBD", gemini_subtitle="TBD", gemini_auth
                           documentclass="book", output="pdf_document", fontsize=10, mainfont=None):
 
     if isinstance(gemini_authors, list):
-        gemini_authors_str = "\n".join([f"{author}" for author in gemini_authors])
+        gemini_authors_str = ", ".join([f"{author}" for author in gemini_authors])
     else:
         gemini_authors_str = gemini_authors
     if gemini_subtitle is None:
@@ -113,7 +113,8 @@ def results2assembled_pandoc_markdown_with_latex(results):
                 st.session_state.current_plan['gemini_subtitle'] = gemini_subtitle
                 st.session_state.current_plan['gemini_authors'] = gemini_authors
                 st.session_state.current_plan['gemini_summary'] = gemini_summary
-
+                st.session_state.current_plan['gemini_authors_str'] = gemini_authors
+                st.session_state.current_plan['gemini_authors_no_latex_str'] = gemini_authors
 
                 # Create and prepend LaTeX preamble
                 latex_preamble = create_latex_preamble(gemini_title, gemini_subtitle, gemini_authors)
@@ -121,6 +122,9 @@ def results2assembled_pandoc_markdown_with_latex(results):
             else:
                 # If it's valid JSON but not the expected format, treat as plain text
                 assembled_pandoc_markdown_with_latex += cleaned_item + "\n\n"
+                st.session_state.current_plan['gemini_authors_str'] = ""
+                st.session_state.current_plan['gemini_authors_no_latex_str'] = ""
+
 
         except json.JSONDecodeError:
             # Handle non-JSON elements (e.g., append as plain text)

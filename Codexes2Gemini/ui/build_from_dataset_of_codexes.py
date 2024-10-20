@@ -390,8 +390,6 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                 #  st.write(extracted_values)
 
 
-
-
                 edited_df = st.data_editor(selected_rows_df, num_rows="dynamic", key="3")
                 st.session_state.current_plan.update({"confirmed_data_set": True})
 
@@ -401,9 +399,9 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
             # st.rerun()
 
-        if 'selected_rows_df' in st.session_state:
-            st.subheader("Selected Rows:")
-            edited_df = st.data_editor(st.session_state.selected_rows_df, num_rows="dynamic")
+        # if 'selected_rows_df' in st.session_state:
+        #     st.subheader("Selected Rows:")
+        #     edited_df = st.data_editor(st.session_state.selected_rows_df, num_rows="dynamic")
 
     st.subheader("Step 2: Instructions and Prompts")
 
@@ -633,8 +631,9 @@ def gemini_get_basic_info(FT, row):
     C2P = Codexes2Parts()
     row_result = C2P.process_codex_to_book_part(basicInfoPlan)
     extracted_values = parse_and_get_basic_info(row_result)
+
     # st.write(extracted_values)
-    # st.session_state.current_plan.update(extracted_values)
+    st.session_state.current_plan.update(extracted_values)
     #st.write(st.session_state.current_plan.keys())
     return row_result
 
@@ -659,13 +658,15 @@ def parse_and_get_basic_info(row_result):
             "gemini_publisher": data.get("gemini_publisher"),
             "gemini_place_of_publication": data.get("gemini_place_of_publication"),
             "gemini_year_of_publication": data.get("gemini_year_of_actual_publication"),
-            "gemini_summary": data.get("gemini_summary")
+            "gemini_summary": data.get("gemini_summary"),
+            "gemini_authors_str": data.get("gemini_authors"),
+            "gemini_authors_no_latex_str": data.get("gemini_authors")
         }
+
         return extracted_values
     except json.JSONDecodeError:
         print("Error: Invalid JSON string.")
         return {}
-
 
 
 def provide_ui_access_to_results(results):

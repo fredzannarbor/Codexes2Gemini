@@ -113,6 +113,8 @@ class PG19FetchAndTrack:
             markdown_results_with_latex = results2assembled_pandoc_markdown_with_latex(results)
 
             self.save_results_to_markdown(textfilename, markdown_results_with_latex)
+            st.write("after save to markdown")
+            st.write(st.session_state.current_plan.keys())
             pdf_creation_on = True
             # FIX graceful failure of latex textwidth]
             if pdf_creation_on:
@@ -131,7 +133,7 @@ class PG19FetchAndTrack:
                 elif "adept" in st.session_state.current_plan["imprint"].lower():
                     ImprintText = "AI Lab for Book-Lovers"
                     sheetname = "White B&W Perfect"
-
+                st.write(st.session_state.current_plan.keys())
                 bookjson_this_book = self.create_simple_bookjson(textfilename, results, result_pdf_file_name,
                                                                  ImprintText=ImprintText, sheetname=sheetname)
 
@@ -284,7 +286,7 @@ class PG19FetchAndTrack:
             trimsizeheight = 6
             trimsizewidth = 4
 
-        st.write(st.session_state.current_plan.keys())
+        # st.write(st.session_state.current_plan.keys())
         book_json = dict(BookID="TBD", BookTitle=st.session_state.current_plan['gemini_title'],
                          SubTitle=st.session_state.current_plan['gemini_subtitle'],
                          Byline=st.session_state.current_plan['gemini_authors_no_latex_str'],
