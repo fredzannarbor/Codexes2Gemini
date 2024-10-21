@@ -44,18 +44,14 @@ ensure_directory_exists("resources/data_tables")
 ensure_directory_exists("resources/data_tables/LSI")
 ensure_directory_exists("processed_data")
 
-__version__ = "0.4.6.0"
+__version__ = "0.4.7.0"
 __announcements__ = """
+- Adds debugging aids including "which VENV" alert at top of page.
+- Improves Latex preamble creation.
+- Automatically extracts basic info on first upload of large context, making the process slower but more transparent.
 - Adds initial version of direct enhancement of LSI_ACS spreadsheet
-Adds default PromptPacks
+- Adds default PromptPacks
 - Fixes result concatenation regression
 - Adds ability to save and load PromptPacks as JSON
 - renames InstructionPacks to PromptPacks for clarity, consistency
-- Fixes incorrect path assignment for dataset2gemini cli.
-- Makes pdf creation of latex markdown fail gracefully.
-- Adds data editor to allow removing docs from selection.
-- Fixes method name, parameter call in pg19 fetcher.
-- Improvements to document assembly.
-- Additional prompts, tweaks to existing ones
-- More accurate object sizing and location for duplex covers.
 """

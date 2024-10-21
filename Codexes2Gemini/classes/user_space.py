@@ -122,7 +122,7 @@ class UserSpace:
 
             "rebooter": PromptPack("rebooter",
                                    ["proactive", "focus", "creative"],
-                                   ["create_reboot_prompts"], "", False)
+                                   ["gemini_get_basic_info", "create_reboot_prompts"], "", False)
         }
 
     def get_filtered_contexts(self, filter_text: str) -> Dict[str, SavedContext]:

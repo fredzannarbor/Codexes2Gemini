@@ -12,6 +12,7 @@ DATA_DIRS = [
     "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/test/test",
     "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/train/train",
     "/Users/fred/bin/Codexes2Gemini/Codexes2Gemini/private/pg19/validation/validation",
+    "/Users/"
 ]
 
 # Initialize Codexes2Parts class

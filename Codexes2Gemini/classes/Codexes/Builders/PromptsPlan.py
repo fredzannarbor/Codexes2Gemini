@@ -43,6 +43,7 @@ class PromptsPlan:
                  list_of_user_keys_to_use: List[str] = None,
                  log_level: str = "INFO",
                  maximum_output_tokens: int = 8000,
+                 metadata_file_path: str = None,
                  minimum_required_output: bool = False,
                  minimum_required_output_tokens: int = 5,
                  model_name: str = None, mode: str = "part",
@@ -60,6 +61,7 @@ class PromptsPlan:
                  selected_user_prompt_keys: List[str] = None,
                  selected_user_prompt_values: List[str] = None,
                  selected_user_prompts_dict: Dict[str, Any] = None,
+                 selection_strategy: str = "Sample",
                  skip_processed: bool = True,
                  system_instructions_dict: Dict[str, Any] = None,
                  system_instructions_dict_file_path: str = None,
@@ -113,6 +115,7 @@ class PromptsPlan:
 
         self.list_of_user_keys_to_use = list_of_user_keys_to_use or []
         self.maximum_output_tokens = maximum_output_tokens
+        self.metadata_file_path = metadata_file_path or "data/pg19/metadata.csv"
         self.minimum_required_output = minimum_required_output
         self.minimum_required_output_tokens = minimum_required_output_tokens
         self.mode = mode
@@ -133,6 +136,7 @@ class PromptsPlan:
         self.selected_user_prompt_keys = selected_user_prompt_keys or []
         self.selected_user_prompt_values = selected_user_prompt_values or []
         self.selected_user_prompts_dict = selected_user_prompts_dict or {}
+        self.selection_strategy = selection_strategy or "Sample"
         self.system_filter_submitted = system_filter_submitted
         self.system_instructions_dict_file_path = system_instructions_dict_file_path
         self.thisdoc_dir = thisdoc_dir

@@ -319,76 +319,45 @@ def prompts_plan_builder_ui(user_space: UserSpace):
     st.subheader("Step 1: Context Selection")
 
     with st.form("Select Data Set"):
-        selection_strategy = st.radio("Choose context selection strategy:", ["Random", "User Upload"], index=0)
-        uploaded_file = st.file_uploader("Upload CSV file (PG19 format)", type=["csv"],
-                                         help="Will be ignored unless you choose Upload option.")
+        metadata_file_path = st.text_input("Path to metadata file", "data/pg19/metadata.csv")
         number_of_context_files_to_process = st.number_input("Number of Context Files to Process (PG19 only)",
-                                                             min_value=1, value=3,
-                                                             disabled=(selection_strategy == "User Upload"))
-        skip_processed = st.checkbox("Skip Already Processed Files from PG19", value=True,
-                                     disabled=(selection_strategy == "User Upload"))
-        st.session_state.current_plan.update({"skip_processed": skip_processed})
+                                                             min_value=1, value=3)
+        selection_strategy = st.radio("Selection Strategy", ["Sample", "Sequential"])
+        skip_processed = st.checkbox("Skip Already Processed Files from PG19", value=True)
 
-        st.session_state.current_plan.update({"context_choice": selection_strategy})
         initial_documents = st.form_submit_button("Initial Document Selection")
-        st.session_state.current_plan.update({"number_of_context_files_to_process": number_of_context_files_to_process})
+        st.session_state.current_plan.update({"skip_processed": skip_processed,
+                                              "metadata_file_path": metadata_file_path,
+                                              "number_of_context_files_to_process": number_of_context_files_to_process,
+                                              "selection_strategy": selection_strategy})
 
         # --- Initial Data Selection --
         if initial_documents:
             selected_rows = []  # Initialize empty list for selected rows
 
-            if selection_strategy == "User Upload":
-                if uploaded_file:
-                    try:
-                        selected_rows_df = pd.read_csv(uploaded_file, header=None,  # No header row
-                                                       names=['textfilename', 'Title', 'Publication Year', 'URI'],
-                                                       # Column names
-                                                       dtype={'textfilename': str, 'Title': str, 'URI': str},
-                                                       # Specify string types
-                                                       parse_dates=['Publication Year'],
-                                                       # Parse 'Publication Year' as datetime
-                                                       date_parser=lambda x: pd.to_datetime(x, format='%Y')
-                                                       # Specify year format
-                                                       )
-                        selected_rows_df = selected_rows_df.drop_duplicates()
-                        # take N random rows from df
-                        selected_rows_df = selected_rows_df.sample(n=number_of_context_files_to_process)
-                        selected_rows = selected_rows_df.to_dict('records')
+            try:
+                FT.metadata_file_path = metadata_file_path
+                FT.file_index = FT.create_file_index()
 
+                st.session_state.current_plan.update({"file_index": FT.file_index})
+                st.success(f"Created file index of {len(FT.file_index)} files")
+                selected_rows = FT.fetch_pg19_metadata(number_of_context_files_to_process,
+                                                       st.session_state.current_plan["selection_strategy"])
+                selected_rows_df = pd.DataFrame(selected_rows,
+                                                columns=["textfilename", "title", "year_of_publication", "URI"])
+                selected_rows = selected_rows_df.to_dict('records')
 
-                    except Exception as e:
-                        st.error(f"Error reading CSV: {e}")
-
-            elif selection_strategy == "Random":
-                try:
-                    file_index = FT.create_file_index()
-
-                    st.session_state.current_plan.update({"file_index": file_index})
-                    st.success(f"Created file index of {len(file_index)} files")
-                    selected_rows = FT.fetch_pg19_metadata(number_of_context_files_to_process, selection_strategy)
-
-                    selected_rows_df = pd.DataFrame(selected_rows,
-                                                    columns=['textfilename', 'Title', 'Publication Year', 'URI'])
-
-
-                    selected_rows = selected_rows_df.to_dict('records')
-
-                except Exception as e:
-                    st.error(f"Error fetching PG19 data: {e}")
+            except Exception as e:
+                st.error(f"Error fetching PG19 data: {traceback.format_exc()}")
 
             st.info(f"selected rows: {len(selected_rows)}, strategy: {selection_strategy}")
-            FT.file_index = file_index
 
             # --- Display and Edit Selected Rows ---
             if selected_rows:
-                # st.info("Selected Rows:")
                 for row in selected_rows:
-                    # st.write(row)
                     basic_info = gemini_get_basic_info(FT, row)
                     extracted_values = parse_and_get_basic_info(basic_info)
                     st.session_state.current_plan.update(extracted_values)
-                #  st.write(extracted_values)
-
 
                 edited_df = st.data_editor(selected_rows_df, num_rows="dynamic", key="3")
                 st.session_state.current_plan.update({"confirmed_data_set": True})
@@ -397,15 +366,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
                 st.session_state.selected_rows_df = edited_df
 
-            # st.rerun()
-
-        # if 'selected_rows_df' in st.session_state:
-        #     st.subheader("Selected Rows:")
-        #     edited_df = st.data_editor(st.session_state.selected_rows_df, num_rows="dynamic")
-
     st.subheader("Step 2: Instructions and Prompts")
-
-    # st.write(st.session_state.current_plan.keys())
 
     with st.expander("Optional: Load PromptPack"):
         with st.form("load-instruction-pack"):
@@ -593,7 +554,8 @@ def prompts_plan_builder_ui(user_space: UserSpace):
     logging.info(f"selected_rows: {st.session_state.current_plan['selected_rows']}")
 
     if st.button(f"Build From Data Set {selection_strategy}"):  #
-        #st.write(st.session_state.current_plan.keys())
+        FT.metadata_file_path = st.session_state.current_plan["metadata_file_path"]
+        FT.file_index = FT.create_file_index()
         results = FT.fetch_pg19_data(skip_processed=st.session_state.current_plan['skip_processed'])
         if isinstance(results, str):
             logging.info("results is string")
@@ -1046,7 +1008,7 @@ body {
 
 
 def run_streamlit_app():
-    st.set_page_config(layout="wide", initial_sidebar_state="expanded", page_title="Codexes2Gemini Streamlit ui Demo",
+    st.set_page_config(layout="wide", initial_sidebar_state="collapsed", page_title="Codexes2Gemini Streamlit ui Demo",
                        page_icon=":book:")
     show_debugging_info()
     st.title("Codexes2Gemini")

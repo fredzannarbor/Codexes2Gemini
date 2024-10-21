@@ -33,7 +33,7 @@ class PG19FetchAndTrack:
                  processed_csv='processed_metadata.csv',
                  output_dir='processed_data',
                  number_of_context_files_to_process=3, file_index={}):  # Default N to 3
-        self.metadata_file = metadata_file
+        self.metadata_file_path = metadata_file
         self.data_dirs = data_dirs
         self.processed_csv = processed_csv
         self.output_dir = output_dir
@@ -48,22 +48,30 @@ class PG19FetchAndTrack:
         else:
             self.processed_df = pd.DataFrame(columns=['textfilename', 'processed', 'processing_date', 'output_json'])
 
-    @st.cache_data  # Cache this for efficiency
+    # @st.cache_data  # Cache this for efficiency
     def create_file_index(_self):
         """Creates a file index for efficient lookup of text files."""
         file_index = {}
+        # st.write(f"metadata file path: {_self.metadata_file_path}")
+        try:
+            with open(_self.metadata_file_path, "r") as f:
+                reader = csv.reader(f)
+                header = next(reader)  # Read the header row
+                # st.write(f"Header columns: {header}")  # This will print the header columns
 
-        with open(_self.metadata_file, "r") as f:
-            reader = csv.reader(f)
-            next(reader)  # Skip header
-            for row in reader:
-                textfilename = row[0]
-                for data_dir in _self.data_dirs:
-                    filepath = os.path.join(data_dir, f"{textfilename}.txt")
-                    if os.path.exists(filepath):
-                        file_index[textfilename] = filepath
-                        break
-        # st.write(f"len(file_index) is {len(file_index)}")
+                for row in reader:
+                    # st.write(row)
+                    textfilename = row[0]
+                    for data_dir in _self.data_dirs:
+                        filepath = os.path.join(data_dir, f"{textfilename}.txt")
+
+                        if os.path.exists(filepath):
+                            file_index[textfilename] = filepath
+                            break
+        except FileNotFoundError:
+            st.error(f"Metadata file not found: {_self.metadata_file_path}")
+            # Handle the error appropriately, e.g., return an empty dictionary or raise an exception
+
         return file_index
 
     def fetch_pg19_data(self, skip_processed):
@@ -113,8 +121,7 @@ class PG19FetchAndTrack:
             markdown_results_with_latex = results2assembled_pandoc_markdown_with_latex(results)
 
             self.save_results_to_markdown(textfilename, markdown_results_with_latex)
-            st.write("after save to markdown")
-            st.write(st.session_state.current_plan.keys())
+
             pdf_creation_on = True
             # FIX graceful failure of latex textwidth]
             if pdf_creation_on:
@@ -133,7 +140,7 @@ class PG19FetchAndTrack:
                 elif "adept" in st.session_state.current_plan["imprint"].lower():
                     ImprintText = "AI Lab for Book-Lovers"
                     sheetname = "White B&W Perfect"
-                st.write(st.session_state.current_plan.keys())
+                #st.write(st.session_state.current_plan.keys())
                 bookjson_this_book = self.create_simple_bookjson(textfilename, results, result_pdf_file_name,
                                                                  ImprintText=ImprintText, sheetname=sheetname)
 
@@ -159,13 +166,13 @@ class PG19FetchAndTrack:
         Returns:
             list: A list of lists, where each inner list represents a row of metadata."""
         #st.info(selection_strategy)
-        if selection_strategy == "Random":
-            with open(self.metadata_file, "r") as f:
+        if selection_strategy == "Sample":
+            with open(self.metadata_file_path, "r") as f:
                 reader = csv.reader(f)
                 next(reader)  # Skip header row
                 rows = list(reader)
                 return random.sample(rows, number_of_context_files_to_process)
-        elif selection_strategy == "User Upload":
+        elif selection_strategy == "Sequential":
             rows = st.session_state()
             return random.sample(rows, number_of_context_files_to_process)  # first random
 
