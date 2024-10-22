@@ -38,7 +38,8 @@ from Codexes2Gemini.classes.Utilities.classes_utilities import configure_logger
 from Codexes2Gemini.classes.user_space import UserSpace, save_user_space, load_user_space
 from Codexes2Gemini import __version__, __announcements__
 from Codexes2Gemini.ui.build_from_dataset_of_codexes import prompts_plan_builder_ui as PPB
-from Codexes2Gemini.ui.ui_utilities import results2assembled_pandoc_markdown_with_latex, flatten_and_stringify
+from Codexes2Gemini.ui.ui_utilities import flatten_and_stringify
+from classes.Codexes.Builders.CodexBuilder import results2assembled_pandoc_markdown_with_latex
 
 logger = configure_logger("DEBUG")
 logging.info("--- Began logging ---")
