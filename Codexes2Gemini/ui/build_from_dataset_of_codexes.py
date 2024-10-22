@@ -55,8 +55,9 @@ from Codexes2Gemini.classes.user_space import UserSpace, PromptPack
 from Codexes2Gemini import __version__, __announcements__
 from Codexes2Gemini.ui.multi_context_page import MultiContextUI as MCU
 from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
-from Codexes2Gemini.ui.ui_utilities import results2assembled_pandoc_markdown_with_latex, flatten_and_stringify, \
+from Codexes2Gemini.ui.ui_utilities import flatten_and_stringify, \
     markdown2pdf_buffer
+from classes.Codexes.Builders.CodexBuilder import results2assembled_pandoc_markdown_with_latex
 
 logger = configure_logger("DEBUG")
 logging.info("--- Began logging ---")
@@ -285,6 +286,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         }
 
     user_prompts_dict = load_json_file("standard_user_prompts.json")
+    # st.write(user_prompts_dict)
     system_instructions_dict = load_json_file("system_instructions.json")
     st.session_state.current_plan.update({"approved_titles": False})
     # selected_rows = pd.read_csv("resources/data_tables/collapsar/sample_row.csv")

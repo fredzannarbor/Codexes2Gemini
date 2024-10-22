@@ -25,7 +25,8 @@ import traceback
 from Codexes2Gemini.classes.Codexes.Builders import Codexes2Parts
 from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
 from classes.Codexes.Metadata.Metadatas import Metadatas
-from ui.ui_utilities import results2assembled_pandoc_markdown_with_latex
+from classes.Codexes.Builders.CodexBuilder import results2assembled_pandoc_markdown_with_latex, \
+    create_publishing_information_block
 
 
 class PG19FetchAndTrack:
@@ -115,10 +116,30 @@ class PG19FetchAndTrack:
             results = self.process_single_context(context, row)
             st.info("processed single context")
 
+            publishing_info_block = f"""
+
+# Publishing Information
+
+(c) 2024 Nimble Books LLC
+
+ISBN: "TK"
+
+Nimble Books LLC ~ NimbleBooks.com
+
+_Humans and models making books richer, more diverse, and more surprising._
+"""
+            results.insert(1, publishing_info_block)
+
             # Save results to JSON
             self.save_results_to_json(textfilename, results)
 
             markdown_results_with_latex = results2assembled_pandoc_markdown_with_latex(results)
+
+            # publishing_info = #create_publishing_information_block()
+
+
+
+
 
             self.save_results_to_markdown(textfilename, markdown_results_with_latex)
 
