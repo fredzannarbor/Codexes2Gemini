@@ -1,12 +1,18 @@
 import json
+import logging
 import os
 import csv
 import re
+import uuid
+from os.path import basename
+import streamlit as st
+import pandas as pd
+from uuid import uuid4
 
 
-def create_lsi_csv(directory):
+def gemini_create_lsi_acs_csv(directory):
     """
-    Loops through a directory, extracts data from JSON files, and creates a CSV file.
+    Loops through a directory, extracts data from JSON files, and creates a CSV file that has metadata needed for LSI ACS upload.
 
     Args:
         directory (str): The path to the directory containing the JSON files.
@@ -58,6 +64,9 @@ def create_lsi_csv(directory):
 
     csv_data = [csv_header]  # Start with the header row
 
+    add_to_processing_metadata_df = pd.DataFrame(
+        columns=["textfilename", "title", "year_of_publication", "URI", "summary"])
+
     for filename in os.listdir(directory):
         if re.match(r'^\d+\.json$', filename):
             filepath = os.path.join(directory, filename)
@@ -65,44 +74,70 @@ def create_lsi_csv(directory):
                 try:
                     alldata = json.load(f)
 
-                    data = alldata["results"][0]  # Access the first element of the "results" list
-                    data = json.loads(data)  # Parse the inner JSON string
-                    print(data)
+                except json.JSONDecodeError:
+                    st.error(f"Error: Invalid JSON in file: {filepath}")
 
-                    gemini_title = data.get("gemini_title", " ")
-                    gemini_subtitle = data.get("gemini_subtitle", " ")
-                    if gemini_title is None:
-                        gemini_title = " "
-                    if gemini_subtitle is None:
-                        gemini_subtitle = " "
-                    gemini_authors = data.get("gemini_authors", "")
-                    if isinstance(gemini_authors, list):
-                        gemini_authors_str = ", ".join(gemini_authors)  # Join authors with commas
-                    else:
-                        gemini_authors_str = gemini_authors
-
+                    data, gemini_authors_str, gemini_subtitle, gemini_summary, gemini_title, gemini_year_of_publication, textfilename = gemini_extract_basic_info_from_saved_file(
+                        alldata, filename)
                     # Extract the basename without extension for Publisher Reference ID
                     publisher_ref_id = os.path.splitext(filename)[0]
                     non_empty_count = len(alldata['results'])
-                    csv_row = [
-                        non_empty_count, '6024045', '', '', '',
-                        'POD: B&W 4 x 6 in or 152 x 102 mm Perfect Bound on White w/Matte Lam',
-                        gemini_title + " " + gemini_subtitle, 'W. Frederick Zimmerman', 'Collapsar Classics', 'ftp',
-                        'ftp', gemini_authors_str, 'A', '', '', '', '', '4', '6', '', '', '', '', '', '', '', '', '',
-                        '', 'Fred Zimmerman', 'F', '', '', '', '', '', '', '', data.get('gemini_summary', ''), '', '',
-                        '', '', '', '', 'Yes', '', 'ENG', '', '', '', '', '', '', '', '', '', publisher_ref_id, '', '',
-                        '',
-                        '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
-                        '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
-                    csv_data.append(csv_row)
-                except json.JSONDecodeError:
-                    print(f"Error: Invalid JSON in file: {filepath}")
+                    csv_data = append_row_data_to_lsi_acs(csv_data, data, gemini_authors_str, gemini_subtitle,
+                                                          gemini_title,
+                                                          non_empty_count, publisher_ref_id)
 
-    with open('output2.csv', 'w', newline='') as csvfile:
+                    processing_metadata_row = [textfilename, gemini_title, gemini_year_of_publication, "",
+                                               gemini_summary]
+                    # append metadata row to add_to_processed_metadata_df
+                    add_to_processing_metadata_df.loc[len(add_to_processing_metadata_df)] = processing_metadata_row
+
+    # create unique job name with four characters
+    job_id = str(uuid.uuid4())[0:6]
+    with open('LSI_ACS_metadata.csv' + job_id, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(csv_data)
     print(f"Wrote file to output.csv")
+    add_to_processing_metadata_df.to_csv(f'processed_data/add_to_processing_metadata_{job_id}.csv', index=False)
+    return
+
+
+def append_row_data_to_lsi_acs(csv_data, data, gemini_authors_str, gemini_subtitle, gemini_title, non_empty_count,
+                               publisher_ref_id):
+    csv_row = [
+        non_empty_count, '6024045', '', '', '',
+        'POD: B&W 4 x 6 in or 152 x 102 mm Perfect Bound on White w/Matte Lam',
+        gemini_title + " " + gemini_subtitle, 'W. Frederick Zimmerman', 'Collapsar Classics', 'ftp',
+        'ftp', gemini_authors_str, 'A', '', '', '', '', '4', '6', '', '', '', '', '', '', '', '', '',
+        '', 'Fred Zimmerman', 'F', '', '', '', '', '', '', '', data.get('gemini_summary', ''), '', '',
+        '', '', '', '', 'Yes', '', 'ENG', '', '', '', '', '', '', '', '', '', publisher_ref_id, '', '',
+        '',
+        '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+        '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
+    csv_data.append(csv_row)
+    logging.info(f"appended row {publisher_ref_id} to csv_data")
+    return csv_data
+
+
+def gemini_extract_basic_info_from_saved_file(alldata, filename):
+    data = alldata["results"][0]  # Access the first element of the "results" list
+    data = json.loads(data)  # Parse the inner JSON string
+    print(data)
+    textfilename = basename_without_extension = os.path.splitext(os.path.basename(filename))[0]
+    gemini_title = data.get("gemini_title", " ")
+    gemini_subtitle = data.get("gemini_subtitle", " ")
+    if gemini_title is None:
+        gemini_title = " "
+    if gemini_subtitle is None:
+        gemini_subtitle = " "
+    gemini_authors = data.get("gemini_authors", "")
+    if isinstance(gemini_authors, list):
+        gemini_authors_str = ", ".join(gemini_authors)  # Join authors with commas
+    else:
+        gemini_authors_str = gemini_authors
+    gemini_year_of_publication = data.get("gemini_year_of_publication", 2024)
+    gemini_summary = data.get("gemini_summary", "")
+    return data, gemini_authors_str, gemini_subtitle, gemini_summary, gemini_title, gemini_year_of_publication, textfilename
 
 
 if __name__ == "__main__":
-    create_lsi_csv('/Users/fred/bin/nimble/Codexes2Gemini/processed_data/')
+    gemini_create_lsi_acs_csv('/Users/fred/bin/nimble/Codexes2Gemini/processed_data')
