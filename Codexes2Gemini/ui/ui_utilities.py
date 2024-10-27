@@ -29,7 +29,7 @@ def load_json_file(file_name):
 # FIX force line wrap if author > 30 charaters
 def create_latex_preamble(gemini_title="TBD", gemini_subtitle="TBD", gemini_authors="TBD", paperwidth=4, paperheight=6,
                           top=0.25, bottom=0.25, right=0.25, left=0.5, includehead=True, includefoot=True,
-                          documentclass="book", output="pdf_document", fontsize=10, mainfont=None):
+                          documentclass="book", output="pdf_document", fontsize=9.5, mainfont=None):
 
     if isinstance(gemini_authors, list):
         gemini_authors_str = ", ".join([f"{author}" for author in gemini_authors])
@@ -57,12 +57,13 @@ subtitle: "A NOVEL"
         gemini_authors_str = f"\\parbox[t]{{\\textwidth}}{{{gemini_authors_str}}}"
     st.session_state.current_plan.update({"gemini_authors_no_latex_str": gemini_authors_no_latex_str})
     st.session_state.current_plan.update({"gemini_authors_str": gemini_authors_str})
+
     yaml_preamble = f"""---
 title: "{gemini_title}"
 author: '{gemini_authors_str}'
 subtitle: "{gemini_subtitle}"
 header-includes:
-  - \\usepackage[paperwidth={paperwidth}in, paperheight={paperheight}in, top={top}in, bottom={bottom}in, right={right}in, left={left}in, includehead, includefoot]{{geometry}} # 
+  - \\usepackage[paperwidth={paperwidth}in, paperheight={paperheight}in, top={top}in, bottom={bottom}in, right={right}in, left={left}in, includehead, includefoot]{{geometry}} 
   - \\usepackage{{fancyhdr}}
   - \\pagestyle{{fancy}}
   - \\fancyhf{{}}
@@ -73,7 +74,6 @@ header-includes:
   - \\pagenumbering{{arabic}}
 documentclass: {documentclass}
 output: pdf_document
-fontsize: {fontsize}
 ---
 
 """
