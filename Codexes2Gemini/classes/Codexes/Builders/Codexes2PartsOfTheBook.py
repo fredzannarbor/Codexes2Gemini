@@ -16,6 +16,7 @@ from google.generativeai import caching
 
 from Codexes2Gemini.classes.Utilities.classes_utilities import configure_logger
 from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
+from Codexes2Gemini.ui.ui_utilities import load_json_file
 from ..Builders.PromptGroups import PromptGroups
 
 GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
@@ -121,7 +122,7 @@ class Codexes2Parts:
         return response_dict
 
     def process_codex_to_book_part(self, plan):
-        st.info(f"Starting process_codex_to_book_part with plan: {plan}")
+        st.info(f"Starting process_codex_to_book_part with plan: {plan}, which is plan_type {plan.plan_type}")
         self.make_thisdoc_dir(plan)
         context = self.read_and_prepare_context(plan)
         self.logger.debug(f"Context prepared, length: {self.count_tokens(context)} tokens")
@@ -131,15 +132,21 @@ class Codexes2Parts:
 
         model = self.create_model(self.model_name, self.safety_settings, plan.generation_config, cache)
         self.logger.debug("Model created")
+        if plan.plan_type == "User":
+            st.info("Plan type is User")
+            system_prompt = self.assemble_system_prompt(plan)
+            self.logger.debug(f"System prompt assembled, length: {self.count_tokens(system_prompt)}")
 
-        system_prompt = self.assemble_system_prompt(plan)
-        self.logger.debug(f"System prompt assembled, length: {self.count_tokens(system_prompt)}")
+            user_prompts = plan.get_prompts()
 
-        user_prompts = plan.get_prompts()
+            if not isinstance(user_prompts, list):
+                self.logger.error(f"Unexpected data type for prompts: {type(user_prompts)}")
+                return self.results  # Return early to avoid errors
+                self.logger.error(f"Unexpected data type for prompts: {type(user_prompts)}")
+                return self.results  # Return early to avoid errors
+        elif st.session_state.current_plan["plan_type"] == "Catalog":
+            system_prompt, user_prompts = self.assemble_catalog_prompts(plan)
 
-        if not isinstance(user_prompts, list):
-            self.logger.error(f"Unexpected data type for prompts: {type(user_prompts)}")
-            return self.results  # Return early to avoid errors
 
         self.results = []  # Reset self.results for each new book
 
@@ -175,8 +182,7 @@ class Codexes2Parts:
             else:
                 self.logger.warning(
                     f"Output for prompt does not meet desired length. Discarding.")
-        st.write('---')
-        st.write(self.results)
+
         return self.results
 
     def create_cache_from_context(self, context):
@@ -343,6 +349,8 @@ class Codexes2Parts:
         # st.write(context_content)
 
         if isinstance(context_content, list):
+            # Convert list to strings
+
             context_content = "\n\n".join(context_content)
 
         if plan.context_file_paths:
@@ -382,6 +390,50 @@ class Codexes2Parts:
                 system_prompt += self.add_system_prompt
 
         return system_prompt
+
+    def assemble_catalog_prompts(self, plan):
+        system_prompt = ""
+        catalog_user_prompts = []
+        st.write("now")
+        print("now")
+
+        if plan.complete_system_instruction:
+            system_prompt = plan.complete_system_instruction
+            st.write(system_prompt)
+        else:
+            with open(self.system_instructions_dict_file_path, "r") as json_file:
+                try:
+                    system_instructions_dict = json.load(json_file)
+                except Exception as e:
+                    self.logger.error(f"Error loading system instructions: {e}")
+                    st.error(traceback.format_exc())
+                    return system_prompt, catalog_user_prompts
+
+                for key in plan.selected_system_instruction_keys:
+                    key = key.strip()
+                    try:
+                        system_prompt += system_instructions_dict[key]['prompt']
+                    except KeyError as e:
+                        self.logger.error(f"System instruction key {key} not found: {e}")
+                if self.add_system_prompt:
+                    system_prompt += self.add_system_prompt
+                st.write(system_instructions_dict)
+                st.stop()
+
+        self.user_prompts_dict = load_json_file("standard_user_prompts.json")
+        st.write(self.user_prompts_dict)
+        self.selected_catalog_prompt_keys = st.session_state.current_plan["selected_catalog_prompt_keys"]
+        if self.user_prompts_dict:
+            st.write("found user prompts dict")
+            for k in self.selected_catalog_prompt_keys:  # Iterate through catalog prompt keys
+                if k in self.user_prompts_dict:  # Check if the key exists in the user prompts dict
+                    v = self.user_prompts_dict[k]
+                    catalog_user_prompts.append(f"{k}: {v}")
+                    st.write(k, v)
+        else:
+            logging.error("No user prompts dict found")
+
+        return system_prompt, catalog_user_prompts
 
     def generate_full_book(self, plans: List[PromptGroups]):
         return [self.process_codex_to_book_part(plan) for plan in plans]

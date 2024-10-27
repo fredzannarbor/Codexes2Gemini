@@ -112,7 +112,7 @@ class PG19FetchAndTrack:
 
             with open(filepath, "r") as f:
                 context = f.read()
-
+            st.session_state.current_plan.update({"plan_type": "User"})
             results = self.process_single_context(context, row)
             st.info("processed single context")
 
@@ -135,13 +135,9 @@ _Humans and models making books richer, more diverse, and more surprising._
 
             markdown_results_with_latex = results2assembled_pandoc_markdown_with_latex(results)
 
-            # publishing_info = #create_publishing_information_block()
-
-
-
-
-
+            st.json(markdown_results_with_latex, expanded=False)
             self.save_results_to_markdown(textfilename, markdown_results_with_latex)
+
 
             pdf_creation_on = True
             # FIX graceful failure of latex textwidth]
@@ -166,6 +162,13 @@ _Humans and models making books richer, more diverse, and more surprising._
                                                                  ImprintText=ImprintText, sheetname=sheetname)
 
                 self.save_bookjson_this_book(textfilename, bookjson_this_book)
+                st.session_state.current_plan.update({"plan_type": "Catalog"})
+                catalog_results = self.generate_catalog_metadata(context, row)  # same plan
+                # st.session_state.current_plan.update({"plan_type": "User"})
+                st.write(catalog_results)
+                catalog_file_name = textfilename + "_catalog.json"
+                catalog_results_df = pd.DataFrame(catalog_results)
+                catalog_results_df.to_csv(f"{self.output_dir}_catalog.csv")
 
             else:
                 st.info(f"temporarily disabled PDF and bookjson file creation")
@@ -211,6 +214,7 @@ _Humans and models making books richer, more diverse, and more surprising._
         if plan is None:
             plan = PromptsPlan(**st.session_state.current_plan)
         # st.write(plan.get_prompts())
+        st.write(plan.plan_type)
         satisfactory_results = self.CODEXES2PARTS.process_codex_to_book_part(plan)
 
         return satisfactory_results
@@ -278,7 +282,7 @@ _Humans and models making books richer, more diverse, and more surprising._
         output_pdf_path = os.path.join(self.output_dir, output_pdf_filename)
         os.makedirs(self.output_dir, exist_ok=True)
         if extra_args is None:
-            extra_args = ['--toc', '--toc-depth=2', '--pdf-engine=xelatex']
+            extra_args = ['--toc', '--toc-depth=2', '--pdf-engine=lualatex', '-V', 'mainfont=Miller Text']
         try:
             # If md_result is a list, join the elements into a string
             if isinstance(md_result, list):
@@ -378,7 +382,7 @@ _Humans and models making books richer, more diverse, and more surprising._
 
     def save_LSI_metadata_to_ACS_spreadsheet(self, textfilename, metadata_this_row):
 
-        #lsi_df = create_LSI_ACS_spreadsheet(metadata_this_row)
+        lsi_df = create_LSI_ACS_spreadsheet(metadata_this_row)
         return
 
     def complete_LSI_metadata(self, textfilename, metadata_this_row):
@@ -441,3 +445,11 @@ _Humans and models making books richer, more diverse, and more surprising._
         metadata_this_row['cover_filepath'] = os.path.join(self.output_dir, f"{safeISBN}_cover.pdf")
 
         return metadata_this_row
+
+    def generate_catalog_metadata(self, context: object, row: object) -> object:
+        if st.session_state.current_plan["generate_catalog_metadata_for_upload"] or st.session_state.current_plan[
+            "generate_catalog_metadata_for_manual_entry"]:
+            st.info("creating catalog metadata")
+            # should I morph catalog keys here?
+            catalog_results = self.process_single_context(context, row)  # now handle Plan
+            return catalog_results

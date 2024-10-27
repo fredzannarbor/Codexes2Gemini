@@ -463,7 +463,9 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                 "custom_user_prompt": custom_user_prompt,
                 "user_prompt_override": user_prompt_override == "Override other user prompts",
                 "user_prompts_dict": selected_user_prompts_dict,
+                "selected_user_prompts_dict": selected_user_prompts_dict,
             })
+
 
     with st.expander("Optional: Save PromptPack", expanded=False):
         with st.form("save-instruction-pack"):
@@ -521,6 +523,12 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             require_json_output = st.checkbox("Require JSON Output", value=False)
             imprint = st.selectbox("Imprint", ["Nimble Books LLC", "ADEPT", "Collapsar"], index=2)
 
+        with st.expander("Specify Metadata to Accompany Outputs"):
+            generate_catalog_metadata_for_upload = st.radio("Generate catalog metadata for upload via ACS",
+                                                            [True, False])
+            generate_catalog_metadata_for_manual_entry = st.radio("Generate catalog metadata for manual entry",
+                                                                  [True, False], index=0)
+
         with st.expander("Set Output Destinations"):
             thisdoc_dir = st.text_input("Output directory", value=os.path.join(os.getcwd(), 'processed_data'))
             output_file = st.text_input("Output filename base", "output")
@@ -543,8 +551,18 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                 "minimum_required_output_tokens": minimum_required_output_tokens,
                 "log_level": log_level,
                 "require_json_output": require_json_output,
-                "imprint": imprint
+                "imprint": imprint,
+                "generate_catalog_metadata_for_upload": generate_catalog_metadata_for_upload,
+                "generate_catalog_metadata_for_upload_pack_name": "Ingram_catalog_upload",
+                "generate_catalog_metadata_for_manual_entry": generate_catalog_metadata_for_manual_entry,
+                "generate_catalog_metadata_for_manual_entry_pack_name": "Ingram_catalog_manual_entry",
+                "selected_catalog_prompt_keys": ['Annotation', 'BISACs', 'bibliographic_key_phrases', 'thema_subjects',
+                                                 'regional_subject', 'audience_and_age_classification',
+                                                 'short_description', 'truth_in_publishing', 'illustrations_analysis',
+                                                 'illustrations_notes']
+
             })
+
 
             st.success(f"Plan '{plan_name}' updated")
 
@@ -593,6 +611,7 @@ def gemini_get_basic_info(FT, row):
     logging.info(f"{basicInfoPlan.show_all_keys()}")
 
     C2P = Codexes2Parts()
+    basicInfoPlan.plan_type = "User"
     row_result = C2P.process_codex_to_book_part(basicInfoPlan)
     extracted_values = parse_and_get_basic_info(row_result)
 
@@ -630,6 +649,7 @@ def parse_and_get_basic_info(row_result):
         return extracted_values
     except json.JSONDecodeError:
         print("Error: Invalid JSON string.")
+        print(traceback.format_exc())
         return {}
 
 

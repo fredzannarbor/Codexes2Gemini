@@ -36,6 +36,10 @@ class PromptsPlan:
                  gemini_title: str = "TK",
                  gemini_summary="",
                  ISBN: str = "TBD",
+                 generate_catalog_metadata_for_manual_entry=False,
+                 generate_catalog_metadata_for_upload=True,
+                 generate_catalog_metadata_for_upload_pack_name="Ingram_catalog_upload",
+                 generate_catalog_metadata_for_manual_entry_pack_name="Ingram_catalog_manual_entry",
                  generation_config: dict = None,
                  imprint="Nimble Books LLC",
                  json_required: bool = False,
@@ -51,11 +55,13 @@ class PromptsPlan:
                  number_to_run: int = 1,
                  number_of_context_files_to_process: int = 3,
                  output_file_base_name: str = "output",
+                 plan_type="User",
                  require_json_output=False,
                  revised_rows: List[str] = None,
                  output_file: str = None,
                  row=None,
                  selected_rows: List[str] = None,
+                 selected_catalog_prompt_keys: List[str] = None,
                  selected_system_instruction_keys: List[str] = None,
                  selected_system_instruction_values: List[str] = None,
                  selected_user_prompt_keys: List[str] = None,
@@ -105,6 +111,10 @@ class PromptsPlan:
         self.gemini_subtitle = gemini_subtitle or ""
         self.gemini_title = gemini_title or ""
         self.gemini_summary = gemini_summary or ""
+        self.generate_catalog_metadata_for_manual_entry = False
+        self.generate_catalog_metadata_for_upload = True
+        self.generate_catalog_metadata_for_upload_pack_name = generate_catalog_metadata_for_upload_pack_name
+        self.generate_catalog_metadata_for_manual_entry_pack_name = generate_catalog_metadata_for_manual_entry_pack_name
         self.imprint = imprint or "ADEPT"
         self.ISBN = ISBN or "TBD"
         self.json_required = json_required
@@ -125,6 +135,7 @@ class PromptsPlan:
         self.number_to_run = number_to_run
         self.output_file = output_file
         self.output_file_path = output_file_base_name
+        self.plan_type = plan_type or "User"
         self.require_json_output = require_json_output
         self.revised_rows = revised_rows
         self.row = row
@@ -133,6 +144,7 @@ class PromptsPlan:
         self.system_instructions_dict = system_instructions_dict or {}
         self.selected_system_instruction_keys = selected_system_instruction_keys or []
         self.selected_system_instruction_values = selected_system_instruction_values or []
+        self.selected_catalog_prompt_keys = selected_catalog_prompt_keys or []
         self.selected_user_prompt_keys = selected_user_prompt_keys or []
         self.selected_user_prompt_values = selected_user_prompt_values or []
         self.selected_user_prompts_dict = selected_user_prompts_dict or {}
