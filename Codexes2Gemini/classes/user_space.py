@@ -93,7 +93,6 @@ class UserSpace:
                 "",
                 False
             ),
-
             "collapsar_core_style_enhanced": PromptPack(
                 "collapsar_core_style_enhanced",
                 [
@@ -119,11 +118,31 @@ class UserSpace:
                 "Add at end of other user prompts",
 
             ),
-
             "rebooter": PromptPack("rebooter",
                                    ["proactive", "focus", "creative"],
                                    ["gemini_get_basic_info", "create_reboot_prompts"], "", False)
+            ,
+            "Ingram_catalog_upload": PromptPack("Ingram_catalog_upload", ["proactive", "focus", "creative"],
+                                                ['Annotation', 'BISACs', 'bibliographic_key_phrases', 'thema_subjects',
+                                                 'regional_subject', 'audience_and_age_classification',
+                                                 'short_description', 'truth_in_publishing', 'illustrations_analysis',
+                                                 'illustrations_notes'],
+                                                "",
+                                                False),
+            "Ingram_catalog_manual_entry": PromptPack("Ingram_catalog_manual_entry", ["proactive", "focus", "creative"],
+                                                      ['BISACs', 'audience_and_age_classification_nimble',
+                                                       'regional_subject', 'thema_subjects', 'truth_in_publishing',
+                                                       'Annotation', 'bibliographic_key_phrases', 'short_description',
+                                                       'illustrations_analysis', 'illustrations_notes'], "", False),
+            "social_media_prep": PromptPack("Ingram_catalog_manual_entry", ["proactive", "focus", "creative"],
+                                            ['BISACs', 'audience_and_age_classification_nimble', 'regional_subject',
+                                             'thema_subjects', 'truth_in_publishing', 'Annotation',
+                                             'bibliographic_key_phrases', 'short_description'], "", False),
         }
+
+        """
+        Note:the default audience/age classifier ending in _nimble uses on a subset of audiences, if you want the full list, drop the _nimble
+        """
 
     def get_filtered_contexts(self, filter_text: str) -> Dict[str, SavedContext]:
         """Returns a dictionary of contexts that match the given filter text.
