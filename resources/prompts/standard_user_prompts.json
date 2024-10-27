@@ -1,6 +1,6 @@
 {
   "about_the_author_classic": {
-    "prompt": "Your task is to write an \"About the Author\" section for the front matter of this document. \nFirst, review the document carefully to be certain that you have correctly identified its author.\nNow provide a summary of the author's life, emphasizing:\n- capsule biography\n- significant connections with contemporary figures who are still well known\n- motivation for writing the document, situation while doing so, post-publication impact\n- aspects of identity and experience that are particularly relevant to modern readers, for good or ill\n- modern figures who might be considered similar or analogous\n- very concise summation of achievements as an author",
+    "prompt": "Your task is to write an \"About the Author\" section for the front matter of this document. \nFirst, review the document carefully to be certain that you have correctly identified its author.\nNow provide a summary of the author's life, emphasizing:\n- capsule biography\n- significant connections with contemporary figures who are still well known\n- motivation for writing the document, situation while doing so, post-publication impact\n- aspects of identity and experience that are particularly relevant to modern readers, for good or ill\n- modern figures who might be considered similar or analogous\n- very concise summation of achievements as an author\nBegin output with '# About the Author' followed by two new line characters.",
     "tags": [
       "author",
       "front matter",
@@ -32,8 +32,52 @@
       "Collapsar"
     ]
   },
+  "illustrations_analysis": {
+    "prompt": "Relying on internal textual information from the document, estimate the total combined number of illustrations, photographs, maps, charts, graphs, diagrams, tables, or any other drawings or pictures included in the original version of the book.  Use the following JSON schema:\n\n{\n\"# Illustrations\": {int}\n}\n\nIf there appear to be none, or if the number appears to be implausibly high, the value should be 0.\n\nDo not explain your reasoning.  Simply provide the requested JSON.\n  ",
+    "tags": [
+      "table of contents",
+      "front matter",
+      "book structure",
+      "parts of the book",
+      "ADEPT",
+      "Collapsar"
+    ]
+  },
+  "illustrations_notes": {
+    "prompt": "Combining internal textual information from the document with your external knowledge, describe its interior illustrations in twenty-five words or less.  Your goal is to highlight any special value provided by the illustrations.\n\nExample:\n\n{\n\"Illustration Notes\":\n\"Fifty-six photographs including twenty color plates by famed artist John Audubon. Foldout map hand-inked by Picasso.\"\n}\n\nYour description MUST be factually accurate.",
+    "tags": [
+      "table of contents",
+      "front matter",
+      "book structure",
+      "parts of the book",
+      "ADEPT",
+      "Collapsar"
+    ]
+  },
+  "audience_and_age_classification": {
+    "tags": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "prompt": "Your task is to assign this manuscript to audience and age categories. \n\nValid audience categories are:\n\nAdult Education\r\nChildren/Juvenile\r\nCollege/Higher Education\r\nEnglish as a Second Language\r\nGeneral/Trade\r\nPrimary & Secondary/Elementary & High School\r\nProfessional and Scholarly\r\nYoung Adult\n\nIf classifications 02 Children/Juvenile or 03 Young Adult are selected, you MUST provide minimum and maximum ages and grades. \nFor Children/Juvenile, min and max may be between 0-18. Max must be larger than min.  For Young Adult, min must be >=12, Max must be 18.\n\nMin Grade must be >=1.\nMax Grade must be <=12.\nMax Grade must be >= Min Grade.\n\nUse the following JSON schema:\n\n{\"audience\": {audience_category},\n\"Min Age\": {int},\n\"Max Age\": {int},\n\"Min Grade\": {int},\n\"Max Grade\": {int}\n}\n"
+  },
+  "audience_and_age_classification_nimble": {
+    "tags": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "prompt": "Your task is to assign this manuscript to audience and age categories. \n\nValid audience categories for Nimble Books are:\n\r\nChildren/Juvenile\r\nGeneral/Trade\r\nYoung Adult\n\nIf classifications 02 Children/Juvenile or 03 Young Adult are selected, you MUST provide minimum and maximum ages and grades. \nFor Children/Juvenile, min and max may be between 0-18. Max must be larger than min.  For Young Adult, min must be >=12, Max must be 18.\n\nMin Grade must be >=1.\nMax Grade must be <=12.\nMax Grade must be >= Min Grade.\n\nUse the following JSON schema:\n\n{\"audience\": {audience_category},\n\"Min Age\": {int},\n\"Max Age\": {int},\n\"Min Grade\": {int},\n\"Max Grade\": {int}\n}\n"
+  },
   "bibliographic_key_phrases": {
-    "prompt": "Please generate ten to twelve unique bibliographic key phrases for this document. Each phrase should be two to three words long. Separate each phrase by a semicolon. Output begins: '# Bibliographic Key Phrases' followed by two new-line characters. Do NOT repeat key phrases. Stop if you begin to repeat.",
+    "prompt": "Please generate twelve unique bibliographic key phrases for this document. The search phrases should be specific and conceptual. The goal is to enable niche audiences to find the book.  Each phrase should be two to three words long. Separate each phrase by a semicolon. Output begins: '# Bibliographic Key Phrases' followed by two new-line characters. ",
     "tags": [
       "publishing",
       "bibliographic",
@@ -62,8 +106,20 @@
       "attribution"
     ]
   },
-  "condensed_matter - lua emoji": {
-    "prompt": "Backstory:\n\nCollapsar Classics was launched to bring 19th and early 20th century books to modern audiences in a fresh and convenient way. Each book is approximately 15,000 words and is presented in a phone-sized 4 x 6\" paperback format. Each Collapsar Classic includes a section called \"Condensed Matter\" (a play on front matter). Much like the Reader's Digest Condensed Books that were popular many decades ago, the Condensed Matters is meant to give you the best parts of the original in a much smaller space.\n\nYour Task:\n\nWrite the Condensed Matter section for the document in the context. The document in the context is permissioned public domain so you have complete freedom to quote from it.\nWork only on the Condensed Matter section. Do not refer to the backstory.\nYour goal is to write a highly readable condensed version of the original. \nYou must cover the entire scope of the original within your output window. Thus, your condensed prose should begin at or near the beginning of the original and end at or near the end of it.\nYou should use the exact words of the context frequently.\nYou may use transitional devices such as ellipses, dingbats, or bracketed comments.\nYou may make sparing use of framing devices in your own words.\nRemember, your overriding goal is to give modern readers the benefit of reading this document in as original a form as possible, but as much condensed as possible.\nOutput must begin '# Condensed Matter' followed immediately by two new-line characters.\nYou may use emoji liberally. Write emoji in the format \\emoji{<github emoji alias>}, e.g. \\emoji{joy}.  The emoji MUST be drawn from the valid list in the system instructions.  Use them imaginatively.",
+  "BISACs": {
+    "prompt": "Recommend the three most relevant BISAC book categories for this book.\n\nThe official BISAC categories are provided as a document in the context.  You MUST use the official category values in string format, e.g. \"ANTIQUES & COLLECTIBLES / Bottles\".\n\nUse the following JSON schema:\n\n{\n'BISAC Category 1': {str}, \n'BISAC Category 2': {str},\n'BISAC Category 3': {str}\n}\n\nIf possible, include categories drawn from at least two different top-level nodes, but don't force it.",
+    "tags": [
+      "publishing",
+      "bibliographic",
+      "motivation",
+      "audience",
+      "audience",
+      "ADEPT",
+      "Collapsar"
+    ]
+  },
+  "condensed_matter": {
+    "prompt": "Backstory:\n\nCollapsar Classics was launched to bring 19th and early 20th century books to modern audiences in a fresh and convenient way. Each book is approximately 15,000 words and is presented in a phone-sized 4 x 6\" paperback format. Each Collapsar Classic includes a section called \"Condensed Matter\" (a play on front matter). Much like the Reader's Digest Condensed Books that were popular many decades ago, the Condensed Matters is meant to give you the best parts of the original in a much smaller space.\n\nYour Task:\n\nWrite the Condensed Matter section for the document in the context. The document in the context is permissioned public domain so you have complete freedom to quote from it.\nWork only on the Condensed Matter section. Do not refer to the backstory.\nYour goal is to write a highly readable condensed version of the original. \nYou must cover the entire scope of the original within your output window. Thus, your condensed prose should begin at or near the beginning of the original and end at or near the end of it.\nYou should use the exact words of the context frequently.\nYou may use transitional devices such as ellipses, dingbats, or bracketed comments.\nYou may make sparing use of framing devices in your own words.\nRemember, your overriding goal is to give modern readers the benefit of reading this document in as original a form as possible, but as much condensed as possible.\nOutput must begin '# Condensed Matter' followed immediately by two new-line characters.\n",
     "tags": [
       "publishing",
       "bibliographic",
@@ -72,8 +128,8 @@
       "Collapsar"
     ]
   },
-  "condensed_matter ": {
-    "prompt": "Backstory:\n\nCollapsar Classics was launched to bring 19th and early 20th century books to modern audiences in a fresh and convenient way. Each book is approximately 15,000 words and is presented in a phone-sized 4 x 6\" paperback format. Each Collapsar Classic includes a section called \"Condensed Matter\" (a play on front matter). Much like the Reader's Digest Condensed Books that were popular many decades ago, the Condensed Matters is meant to give you the best parts of the original in a much smaller space.\n\nYour Task:\n\nWrite the Condensed Matter section for the document in the context. The document in the context is permissioned public domain so you have complete freedom to quote from it.\nWork only on the Condensed Matter section. Do not refer to the backstory.\nYour goal is to write a highly readable condensed version of the original. \nYou must cover the entire scope of the original within your output window. Thus, your condensed prose should begin at or near the beginning of the original and end at or near the end of it.\nYou should use the exact words of the context frequently.\nYou may use transitional devices such as ellipses, dingbats, or bracketed comments.\nUse emoji to add flavor and emphasize emotion.\nYou may make sparing use of framing devices in your own words.\nRemember, your overriding goal is to give modern readers the benefit of reading this document in as original a form as possible, but as much condensed as possible.\nOutput must begin '# Condensed Matter' followed immediately by two new-line characters.\n",
+  "condensed_matter - lua emoji": {
+    "prompt": "Backstory:\n\nCollapsar Classics was launched to bring 19th and early 20th century books to modern audiences in a fresh and convenient way. Each book is approximately 15,000 words and is presented in a phone-sized 4 x 6\" paperback format. Each Collapsar Classic includes a section called \"Condensed Matter\" (a play on front matter). Much like the Reader's Digest Condensed Books that were popular many decades ago, the Condensed Matters is meant to give you the best parts of the original in a much smaller space.\n\nYour Task:\n\nWrite the Condensed Matter section for the document in the context. The document in the context is permissioned public domain so you have complete freedom to quote from it.\nWork only on the Condensed Matter section. Do not refer to the backstory.\nYour goal is to write a highly readable condensed version of the original. \nYou must cover the entire scope of the original within your output window. Thus, your condensed prose should begin at or near the beginning of the original and end at or near the end of it.\nYou should use the exact words of the context frequently.\nYou may use transitional devices such as ellipses, dingbats, or bracketed comments.\nYou may make sparing use of framing devices in your own words.\nRemember, your overriding goal is to give modern readers the benefit of reading this document in as original a form as possible, but as much condensed as possible.\nOutput must begin '# Condensed Matter' followed immediately by two new-line characters.\nYou may use emoji liberally. Write emoji in the format \\emoji{<github emoji alias>}, e.g. \\emoji{joy}.  The emoji MUST be drawn from the valid list in the system instructions.  Use them imaginatively.",
     "tags": [
       "publishing",
       "bibliographic",
@@ -100,6 +156,16 @@
       "AI writing",
       "style",
       "prompts"
+    ]
+  },
+  "conversation_starters": {
+    "prompt": "Backstory:\n\nCollapsar Classics was launched to bring 19th and early 20th century books to modern audiences in a fresh and convenient way. Each book is approximately 15,000 words and is presented in a phone-sized 4 x 6\" paperback format. Each Collapsar Classic includes a section called \"Condensed Matter\" (a play on front matter). Much like the Reader's Digest Condensed Books that were popular many decades ago, the Condensed Matters is meant to give you the best parts of the original in a much smaller space.\n\nYour Task:\n\nWrite the Condensed Matter section for the document in the context. The document in the context is permissioned public domain so you have complete freedom to quote from it.\nWork only on the Condensed Matter section. Do not refer to the backstory.\nYour goal is to write a highly readable condensed version of the original. \nYou must cover the entire scope of the original within your output window. Thus, your condensed prose should begin at or near the beginning of the original and end at or near the end of it.\nYou should use the exact words of the context frequently.\nYou may use transitional devices such as ellipses, dingbats, or bracketed comments.\nUse emoji to add flavor and emphasize emotion.\nYou may make sparing use of framing devices in your own words.\nRemember, your overriding goal is to give modern readers the benefit of reading this document in as original a form as possible, but as much condensed as possible.\nOutput must begin '# Condensed Matter' followed immediately by two new-line characters.\n",
+    "tags": [
+      "publishing",
+      "bibliographic",
+      "motivation",
+      "audience",
+      "Collapsar"
     ]
   },
   "core_audience_attributes": {
@@ -397,6 +463,19 @@
       "content summary"
     ]
   },
+  "short_description": {
+    "prompt": "Write a short description of the book in less than 150 characters. This is for use in catalogs.  Include any key selling points. Do not include author bio, excerpts, or links.",
+    "tags": [
+      "LSI",
+      "Ingram",
+      "front matter",
+      "catalog",
+      "abstract",
+      "marketing",
+      "ADEPT",
+      "Collapsar"
+    ]
+  },
   "Synthetic_Reader": {
     "prompt": "Your goal is to analyze this document from the point of view of a 'synthetic reader', or imaginary persona. As you do the following tasks, remember to refer to the entire context. \n1. Outline the semantic structure of the book as best you can. A typical semantic structure is Parts > {Front Matter, Body, Back Matter} => {Foreword, Chapters, Indexes} => {Scenes, Content}. Always go to scene level.\n2. Create a single persona who is representative of the core audience for the book. 3.\nGenerate a list of positive and negative observable traits of the text that influence the persona's enjoyment of the book. Positive observables might include things like vivid language, clear exposition, and strong dramatic structure. Negative observables might include things like cliches, typos, repetitive content, or boring passages. Generate as many traits as you like and make sure that they are tailored to the nature of the synthetic reader persona.\n4. Now proceed through the semantic structure of the book and for each scene evaluate it for the presence of negative and positive observables. Provide a markdown format table with the following columns: scene, positive observable count, negative observable count, comments. Provide the net positive - negative observables.\n5. Provide a list of actionable 'to dos' for the author. ",
     "tags": [
@@ -404,6 +483,18 @@
       "book analysis",
       "audience persona",
       "content evaluation"
+    ]
+  },
+  "themas": {
+    "prompt": "Your task is to assign Thema (Editeur) categories to the book.",
+    "tags": [
+      "publishing",
+      "bibliographic",
+      "motivation",
+      "audience",
+      "audience",
+      "ADEPT",
+      "Collapsar"
     ]
   },
   "timeline-technical": {
