@@ -271,6 +271,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             "complete_system_instruction": "",
             "selected_user_prompt_keys": [],
             "selected_user_prompt_values": [],
+            "minimum_required_output_tokens": 10,
             "custom_user_prompt": "",
             "user_prompt_override": False,
             "complete_user_prompt": "",
@@ -286,11 +287,12 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         }
 
     user_prompts_dict = load_json_file("standard_user_prompts.json")
-    # st.write(user_prompts_dict)
     system_instructions_dict = load_json_file("system_instructions.json")
     st.session_state.current_plan.update({"approved_titles": False})
-    # selected_rows = pd.read_csv("resources/data_tables/collapsar/sample_row.csv")
-    # st.session_state.current_plan.update({"selected_rows": selected_rows.to_dict('records')})
+    st.session_state.current_plan.update({"system_instructions_dict": system_instructions_dict})
+    st.session_state.current_plan.update({"user_prompts_dict": user_prompts_dict})
+
+
 
     METADATA_FILE = "data/pg19/metadata.csv"
     DATA_DIRS = [
@@ -357,6 +359,9 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             # --- Display and Edit Selected Rows ---
             if selected_rows:
                 for row in selected_rows:
+                    # st.write(row)
+                    st.write(
+                        f"minimum required output tokens is {st.session_state.current_plan['minimum_required_output_tokens']}")
                     basic_info = gemini_get_basic_info(FT, row)
                     extracted_values = parse_and_get_basic_info(basic_info)
                     st.session_state.current_plan.update(extracted_values)
@@ -441,13 +446,18 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         selected_user_prompt_values = [filtered_user[key]['prompt'] for key in selected_user_prompt_keys]
         selected_user_prompts_dict = {key: filtered_user[key]['prompt'] for key in selected_user_prompt_keys}
 
+        chunking_prompts = ["condenser-loop"]
+
         filtered_user_prompts = st.form_submit_button("Select these predefined user prompts")
         if filtered_user_prompts:
             st.session_state.current_plan.update({
                 "selected_user_prompt_keys": selected_user_prompt_keys,
                 "selected_user_prompt_values": selected_user_prompt_values,
                 "selected_user_prompts_dict": selected_user_prompts_dict,
-            })
+                "chunking_prompts": chunking_prompts})
+
+
+
 
     with st.form("add custom_user_prompts"):
         custom_user_prompt = st.text_area("Custom User Prompt (optional)")
@@ -476,7 +486,8 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                                   st.session_state.current_plan["selected_system_instruction_values"],
                                   st.session_state.current_plan['selected_user_prompts_dict'],
                                   st.session_state.current_plan['custom_user_prompt'],
-                                  st.session_state.current_plan['user_prompt_override'])
+                                  st.session_state.current_plan['user_prompt_override'],
+                                  chunking_prompts=chunking_prompts)
 
                 try:
                     user_space.save_prompt_pack(pack)
@@ -517,13 +528,15 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                             "Full Codex (Codex)": 'codex'}  # Add mapping for "Codex"
             selected_mode_label = st.selectbox("Create This Type of Codex Object:", mode_options)
             mode = mode_mapping[selected_mode_label]
+            chunking_output_percentage = st.number_input("Body Length as % of Original", 10, 100, 30)
+            chunking_max_tokens_per_chunk = st.number_input("Max Tokens per Chunk", 1000, 7000, 6000)
             maximum_output_tokens = 10000000
             minimum_required_output = False
             minimum_required_output_tokens = 10
             require_json_output = st.checkbox("Require JSON Output", value=False)
             imprint = st.selectbox("Imprint", ["Nimble Books LLC", "ADEPT", "Collapsar"], index=2)
 
-        with st.expander("Specify Metadata to Accompany Outputs"):
+        with st.expander("Set Metadata Output"):
             generate_catalog_metadata_for_upload = st.radio("Generate catalog metadata for upload via ACS",
                                                             [True, False])
             generate_catalog_metadata_for_manual_entry = st.radio("Generate catalog metadata for manual entry",
@@ -559,8 +572,9 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                 "selected_catalog_prompt_keys": ['Annotation', 'BISACs', 'bibliographic_key_phrases', 'thema_subjects',
                                                  'regional_subject', 'audience_and_age_classification',
                                                  'short_description', 'truth_in_publishing', 'illustrations_analysis',
-                                                 'illustrations_notes']
-
+                                                 'illustrations_notes'],
+                "chunking_output_percentage": chunking_output_percentage,
+                "chunking_max_tokens_per_chunk": chunking_max_tokens_per_chunk
             })
 
 
@@ -572,6 +586,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
     logging.info(f"session state keys are {st.session_state.current_plan.keys()}")
     logging.info(f"skipping previously processed files: {st.session_state.current_plan['skip_processed']}")
     logging.info(f"selected_rows: {st.session_state.current_plan['selected_rows']}")
+
 
     if st.button(f"Build From Data Set {selection_strategy}"):  #
         FT.metadata_file_path = st.session_state.current_plan["metadata_file_path"]
@@ -591,7 +606,7 @@ def gemini_get_basic_info(FT, row):
     # copy FT instance
     # st.write(f"{len(FT.file_index)} files in FT.file_index" )
     filepath = FT.file_index.get(row['textfilename'])
-    st.info(f"filepath is {filepath}")
+    st.info(f"filepath in gemini_get_basic_information is {filepath}")
     if filepath is None:
         st.error(f"Warning: Could not find file for {row['textfilename']}")
         return
@@ -605,14 +620,35 @@ def gemini_get_basic_info(FT, row):
         context=context,
         selected_user_prompts_dict={
             "gemini_get_basic_info":
-                "Please review the entire document provided in the context from beginning to end. Allocate your time equally throughout the document.  Carry out the following tasks in batch mode.\n1. Do your best to identify the official title, subtitle, and author(s) of the document. \n2. Do your best to identify the publisher, place of publication, and year of actual publication. \n3. Summarize the content of the document. Your goal is to create a summary that accurately describes all the most important elements of the document in a way that is flexible enough to be used by many prompts.\n4. Return valid JSON output that contains keys 'gemini_title','gemini_subtitle', 'gemini_authors', 'gemini_publisher', 'gemini_place_of_publication', 'gemini_year_of_actual_publication', and 'gemini_summary'. Single and double quotation marks within the JSON output MUST be escaped. Do NOT enclose the json in triple backticks."},
-        complete_system_instruction="You are a careful, meticulous researcher. You are careful to state facts accurately.\nY\nYou are industrious, energetic, and proactive. You complete tasks without waiting for approval."
+                """Please review the entire document provided in the context from beginning to end. Allocate your time equally throughout the document.  Carry out the following tasks in batch mode and return in Json format..
+                1. Do your best to identify the official title, subtitle, and author(s) of the document. 
+                2. Do your best to identify the publisher, place of publication, and year of actual publication. 
+                3. Summarize the content of the document. Your goal is to create a summary that accurately describes all the most important elements of the document in a way that is flexible enough to be used by many prompts.
+                4. Return valid JSON output in the following format:
+                ```json
+                {
+                    "gemini_title": "[title]",
+                    "gemini_subtitle": "[subtitle]",
+                    "gemini_authors": "[authors]",
+                    "gemini_publisher": "[publisher]",
+                    "gemini_place_of_publication": "[place of publication]",
+                    "gemini_year_of_actual_publication": "[year of publication]",
+                    "gemini_summary": "[summary]"
+                  }
+                ```
+                Single and double quotation marks within the JSON output MUST be escaped. 
+                """},
+        complete_system_instruction="You are a careful, meticulous researcher. You are careful to state facts accurately.\nY\nYou are industrious, energetic, and proactive. You complete tasks without waiting for approval.",
+        minimum_required_output_tokens=st.session_state.current_plan['minimum_required_output_tokens']
     )
     logging.info(f"{basicInfoPlan.show_all_keys()}")
 
     C2P = Codexes2Parts()
     basicInfoPlan.plan_type = "User"
+    st.info("about to run process to book part")
     row_result = C2P.process_codex_to_book_part(basicInfoPlan)
+    st.info("finished running process to book part")
+    #st.write(row_result)
     extracted_values = parse_and_get_basic_info(row_result)
 
     # st.write(extracted_values)
@@ -631,8 +667,13 @@ def parse_and_get_basic_info(row_result):
     Returns:
         dict: A dictionary containing the extracted values.
     """
+    #st.write(row_result)
     try:
-        data = json.loads(row_result[0])  # Parse the JSON string
+        # join row result into a single string
+        row_result = "".join(row_result)
+        row_result = row_result.replace("```json", "").replace("", "")
+        row_result = row_result.replace("```", "")
+        data = json.loads(row_result)  # Parse the JSON string
         # st.write(data)
         extracted_values = {
             "gemini_title": data.get("gemini_title"),
@@ -645,7 +686,7 @@ def parse_and_get_basic_info(row_result):
             "gemini_authors_str": data.get("gemini_authors"),
             "gemini_authors_no_latex_str": data.get("gemini_authors")
         }
-
+        st.write(extracted_values)
         return extracted_values
     except json.JSONDecodeError:
         print("Error: Invalid JSON string.")

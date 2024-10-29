@@ -15,6 +15,9 @@ class PromptsPlan:
     def __init__(self,
                  add_system_prompt: str = "",
                  approved_titles: bool = False,
+                 chunking_output_percentage=30,
+                 chunking_max_tokens_per_chunk=6000,
+                 chunking_prompts=[],
                  complete_system_instruction: str = "",
                  complete_user_prompt: str = "",
                  confirmed_data_set: bool = False,
@@ -85,6 +88,9 @@ class PromptsPlan:
 
         self.add_system_prompt = add_system_prompt
         self.approved_titles = approved_titles
+        self.chunking_output_percentage = 30
+        self.chunking_max_tokens_per_chunk = 6000
+        self.chunking_prompts = chunking_prompts
         self.complete_system_instruction = complete_system_instruction
         self.complete_user_prompt = complete_user_prompt
         self.confirmed_data_set = confirmed_data_set

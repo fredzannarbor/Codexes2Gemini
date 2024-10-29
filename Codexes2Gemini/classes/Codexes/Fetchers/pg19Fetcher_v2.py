@@ -105,15 +105,17 @@ class PG19FetchAndTrack:
                 continue
 
             filepath = file_index.get(textfilename)
-            st.info(f"filepath is {filepath}")
+
             if filepath is None:
-                print(f"Warning: Could not find file for {textfilename}")
+                logging.error(f"Error Could not find file for {textfilename}")
+                st.error(f"Error: Could not find file for {textfilename}")
                 continue
 
             with open(filepath, "r") as f:
                 context = f.read()
             st.session_state.current_plan.update({"plan_type": "User"})
             results = self.process_single_context(context, row)
+
             st.info("processed single context")
 
             publishing_info_block = f"""
@@ -128,6 +130,7 @@ Nimble Books LLC ~ NimbleBooks.com
 
 _Humans and models making books richer, more diverse, and more surprising._
 """
+
             results.insert(1, publishing_info_block)
 
             # Save results to JSON
@@ -157,18 +160,17 @@ _Humans and models making books richer, more diverse, and more surprising._
                 elif "adept" in st.session_state.current_plan["imprint"].lower():
                     ImprintText = "AI Lab for Book-Lovers"
                     sheetname = "White B&W Perfect"
-                #st.write(st.session_state.current_plan.keys())
+
                 bookjson_this_book = self.create_simple_bookjson(textfilename, results, result_pdf_file_name,
                                                                  ImprintText=ImprintText, sheetname=sheetname)
 
                 self.save_bookjson_this_book(textfilename, bookjson_this_book)
                 st.session_state.current_plan.update({"plan_type": "Catalog"})
-                catalog_results = self.generate_catalog_metadata(context, row)  # same plan
-                # st.session_state.current_plan.update({"plan_type": "User"})
-                st.write(catalog_results)
-                catalog_file_name = textfilename + "_catalog.json"
-                catalog_results_df = pd.DataFrame(catalog_results)
-                catalog_results_df.to_csv(f"{self.output_dir}_catalog.csv")
+                # catalog_results = self.generate_catalog_metadata(context, row)
+
+                # catalog_file_name = textfilename + "_catalog.json"
+            # catalog_results_df = pd.DataFrame(catalog_results)
+            # catalog_results_df.to_csv(f"{self.output_dir}/{textfilename}_catalog.csv")
 
             else:
                 st.info(f"temporarily disabled PDF and bookjson file creation")
@@ -213,10 +215,7 @@ _Humans and models making books richer, more diverse, and more surprising._
         st.session_state.current_plan.update({"context": context, "row": row})
         if plan is None:
             plan = PromptsPlan(**st.session_state.current_plan)
-        # st.write(plan.get_prompts())
-        st.write(plan.plan_type)
         satisfactory_results = self.CODEXES2PARTS.process_codex_to_book_part(plan)
-
         return satisfactory_results
 
     def save_results_to_json(self, textfilename, results):
@@ -310,7 +309,7 @@ _Humans and models making books richer, more diverse, and more surprising._
         pagecount = doc.page_count
         spinewidth, effective_page_count = self.calculate_spinewidth(sheetname, pagecount)
         # st.write(sheetname, pagecount, spinewidth)
-        st.info(st.session_state.current_plan['imprint'])
+        logging.info(f"Imprint: {st.session_state.current_plan['imprint']}")
         if "adept" in st.session_state.current_plan["imprint"].lower():
             trimsizeheight = 11
             trimsizewidth = 8.5

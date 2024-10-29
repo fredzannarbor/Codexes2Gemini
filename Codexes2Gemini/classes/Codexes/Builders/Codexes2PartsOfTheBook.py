@@ -4,7 +4,6 @@ import json
 import logging
 import os
 import traceback
-import uuid
 from importlib import resources
 from time import sleep
 from typing import List
@@ -17,6 +16,9 @@ from google.generativeai import caching
 from Codexes2Gemini.classes.Utilities.classes_utilities import configure_logger
 from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
 from Codexes2Gemini.ui.ui_utilities import load_json_file
+from Codexes2Gemini.classes.Codexes.Builders.Responses2PromptsPlan import Response2Prompts
+
+
 from ..Builders.PromptGroups import PromptGroups
 
 GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
@@ -122,7 +124,10 @@ class Codexes2Parts:
         return response_dict
 
     def process_codex_to_book_part(self, plan):
-        st.info(f"Starting process_codex_to_book_part with plan: {plan}, which is plan_type {plan.plan_type}")
+        st.info(
+            f"Starting process_codex_to_book_part with plan: {plan} for {st.session_state.current_plan['gemini_title']} by {st.session_state.current_plan['gemini_authors_str']} prompts provided by {plan.plan_type}.")
+
+        st.info(f"minimum_required_output_tokens is {plan.minimum_required_output_tokens}")
         self.make_thisdoc_dir(plan)
         context = self.read_and_prepare_context(plan)
         self.logger.debug(f"Context prepared, length: {self.count_tokens(context)} tokens")
@@ -133,7 +138,7 @@ class Codexes2Parts:
         model = self.create_model(self.model_name, self.safety_settings, plan.generation_config, cache)
         self.logger.debug("Model created")
         if plan.plan_type == "User":
-            st.info("Plan type is User")
+            logging.info("Plan type is User")
             system_prompt = self.assemble_system_prompt(plan)
             self.logger.debug(f"System prompt assembled, length: {self.count_tokens(system_prompt)}")
 
@@ -147,43 +152,119 @@ class Codexes2Parts:
         elif st.session_state.current_plan["plan_type"] == "Catalog":
             system_prompt, user_prompts = self.assemble_catalog_prompts(plan)
 
+        elif plan.plan_type == "Chunking":  # New case for chunking prompts
+            self.results = self.process_chunking_prompts(plan, context, model)
 
         self.results = []  # Reset self.results for each new book
-
+        # FIX SOMETHING new is wrong with running basic_info_plan
         for user_prompt in user_prompts:
 
-            self.logger.info(f"Processing user prompt: {user_prompt}")
+            self.logger.info(f"\nProcessing user prompt: {user_prompt}")
 
             full_output = ""
             retry_count = 0
             max_retries = 3
+            response_to_measure = " "
 
-            while self.count_tokens(full_output) < plan.minimum_required_output_tokens and retry_count < max_retries:
+            while self.count_tokens(
+                    response_to_measure) < plan.minimum_required_output_tokens and retry_count < max_retries:
+
+                # get a sufficiently long response to the current user prompt
+
                 try:
                     response = self.gemini_get_response(plan, system_prompt, user_prompt, context, model)
-                    self.logger.info(f"Response received, length: {self.count_tokens(response.text)} tokens")
-
-                    full_output += response.text
-
-                    if self.count_tokens(full_output) < plan.minimum_required_output_tokens:
+                    response_to_measure = response.text
+                    self.logger.info(f"\nResponse received, length: {self.count_tokens(response.text)} tokens")
+                    self.logger.info(f"Retry count: {retry_count}")
+                    self.logger.info(f"Response length: {self.count_tokens(response.text)} tokens")
+                    st.info(f"Response length: {self.count_tokens(response.text)} tokens")
+                    st.info(f"Retry count: {retry_count}")
+                    if self.count_tokens(response.text) < plan.minimum_required_output_tokens:
                         self.logger.info(
                             f"Output length is less than desired length. Retrying.")
                         retry_count += 1
+                    else:
+                        self.logger.info(f"Output length is satisfactory.")
                 except Exception as e:
                     self.logger.error(f"Error in gemini_get_response: {e}")
                     retry_count += 1
                     self.logger.info(f"Retrying due to error. Retry count: {retry_count}")
 
-            self.logger.info(f"Final output length for prompt: {self.count_tokens(full_output)}")
+                self.logger.info(f"\nFinal output length for this response: {self.count_tokens(response.text)}")
 
-            if self.count_tokens(full_output) >= plan.minimum_required_output_tokens:
-                self.results.append(full_output)
-                self.logger.info(f"Output for prompt meets desired length. Appending to results.")
-            else:
-                self.logger.warning(
-                    f"Output for prompt does not meet desired length. Discarding.")
+                # now decide whether we should spawn new Plan from this final response
+
+                st.info(self.count_tokens(response.text))
+                st.info(plan.minimum_required_output_tokens)
+
+                if self.count_tokens(response.text) >= plan.minimum_required_output_tokens:
+                    self.logger.info(f"about to check if response contains prompts")
+                    self.logger.info(f"--------------------------------")
+                    if self.check_if_response_contains_prompts(response):
+                        self.logger.warning("about to SPAWN NEW PLAN")
+                        response_containing_prompts = self.get_response_containing_prompts(response)
+                        st.write(response_containing_prompts)
+                        st.warning("Prompts in response, spawning new Plan")
+                        self.logger.warning("Prompts in response, spawning new Plan")
+                        self.logger.warning('---')
+                        r2p = Response2Prompts(response_containing_prompts)
+                        spawned_results = r2p.process_response()
+                        self.results.append(spawned_results)
+
+                    else:
+                        self.results.append(response.text)
+                        self.logger.info("no prompts in response")
+                        st.info("no prompts in response")
+
 
         return self.results
+
+    def check_if_response_contains_prompts(self, response):
+        try:
+            if "selected_user_prompts_dict" in response.text:
+                logging.warning("prompts found in check_if_response_contains_prompts")
+                return True
+            else:
+                print("prompts not found")
+                logging.warning("prompts not found")
+                return False
+        except Exception as e:
+            logging.error("response is not json serializable")
+            return False
+
+    def get_response_containing_prompts(self, response):
+        try:
+            # print(response)
+            json_string = response.text
+            # print(json_string)
+            json_string = json_string.replace("```json", "").replace("```", "")
+        except Exception as e:
+            print(traceback.format_exc())
+            return Exception(f"response is not json serializable: {e}")
+
+        try:
+            prompt_payload = json.loads(json_string)
+            print(prompt_payload)
+            return prompt_payload
+        except Exception as e:
+            print(traceback.format_exc())
+            return Exception(f"response is not json serializable: {e}")
+
+    def process_chunking_prompts(self, plan, context, model):
+        total_tokens = self.count_tokens(context)
+        desired_output_length = int(total_tokens * (plan.chunking_output_percentage / 100))
+        max_tokens_per_chunk = plan.chunking_max_tokens_per_chunk
+        num_chunks = -(-desired_output_length // max_tokens_per_chunk)  # Ceiling division
+        chunks = self.split_into_semantic_chunks(context, num_chunks)
+        all_chunk_results = []
+        for i, chunk in enumerate(chunks):
+            chunk_context = f"Here is chunk {i + 1} of the document. Context: {context}\n\nChunk: {chunk}"
+            for prompt_key in plan.chunking_prompts:
+                prompt = plan.selected_user_prompts_dict[prompt_key]
+                plan.selected_user_prompts_dict = {prompt_key: prompt}  # Update the plan with the current prompt
+                chunk_results = self.run_prompt_on_chunk(plan, chunk_context, model)
+                all_chunk_results.extend(chunk_results)
+        return all_chunk_results
 
     def create_cache_from_context(self, context):
         if self.count_tokens(context) > 32768:
@@ -197,8 +278,6 @@ class Codexes2Parts:
         else:
             cache = None
         return cache
-
-    import google.generativeai as genai
 
     def delete_current_cache(model_name='models/gemini-1.5-flash-001', display_name='text cache'):
         """Deletes the current cache based on model name and display name.
@@ -273,7 +352,7 @@ class Codexes2Parts:
 
         return full_output
 
-    def process_plan_to_codex_chunked(self, plan: PromptGroups):
+    def process_plan_to_codex_chunked(self, plan: PromptsPlan):
         """
         Handler for mode == "codex"
         Assumes normal plan object, only difference is mode
@@ -365,8 +444,8 @@ class Codexes2Parts:
                     self.logger.error(f"Error reading context file {file_path}: {e}")
         token_count = self.count_tokens(context_content)
         context_msg = f"Uploaded context of {token_count} tokens"
-        self.logger.debug(context_msg)
-        st.info(context_msg)
+        self.logger.info(context_msg)
+        st.toast(context_msg)
         return f"Context: {context_content.strip()}\n\n"
 
     def tokens_to_millions(tokens):
@@ -394,12 +473,9 @@ class Codexes2Parts:
     def assemble_catalog_prompts(self, plan):
         system_prompt = ""
         catalog_user_prompts = []
-        st.write("now")
-        print("now")
 
         if plan.complete_system_instruction:
             system_prompt = plan.complete_system_instruction
-            st.write(system_prompt)
         else:
             with open(self.system_instructions_dict_file_path, "r") as json_file:
                 try:
@@ -417,19 +493,16 @@ class Codexes2Parts:
                         self.logger.error(f"System instruction key {key} not found: {e}")
                 if self.add_system_prompt:
                     system_prompt += self.add_system_prompt
-                st.write(system_instructions_dict)
-                st.stop()
 
         self.user_prompts_dict = load_json_file("standard_user_prompts.json")
-        st.write(self.user_prompts_dict)
+
         self.selected_catalog_prompt_keys = st.session_state.current_plan["selected_catalog_prompt_keys"]
         if self.user_prompts_dict:
-            st.write("found user prompts dict")
+            st.info("found user prompts dict")
             for k in self.selected_catalog_prompt_keys:  # Iterate through catalog prompt keys
                 if k in self.user_prompts_dict:  # Check if the key exists in the user prompts dict
                     v = self.user_prompts_dict[k]
                     catalog_user_prompts.append(f"{k}: {v}")
-                    st.write(k, v)
         else:
             logging.error("No user prompts dict found")
 
@@ -454,6 +527,8 @@ class Codexes2Parts:
             try:
                 response = model.generate_content(prompt, request_options={"timeout": 600})
                 # st.write(response.usage_metadata)
+                # print(response)
+
                 logging.warning(response.usage_metadata)
                 return response
             except Exception as e:
@@ -508,65 +583,5 @@ def parse_arguments():
     return parser.parse_args()
 
 
-class Codex2Codex(Codexes2Parts):
-    """
-    Class for processing Codex to create another Codex.
-
-    Attributes:
-        logger (Logger): Logger instance for logging information.
-        model_name (str): Name of the generative model to use.
-        generation_config (dict): Configuration for generation process.
-        safety_settings (list): List of safety settings for blocking harmful content.
-        system_instructions_dict_file_path (str): Path to the system instructions dictionary file.
-        continuation_instruction (str): Instruction for continuation prompts.
-        results (list): List to store the generated book parts.
-        add_system_prompt (str): Additional system prompt.
-
-    Methods:
-        configure_api(): Configures the API key.
-        create_model(model_name, safety_settings, generation_config): Creates a generative model.
-        process_codex_to_book_part(plan): Processes the Codex to generate a book part.
-        count_tokens(text, model): Counts the number of tokens in a text.
-        read_and_prepare_context(plan): Reads and prepares the context for generation.
-        tokens_to_millions(tokens): Converts the number of tokens to millions.
-        assemble_system_prompt(plan): Assembles the system prompt for generation.
-        generate_full_book(plans): Generates the full book from a list of plans.
-        gemini_get_response(plan, system_prompt, user_prompt, context, model): Calls the Gemini API to get the response.
-        make_thisdoc_dir(plan): Creates the directory for the book part output.
-    """
-
-    def __init__(self):
-        super().__init__()
-
-    def process_codex_to_codex(self, plan: PromptGroups):
-        return
-
-
 if __name__ == "__main__":
-    args = parse_arguments()
-
-    c2b = Codexes2Parts()
-
-    plan = PromptGroups(
-        context_file_paths=args.context_file_paths,
-        user_keys=[args.list_of_user_keys_to_use.split(',')[0]],
-        thisdoc_dir=args.thisdoc_dir,
-        model_name=args.model,
-        json_required=args.json_required,
-        generation_config=json.loads(args.generation_config),
-        system_instructions_dict_file_path=args.system_instructions_dict_file_path,
-        list_of_system_keys=args.list_of_system_keys,
-        user_prompt=args.user_prompt,
-        user_prompt_override=args.user_prompt_override,
-        user_prompts_dict_file_path=args.user_prompts_dict_file_path,
-        list_of_user_keys_to_use=args.list_of_user_keys_to_use,
-        continuation_prompts=args.continuation_prompts,
-        output_file_base_name=args.output_file_path,
-        log_level=args.log_level,
-        number_to_run=args.number_to_run,
-        minimum_required_output_tokens=args.minimum_required_output_tokens
-    )
-
-    book_part = c2b.process_codex_to_book_part(plan)
-
     print(f"Generated book part.")
