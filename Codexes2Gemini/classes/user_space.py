@@ -32,12 +32,13 @@ class SavedContext:
 
 
 class PromptPack:
-    def __init__(self, name, system_instructions, user_prompts, custom_prompt, override):
+    def __init__(self, name, system_instructions, user_prompts, custom_prompt, override, chunking_prompts):
         self.name = name
         self.system_instructions = system_instructions
         self.user_prompts = user_prompts
         self.custom_prompt = custom_prompt
         self.override = override
+        self.chunking_prompts = chunking_prompts or []
 
 
 class UserSpace:
@@ -70,74 +71,11 @@ class UserSpace:
         self.results = []
         self.prompt_plans = []
         self.name = self.get_unique_name(name)
+        with open("resources/json/promptpack_definitions.json", "r") as f:
+            prompt_pack_data = json.load(f)
         self.prompt_packs = {
-
-            "test_keys_only": PromptPack(
-                "test_keys_only",
-                [
-                    "markdown"
-                ],
-                ["gemini_get_basic_info", "about_the_author_classic"],
-                "",
-                False
-            ),
-            "ADEPT_front_matter": PromptPack(
-                "ADEPT front matter",
-                [
-                    "markdown", "focus", "nimble_editor", "proactive",
-                ],
-                ["gemini_get_basic_info", "bibliographic_key_phrases", "motivation", "truth_in_publishing",
-                 "about_the_author_classic", "place_in_historical_context", "abstracts_x4", "ELI_idiot",
-                 "mnemonics_abstract", "analytic_toc", "most_important_passages_with_reasoning",
-                 "glossary_browsable", "timeline_major"],
-                "",
-                False
-            ),
-            "collapsar_core_style_enhanced": PromptPack(
-                "collapsar_core_style_enhanced",
-                [
-                    "nimble_editor",
-                    "accurate",
-                    "proactive"
-                ],
-                ["gemini_get_basic_info",
-                 "bibliographic_key_phrases",
-                 "motivation",
-                 "truth_in_publishing",
-                 "about_the_author_classic",
-                 "place_in_historical_context",
-                 "abstracts_x4",
-                 "ELI_idiot",
-                 "mnemonics_abstract",
-                 "most_important_passages_with_reasoning",
-                 "condensed_matter",
-                 "glossary_browsable",
-                 "timeline_major"],
-
-                "",
-                "Add at end of other user prompts",
-
-            ),
-            "rebooter": PromptPack("rebooter",
-                                   ["proactive", "focus", "creative"],
-                                   ["gemini_get_basic_info", "create_reboot_prompts"], "", False)
-            ,
-            "Ingram_catalog_upload": PromptPack("Ingram_catalog_upload", ["proactive", "focus", "creative"],
-                                                ['Annotation', 'BISACs', 'bibliographic_key_phrases', 'thema_subjects',
-                                                 'regional_subject', 'audience_and_age_classification',
-                                                 'short_description', 'truth_in_publishing', 'illustrations_analysis',
-                                                 'illustrations_notes'],
-                                                "",
-                                                False),
-            "Ingram_catalog_manual_entry": PromptPack("Ingram_catalog_manual_entry", ["proactive", "focus", "creative"],
-                                                      ['BISACs', 'audience_and_age_classification_nimble',
-                                                       'regional_subject', 'thema_subjects', 'truth_in_publishing',
-                                                       'Annotation', 'bibliographic_key_phrases', 'short_description',
-                                                       'illustrations_analysis', 'illustrations_notes'], "", False),
-            "social_media_prep": PromptPack("Ingram_catalog_manual_entry", ["proactive", "focus", "creative"],
-                                            ['BISACs', 'audience_and_age_classification_nimble', 'regional_subject',
-                                             'thema_subjects', 'truth_in_publishing', 'Annotation',
-                                             'bibliographic_key_phrases', 'short_description'], "", False),
+            pack_name: PromptPack(**data)
+            for pack_name, data in prompt_pack_data["prompt_packs"].items()
         }
 
         """
