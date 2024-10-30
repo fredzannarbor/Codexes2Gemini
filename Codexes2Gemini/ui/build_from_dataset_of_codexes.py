@@ -360,8 +360,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             if selected_rows:
                 for row in selected_rows:
                     # st.write(row)
-                    st.write(
-                        f"minimum required output tokens is {st.session_state.current_plan['minimum_required_output_tokens']}")
+
                     basic_info = gemini_get_basic_info(FT, row)
                     extracted_values = parse_and_get_basic_info(basic_info)
                     st.session_state.current_plan.update(extracted_values)
@@ -613,9 +612,10 @@ def gemini_get_basic_info(FT, row):
     with open(filepath, "r") as f:
         context = f.read()
         st.write(context[0:100], context[300:400])
-
+        st.session_state.current_plan.update({"original_context": context})
     basicInfoPlan = PromptsPlan(
         name="basicInfoPlan",
+        textfilename=filepath,
         require_json_output=True,
         context=context,
         selected_user_prompts_dict={
@@ -645,7 +645,7 @@ def gemini_get_basic_info(FT, row):
 
     C2P = Codexes2Parts()
     basicInfoPlan.plan_type = "User"
-    st.info("about to run process to book part")
+
     row_result = C2P.process_codex_to_book_part(basicInfoPlan)
     st.info("finished running process to book part")
     #st.write(row_result)

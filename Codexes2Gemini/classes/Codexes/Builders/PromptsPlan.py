@@ -57,6 +57,7 @@ class PromptsPlan:
                  name: str = "TK",
                  number_to_run: int = 1,
                  number_of_context_files_to_process: int = 3,
+                 original_context="",
                  output_file_base_name: str = "output",
                  plan_type="User",
                  require_json_output=False,
@@ -75,6 +76,7 @@ class PromptsPlan:
                  system_instructions_dict: Dict[str, Any] = None,
                  system_instructions_dict_file_path: str = None,
                  system_filter_submitted: bool = False,
+                 textfilename="",
                  thisdoc_dir: str = "",
                  title="TK",
                  user_keys: List[str] = None,
@@ -139,6 +141,7 @@ class PromptsPlan:
         self.name = name
         self.number_of_context_files_to_process = number_of_context_files_to_process
         self.number_to_run = number_to_run
+        self.original_context = context or ""
         self.output_file = output_file
         self.output_file_path = output_file_base_name
         self.plan_type = plan_type or "User"
@@ -157,6 +160,7 @@ class PromptsPlan:
         self.selection_strategy = selection_strategy or "Sample"
         self.system_filter_submitted = system_filter_submitted
         self.system_instructions_dict_file_path = system_instructions_dict_file_path
+        self.textfilename = textfilename or ""
         self.thisdoc_dir = thisdoc_dir
         self.title = title
         self.use_all_user_keys = use_all_user_keys

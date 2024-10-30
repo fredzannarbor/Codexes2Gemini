@@ -36,12 +36,6 @@ class CodexBuilder:
         """Build parts of the book using a single PromptGroups."""
         return self.c2p.process_codex_to_book_part(plan)
 
-    # def build_codex_from_parts(self, parts: List[str]) -> str:
-    #     """
-    #     Build a codex from multiple parts.
-    #     Example: assemble front matter, body, and back matter
-    #     """
-    #     return "\n\n".join(parts)
 
     def assemble_parts_of_a_codex_per_cmos18(self, tagged_parts: Dict[str, str]):
         """

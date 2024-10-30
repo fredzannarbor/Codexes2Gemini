@@ -125,9 +125,9 @@ class Codexes2Parts:
 
     def process_codex_to_book_part(self, plan):
         st.info(
-            f"Starting process_codex_to_book_part with plan: {plan} for {st.session_state.current_plan['gemini_title']} by {st.session_state.current_plan['gemini_authors_str']} prompts provided by {plan.plan_type}.")
+            f"Starting process_codex_to_book_part with plan: {plan} for {plan.textfilename} with prompts provided by {plan.plan_type}.")
 
-        st.info(f"minimum_required_output_tokens is {plan.minimum_required_output_tokens}")
+
         self.make_thisdoc_dir(plan)
         context = self.read_and_prepare_context(plan)
         self.logger.debug(f"Context prepared, length: {self.count_tokens(context)} tokens")
@@ -151,6 +151,13 @@ class Codexes2Parts:
                 return self.results  # Return early to avoid errors
         elif st.session_state.current_plan["plan_type"] == "Catalog":
             system_prompt, user_prompts = self.assemble_catalog_prompts(plan)
+
+        elif st.session_state.current_plan["plan_type"] == "Spawned":
+            system_prompt = self.assemble_system_prompt(plan)
+            user_prompts = plan.get_prompts()
+            context = st.session.state.current_plan["original_context"] + plan.additional_context
+            self.logger.warning = f"length of spawned context is {len(context)}"
+
 
         elif plan.plan_type == "Chunking":  # New case for chunking prompts
             self.results = self.process_chunking_prompts(plan, context, model)
@@ -203,13 +210,18 @@ class Codexes2Parts:
                     if self.check_if_response_contains_prompts(response):
                         self.logger.warning("about to SPAWN NEW PLAN")
                         response_containing_prompts = self.get_response_containing_prompts(response)
-                        st.write(response_containing_prompts)
+                        # st.write(response_containing_prompts)
                         st.warning("Prompts in response, spawning new Plan")
                         self.logger.warning("Prompts in response, spawning new Plan")
-                        self.logger.warning('---')
+                        self.logger.warning('/n---/n')
                         r2p = Response2Prompts(response_containing_prompts)
                         spawned_results = r2p.process_response()
-                        self.results.append(spawned_results)
+                        # print(f"length of spawned results is {len(spawned_results)}")
+                        # rint(f"type of spawned results is {type(spawned_results)}")
+                        if isinstance(spawned_results, list):
+                            self.results.extend(spawned_results)
+                        else:
+                            self.results.append(spawned_results)
 
                     else:
                         self.results.append(response.text)
@@ -236,7 +248,7 @@ class Codexes2Parts:
         try:
             # print(response)
             json_string = response.text
-            # print(json_string)
+            print(json_string)
             json_string = json_string.replace("```json", "").replace("```", "")
         except Exception as e:
             print(traceback.format_exc())

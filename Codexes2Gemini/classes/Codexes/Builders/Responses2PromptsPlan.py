@@ -62,17 +62,19 @@ class Response2Prompts:
             PromptsPlan: A PromptPlan instance.
         """
         # Extract necessary data from prompts_data
+        print(prompts_data)
         name = prompts_data.get('name', 'Response2PromptsPlan')
+        plan_type = prompts_data.get('plan_type', 'Spawned')
         additional_context = prompts_data.get('additional_context', '')
         selected_user_prompts_dict = prompts_data.get('selected_user_prompts_dict', {})
-        other_parameters = prompts_data.get('other_parameters', {})
+        complete_system_instructions = prompts_data.get('complete_system_instructions', '')
 
         # Create and return a PromptPlan instance
         plan = PromptsPlan(
             name=name,
             context=additional_context,
             selected_user_prompts_dict=selected_user_prompts_dict,
-            complete_system_instruction=other_parameters.get('complete_system_instructions', ''),
+            complete_system_instruction=complete_system_instructions,
             selected_user_prompt_keys=selected_user_prompts_dict.keys()
             # ... (Pass other necessary parameters to PromptsPlan)
         )
