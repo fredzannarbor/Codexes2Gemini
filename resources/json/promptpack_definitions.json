@@ -55,6 +55,7 @@
     "collapsar_core_style_enhanced": {
       "name": "collapsar_core_style_enhanced",
       "system_instructions": [
+        "contains_prompts",
         "nimble_editor",
         "accurate",
         "proactive"
@@ -70,7 +71,7 @@
         "ELI_idiot",
         "mnemonics_abstract",
         "most_important_passages_with_reasoning",
-        "condensed_matter",
+        "context2condensedmatterprompts",
         "glossary_browsable",
         "timeline_major"
       ],
