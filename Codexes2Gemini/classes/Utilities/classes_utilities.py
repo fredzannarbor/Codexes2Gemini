@@ -1,6 +1,7 @@
 #  Copyright (c) 2023. Fred Zimmerman.  Personal or educational use only.  All commercial and enterprise use must be licensed, contact wfz@nimblebooks.com
 
-
+import os
+import datetime
 import inspect
 import logging
 import sys
@@ -8,10 +9,15 @@ import streamlit
 import pandas as pd
 import pip
 from rich.console import Console
+
+import subprocess
+
+
+
 from Codexes2Gemini import ensure_directory_exists
-
+import google.generativeai as genai
 console = Console(record=True)
-
+GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
 
 
 
@@ -152,24 +158,6 @@ def get_commit_messages():
         return ""
 
 
-import os
-import subprocess
-
-
-def get_commit_messages():
-    """Fetches commit messages from the main branch in reverse chronological order."""
-    try:
-        # Execute the git command and capture the output
-        output = subprocess.check_output(['git', 'log', '--pretty=format:- %s (%h) <br>', 'main'],
-                                         stderr=subprocess.STDOUT)
-        # Decode the output from bytes to string
-        commit_messages = output.decode('utf-8')
-        return commit_messages
-    except subprocess.CalledProcessError as e:
-        print(f"Error: {e.output.decode('utf-8')}")
-        return ""
-
-
 def write_commit_messages_to_file(filename="Commit History.md"):
     """Writes the commit messages to a file."""
     # Get the absolute path of the directory containing setup.py
@@ -216,3 +204,27 @@ def load_spreadsheet(filename):
         df = pd.read_excel(filename)
 
     return df
+
+
+def list_cache_stats(model_name='models/gemini-1.5-flash-001', display_name='text cache'):
+    """Lists the stats of a cache based on model name and display name.
+
+    Args:
+        model_name (str): The name of the model associated with the cache.
+        display_name (str): The display name of the cache.
+    """
+    genai.configure(api_key=GOOGLE_API_KEY)  # Make sure your API key is configured
+
+    client = genai.client.get_default_cache_client()
+    request = genai.protos.ListCachedContentsRequest(parent=model_name)
+    response = client.list_cached_contents(request)
+
+    for cached_content in response.cached_contents:
+        if cached_content.display_name == display_name:
+            self.logger.info(f"Cache Display Name: {cached_content.display_name}")
+            lo(f"Creation Time: {datetime.datetime.fromtimestamp(cached_content.create_time.seconds)}")
+            print(f"Total Tokens: {cached_content.total_tokens}")
+            # Add other stats you want to print here
+            return
+
+    print(f"Cache with display name '{display_name}' not found for model '{model_name}'.")

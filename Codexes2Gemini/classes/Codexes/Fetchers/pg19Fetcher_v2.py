@@ -114,6 +114,8 @@ class PG19FetchAndTrack:
             with open(filepath, "r") as f:
                 context = f.read()
             st.session_state.current_plan.update({"plan_type": "User"})
+
+            # FIX -- system is asking for more context -- verify that all prompts including spawned ones are receiving correct context
             results = self.process_single_context(context, row)
 
             st.info("processed single context")
@@ -135,6 +137,9 @@ _Humans and models making books richer, more diverse, and more surprising._
 
             # Save results to JSON
             self.save_results_to_json(textfilename, results)
+
+            # FIX failing to write .md file to file system
+
 
             markdown_results_with_latex = results2assembled_pandoc_markdown_with_latex(results)
 
