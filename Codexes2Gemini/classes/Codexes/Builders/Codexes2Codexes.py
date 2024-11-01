@@ -1,62 +1,76 @@
+import argparse
 import json
+from typing import List
+
+from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
 
 from classes.Codexes.Builders import Codexes2Parts, PromptGroups
 from classes.Codexes.Builders.Codexes2PartsOfTheBook import parse_arguments
 
 
-class Codex2Codex(Codexes2Parts):
-    """
-    Class for processing Codex to create another Codex.
-
-    Attributes:
-        logger (Logger): Logger instance for logging information.
-        model_name (str): Name of the generative model to use.
-        generation_config (dict): Configuration for generation process.
-        safety_settings (list): List of safety settings for blocking harmful content.
-        system_instructions_dict_file_path (str): Path to the system instructions dictionary file.
-        continuation_instruction (str): Instruction for continuation prompts.
-        results (list): List to store the generated book parts.
-        add_system_prompt (str): Additional system prompt.
-
-    Methods:
-        configure_api(): Configures the API key.
-        create_model(model_name, safety_settings, generation_config): Creates a generative model.
-        process_codex_to_book_part(plan): Processes the Codex to generate a book part.
-        count_tokens(text, model): Counts the number of tokens in a text.
-        read_and_prepare_context(plan): Reads and prepares the context for generation.
-        tokens_to_millions(tokens): Converts the number of tokens to millions.
-        assemble_system_prompt(plan): Assembles the system prompt for generation.
-        generate_full_book(plans): Generates the full book from a list of plans.
-        gemini_get_response(plan, system_prompt, user_prompt, context, model): Calls the Gemini API to get the response.
-        make_thisdoc_dir(plan): Creates the directory for the book part output.
-    """
+class Codex2Plan2Codex(Codexes2Parts):
 
     def __init__(self):
         super().__init__()
 
-    def process_codex_to_codex(self, plan: PromptGroups):
-        return
+    def run_plan(self, plan: PromptsPlan) -> List[str]:
+        # Initialize Codexes2PartsOfTheBook
+        codex_processor = Codexes2Parts()
+
+        # Process the plan and get results
+        results = codex_processor.process_codex_to_book_part(plan)
+
+        return results
+
+    def create_condenserPlan(self, filepath, context):
+        condenserPlan = PromptsPlan(
+            name="condenserPlan",
+            textfilename=filepath,
+            require_json_output=True,
+            context=context,
+            selected_user_prompts_dict={
+                "condenser_intructions":
+                    """Backstory:
+            
+            Collapsar Classics was launched to bring 19th and early 20th century books to modern audiences in a fresh and convenient way. Each book is presented in a phone-sized 4 x 6" paperback format. Each Collapsar Classic includes a section called "Condensed Matter" (a play on front matter). Much like the Reader's Digest Condensed Books that were popular many decades ago, the Condensed Matters is meant to give you the best parts of the original in a much smaller space.
+            
+            Your Task:
+            
+            Your goal is to write a highly readable condensed matter version of this document that is 30% of the length of the full original found in the context cache.  You will accomplish this by providing system instructions and prompts in JSON formats that the system will then "spawn" to create the components of the condensed version.
+            
+            Silently create Analytic Table of Contents and use it to create a series of prompts that will accomplish this task.  The series of prompts must cover the entire text in semantically reasonable chunks (e.g. scenes, chapters, or parts).
+            
+            You must use the following JSON schema:
+             
+             {
+             "name": str,
+             "plan_type": str,
+             "selected_user_prompts_dict": {
+             "user_prompt_name": str,
+             "user_prompt_text": str,
+             "user_prompt_additional_context": str,
+             "requested_word_count": int}
+             "complete_system_instructions": str,
+            }
+           
+            Your complete_system_instructions MUST:
+
+            - direct the system to use the exact words of the context wherever possible.
+            - allow transitional devices such as ellipses, dingbats, or bracketed comments.
+            - mallow the system to use  sparing use of framing devices.
+            - remind the system to use the current context, which is the full text of the original document and remains available in cache
+            
+           The system will read this data and loop through selected_user_prompts_dict one prompt at a time to assemble the results.
+            
+            Remember, your overriding goal is to give modern readers the benefit of reading this document in as original a form as possible, with as much meaning as possible, but in a substantially compressed timeframe."""},
+            complete_system_instruction="You are industrious, energetic, and proactive. You complete tasks without waiting for approval.  You focus on the requested work product without adding conversational chit-chat.",
+            minimum_required_output_tokens=300,
+        )
+        return condenserPlan
 
 
-args = parse_arguments()
-c2b = Codexes2Parts()
-plan = PromptGroups(
-    context_file_paths=args.context_file_paths,
-    user_keys=[args.list_of_user_keys_to_use.split(',')[0]],
-    thisdoc_dir=args.thisdoc_dir,
-    model_name=args.model,
-    json_required=args.json_required,
-    generation_config=json.loads(args.generation_config),
-    system_instructions_dict_file_path=args.system_instructions_dict_file_path,
-    list_of_system_keys=args.list_of_system_keys,
-    user_prompt=args.user_prompt,
-    user_prompt_override=args.user_prompt_override,
-    user_prompts_dict_file_path=args.user_prompts_dict_file_path,
-    list_of_user_keys_to_use=args.list_of_user_keys_to_use,
-    continuation_prompts=args.continuation_prompts,
-    output_file_base_name=args.output_file_path,
-    log_level=args.log_level,
-    number_to_run=args.number_to_run,
-    minimum_required_output_tokens=args.minimum_required_output_tokens
-)
-book_part = c2b.process_codex_to_book_part(plan)
+if __name__ == "__main__":
+    c2c = Codex2Plan2Codex()
+    c2c.main()
+    condenserPlan = c2c.create_condenserPlan()
+    c2c.run_plan(condenserPlan)

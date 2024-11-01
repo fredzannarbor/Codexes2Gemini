@@ -199,7 +199,7 @@ class PromptsPlan:
             return self
 
     def prepare_final_user_prompts(self) -> List[str]:
-        # self.logger.info("Preparing final user prompts.")
+        self.logger.info("Preparing final user prompts.")
 
         final_prompts = []
         # st.info(self.selected_user_prompts_dict)
@@ -323,8 +323,8 @@ class PromptsPlan:
         self.final_prompts = []
 
     def __str__(self) -> str:
-        """String representation of the PromptGroups object."""
-        return f"PromptGroups(mode={self.mode}, model={self.model}, prompts={len(self.final_prompts)})"
+        """String representation of the PromptPlans object."""
+        return f"PromptsPlan(name={self.name}, json_required={self.json_required}mode={self.mode}, model={self.model}, prompts={len(self.final_prompts)}, context={len(self.context)} characters"
 
     def __repr__(self) -> str:
         """Detailed string representation of the PromptGroups object."""

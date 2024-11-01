@@ -13,7 +13,7 @@ import pandas as pd
 import streamlit as st
 from google.generativeai import caching
 
-from Codexes2Gemini.classes.Utilities.classes_utilities import configure_logger, list_cache_stats
+from Codexes2Gemini.classes.Utilities.classes_utilities import configure_logger
 from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
 from Codexes2Gemini.ui.ui_utilities import load_json_file
 from Codexes2Gemini.classes.Codexes.Builders.Responses2PromptsPlan import Response2Prompts
@@ -134,9 +134,6 @@ class Codexes2Parts:
 
         # TODO: make sure this is available for all builder functions
         cache = self.create_cache_from_context(context)
-        self.logger.debug(f"Cache created")
-        # self.logger.debug(list_cache_stats())
-
 
         model = self.create_model(self.model_name, self.safety_settings, plan.generation_config, cache)
         self.logger.debug("Model created")
@@ -148,7 +145,8 @@ class Codexes2Parts:
             user_prompts = plan.get_prompts()
 
             if not isinstance(user_prompts, list):
-
+                self.logger.error(f"Unexpected data type for prompts: {type(user_prompts)}")
+                return self.results  # Return early to avoid errors
                 self.logger.error(f"Unexpected data type for prompts: {type(user_prompts)}")
                 return self.results  # Return early to avoid errors
         elif st.session_state.current_plan["plan_type"] == "Catalog":
@@ -165,12 +163,10 @@ class Codexes2Parts:
             self.results = self.process_chunking_prompts(plan, context, model)
 
         self.results = []  # Reset self.results for each new book
-
-        # FIX start tracking all prompt & response stats
-        # FIX start tracking all prompts & responses
+        # FIX SOMETHING new is wrong with running basic_info_plan
         for user_prompt in user_prompts:
 
-            self.logger.info(f" Processing user prompt")
+            self.logger.info(f"\nProcessing user prompt: {user_prompt}")
 
             full_output = ""
             retry_count = 0
@@ -193,72 +189,51 @@ class Codexes2Parts:
                         retry_count += 1
                     else:
                         self.logger.info(f"Output length is satisfactory.")
-                        self.logger.debug(f"final response is:\n{response.text}")
                 except Exception as e:
                     self.logger.error(f"Error in gemini_get_response: {e}")
-                    self.logger.info(traceback.format_exc())
                     retry_count += 1
                     self.logger.info(f"Retrying due to error. Retry count: {retry_count}")
 
+                self.logger.info(f"\nFinal output length for this response: {self.count_tokens(response.text)}")
 
                 # now decide whether we should spawn new Plan from this final response
 
-                #self.logger.info(f"minimum required output tokens: {plan.minimum_required_output_tokens}")
-
-                # if self.count_tokens(response.text) >= plan.minimum_required_output_tokens:
-
-                if self.check_if_response_contains_prompts(response):
-                    spawn_warning_msg = "about to SPAWN NEW PLAN"
-                    self.logger.warning(spawn_warning_msg)
-                    response_containing_prompts = self.get_response_containing_prompts(response)
-
-                    st.warning("Prompts found in response, spawning new Plan")
-                    st.write(response_containing_prompts)
-                    self.logger.debug(f"Response containing prompts: {response_containing_prompts}")
-
-                    r2p = Response2Prompts(response_containing_prompts)
-                    spawned_results = r2p.process_response()
-
-                    if isinstance(spawned_results, list):
-                        self.results.extend(spawned_results)
-                    else:
-                        self.results.append(spawned_results)
-
-                else:
+                if self.count_tokens(response.text) >= plan.minimum_required_output_tokens:
                     self.results.append(response.text)
-                    self.logger.info("no spawned prompts found in response")
+
 
         return self.results
 
     def check_if_response_contains_prompts(self, response):
         try:
             if "selected_user_prompts_dict" in response.text:
-                self.logger.warning("spawned prompts found in check_if_response_contains_prompts")
+                logging.warning("prompts found in check_if_response_contains_prompts")
                 return True
             else:
-
-                self.logger.warning("spawned prompts not found in this response")
+                print("prompts not found")
+                logging.warning("prompts not found")
                 return False
         except Exception as e:
             logging.error("response is not json serializable")
             return False
 
     def get_response_containing_prompts(self, response):
-        print("arrived inside get_response_containing_prompts")
         try:
-
-            print(response)
+            # print(response)
             json_string = response.text
+            print(json_string)
             json_string = json_string.replace("```json", "").replace("```", "")
-            print("returning json_string")
-            return json_string
         except Exception as e:
-            self.logger.error(traceback.format_exc())
-            self.logger.debug(f"json_string that I could not read was:\n {json_string}")
-            print('failed to reaad json_string')
+            print(traceback.format_exc())
             return Exception(f"response is not json serializable: {e}")
 
-
+        try:
+            prompt_payload = json.loads(json_string)
+            print(prompt_payload)
+            return prompt_payload
+        except Exception as e:
+            print(traceback.format_exc())
+            return Exception(f"response is not json serializable: {e}")
 
     def process_chunking_prompts(self, plan, context, model):
         total_tokens = self.count_tokens(context)
@@ -528,10 +503,10 @@ class Codexes2Parts:
 
         prompt = [system_prompt, user_prompt, context]
 
-        prompt_stats = f"system prompt: {len(system_prompt)}, user_prompt: {len(user_prompt)}, context: {len(context)}"
+        prompt_stats = f"system prompt: {self.count_tokens(system_prompt)} tokens {system_prompt[:64]}\nuser_prompt: {len(user_prompt)} {user_prompt[:64]}\ncontext: {len(context)} {context[:52]}"
         print(f"{prompt_stats}")
-
-
+        prompt_df = pd.DataFrame(prompt)
+        prompt_df.to_json(plan.thisdoc_dir + "/prompt.json", orient="records")
 
         for attempt_no in range(MODEL_GENERATION_ATTEMPTS):
             try:
@@ -539,7 +514,7 @@ class Codexes2Parts:
                 # st.write(response.usage_metadata)
                 # print(response)
 
-                logging.warning(f"Usage metadata: \n{response.usage_metadata}")
+                logging.warning(response.usage_metadata)
                 return response
             except Exception as e:
                 errormsg = traceback.format_exc()
@@ -560,7 +535,7 @@ class Codexes2Parts:
 
         if not os.path.exists(plan.thisdoc_dir):
             os.makedirs(plan.thisdoc_dir)
-        self.logger.info(f"thisdoc_dir is {plan.thisdoc_dir}")
+        print(f"thisdoc_dir is {plan.thisdoc_dir}")
 
 
 def parse_arguments():

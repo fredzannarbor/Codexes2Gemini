@@ -13,8 +13,9 @@ from Codexes2Gemini.classes.Codexes.Metadata.metadatas2distributor_reqts import 
 from Codexes2Gemini.classes.Codexes.Distributors.LSI.create_LSI_ACS_spreadsheet import create_LSI_ACS_spreadsheet
 
 from Codexes2Gemini.classes.Utilities.classes_utilities import load_spreadsheet
+from Codexes2Gemini.classes.Codexes.Builders.Codexes2Codexes import Codex2Plan2Codex
 
-import Codexes2Gemini
+
 import fitz
 import pandas as pd
 from datetime import datetime
@@ -114,11 +115,7 @@ class PG19FetchAndTrack:
             with open(filepath, "r") as f:
                 context = f.read()
             st.session_state.current_plan.update({"plan_type": "User"})
-
-            # FIX -- system is asking for more context -- verify that all prompts including spawned ones are receiving correct context
             results = self.process_single_context(context, row)
-
-            st.info("processed single context")
 
             publishing_info_block = f"""
 
@@ -134,12 +131,17 @@ _Humans and models making books richer, more diverse, and more surprising._
 """
 
             results.insert(1, publishing_info_block)
+            # create CondenserPlan
+            c2c = Codex2Plan2Codex()
+            condenserPlan = c2c.create_condenserPlan(textfilename, context)
+            st.write(condenserPlan)
+            condenser_results = self.process_single_context(context, row, plan=condenserPlan)
+            st.write(condenser_results)
+
+
 
             # Save results to JSON
             self.save_results_to_json(textfilename, results)
-
-            # FIX failing to write .md file to file system
-
 
             markdown_results_with_latex = results2assembled_pandoc_markdown_with_latex(results)
 
@@ -213,13 +215,21 @@ _Humans and models making books richer, more diverse, and more surprising._
         Args:
             context (str): The text content of the context.
             row (list): The metadata row corresponding to the context.
+            plan (PromptsPlan, optional): The PromptsPlan object to use.
+                                          If None, it will use the current plan
+                                          from the session state.
 
         Returns:
             list: A list of results from processing the context.
         """
+        # Update the current plan in the session state with context and row
         st.session_state.current_plan.update({"context": context, "row": row})
+
+        # Use the provided plan or create one from the session state
         if plan is None:
             plan = PromptsPlan(**st.session_state.current_plan)
+
+        # Call process_codex_to_book_part from Codexes2Parts
         satisfactory_results = self.CODEXES2PARTS.process_codex_to_book_part(plan)
         return satisfactory_results
 
