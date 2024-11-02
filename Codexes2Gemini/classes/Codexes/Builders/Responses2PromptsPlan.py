@@ -1,11 +1,9 @@
 import json
 import logging
 import traceback
-import streamlit as st
-from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
-from Codexes2Gemini.classes.Utilities.classes_utilities import configure_logger
 
-configure_logger("DEBUG")
+from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
+
 
 class Response2Prompts:
     def __init__(self, json_response, logger=logging.getLogger(__name__)):
@@ -17,7 +15,6 @@ class Response2Prompts:
         """
         Processes the JSON response, creates a PromptPlan, and runs it.
         """
-        print("arrived inside process_response")
         try:
             # Import Codexes2Parts here, when it's actually needed
             from Codexes2Gemini.classes.Codexes.Builders.Codexes2PartsOfTheBook import Codexes2Parts
@@ -25,10 +22,7 @@ class Response2Prompts:
 
             # 1. Parse the JSON response
             prompts_data = self._parse_json_response()
-            print("prompts_data")
-            print(prompts_data)
-            # FIX breaks down after here
-            self.logger.debug(f"prompts_data: {prompts_data}")
+
             # 2. Create a PromptPlan
             plan = self._create_prompt_plan(prompts_data)
 
@@ -68,16 +62,12 @@ class Response2Prompts:
             PromptsPlan: A PromptPlan instance.
         """
         # Extract necessary data from prompts_data
-        # print(prompts_data)
-
-        # FIX ME fails here to read prompts_data
-        prompts_data = json.loads(prompts_data)
+        print(prompts_data)
         name = prompts_data.get('name', 'Response2PromptsPlan')
         plan_type = prompts_data.get('plan_type', 'Spawned')
         additional_context = prompts_data.get('additional_context', '')
         selected_user_prompts_dict = prompts_data.get('selected_user_prompts_dict', {})
         complete_system_instructions = prompts_data.get('complete_system_instructions', '')
-        other_parameters = prompts_data.get('other_parameters', {})
 
         # Create and return a PromptPlan instance
         plan = PromptsPlan(
@@ -85,16 +75,13 @@ class Response2Prompts:
             context=additional_context,
             selected_user_prompts_dict=selected_user_prompts_dict,
             complete_system_instruction=complete_system_instructions,
-            selected_user_prompt_keys=selected_user_prompts_dict.keys(),
-            plan_type=plan_type
+            selected_user_prompt_keys=selected_user_prompts_dict.keys()
+            # ... (Pass other necessary parameters to PromptsPlan)
         )
 
         # Update the plan with other parameters
         for key, value in other_parameters.items():
             if hasattr(plan, key):
                 setattr(plan, key, value)
-
-        self.logger.info("Returning Spawned Plan")
-        self.logger.debug(plan)
 
         return plan
