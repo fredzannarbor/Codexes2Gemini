@@ -5,7 +5,7 @@ from typing import Dict
 import google.generativeai as genai
 import streamlit as st
 
-from Codexes2Gemini.ui.ui_utilities import create_latex_preamble, clean_up_markdown
+from Codexes2Gemini.ui.ui_utilities import create_latex_preamble, clean_up_markdown, flatten_and_stringify
 from ..Builders.Codexes2PartsOfTheBook import Codexes2Parts
 from ..Builders.PromptGroups import PromptGroups
 
@@ -91,10 +91,11 @@ def results2assembled_pandoc_markdown_with_latex(results):
 
     for item in results:
 
+        item = flatten_and_stringify(item)
+
+
         assembled_pandoc_markdown_with_latex = ""
 
-        # --- JSON Parsing Logic Starts Here ---
-        # Remove leading/trailing whitespace and quotes
         cleaned_item = item.strip(' "')
 
         try:
