@@ -354,47 +354,18 @@ def prompts_plan_builder_ui(user_space: UserSpace):
             except Exception as e:
                 st.error(f"Error fetching PG19 data: {traceback.format_exc()}")
 
-
+            st.info(f"selected rows: {len(selected_rows)}, strategy: {selection_strategy}")
 
             # --- Display and Edit Selected Rows ---
             if selected_rows:
                 for row in selected_rows:
-
+                    # st.write(row)
 
                     basic_info = gemini_get_basic_info(FT, row)
                     extracted_values = parse_and_get_basic_info(basic_info)
                     st.session_state.current_plan.update(extracted_values)
-                    # # concatenate extracted values to right of selected_rows_df
-                    # selected_rows_df = pd.concat([selected_rows_df, pd.DataFrame(extracted_values, index=[0])],
-                    #                              axis=1)
-                    # selected_rows_df["year_of_publication"] = selected_rows_df["year_of_publication"].astype(
-                    # int)  # Convert to integer
-                    #
-                    # # Optional: Format with commas
-                    # selected_rows_df["year_of_publication"] = selected_rows_df["year_of_publication"]
-                    # selected_rows_df["year_of_publication_display"] = selected_rows_df["year_of_publication"].astype(
-                    #     str).str.replace(',', '')
-                    #
-                    # # Get a list of all column names
-                    # cols = list(selected_rows_df.columns)
-                    #
-                    # # Find the indices of the two columns you want to swap
-                    # year_pub_index = cols.index("year_of_publication")
-                    # year_pub_display_index = cols.index("year_of_publication_display")
-                    # summary_index = cols.index("gemini_summary")
-                    #
-                    # # Swap the positions of the columns in the list
-                    # cols[year_pub_index], cols[year_pub_display_index] = cols[year_pub_display_index], cols[
-                    #     year_pub_index]
-                    #  # move summary index to spot 2
-                    # cols.insert(2, cols.pop(summary_index))
-                    #
-                    # # Reorder the DataFrame using the new column order
-                    # selected_rows_df = selected_rows_df[cols]
 
-                with st.expander("Review dataframe"):
-                    edited_df = st.data_editor(selected_rows_df, num_rows="dynamic", key="3")
-
+                edited_df = st.data_editor(selected_rows_df, num_rows="dynamic", key="3")
                 st.session_state.current_plan.update({"confirmed_data_set": True})
 
                 st.session_state.current_plan.update({"selected_rows": edited_df.to_dict('records')})
@@ -634,12 +605,13 @@ def gemini_get_basic_info(FT, row):
     # copy FT instance
     # st.write(f"{len(FT.file_index)} files in FT.file_index" )
     filepath = FT.file_index.get(row['textfilename'])
-    logger.info(f"filepath in gemini_get_basic_information is {filepath}")
+    st.info(f"filepath in gemini_get_basic_information is {filepath}")
     if filepath is None:
         st.error(f"Warning: Could not find file for {row['textfilename']}")
         return
     with open(filepath, "r") as f:
         context = f.read()
+        st.write(context[0:100], context[300:400])
         st.session_state.current_plan.update({"original_context": context})
     basicInfoPlan = PromptsPlan(
         name="basicInfoPlan",
@@ -675,10 +647,11 @@ def gemini_get_basic_info(FT, row):
     basicInfoPlan.plan_type = "User"
 
     row_result = C2P.process_codex_to_book_part(basicInfoPlan)
-    logger.info("finished running process to book part")
-
+    st.info("finished running process to book part")
+    # st.write(row_result)
     extracted_values = parse_and_get_basic_info(row_result)
 
+    # st.write(extracted_values)
     st.session_state.current_plan.update(extracted_values)
     #st.write(st.session_state.current_plan.keys())
     return row_result
@@ -701,6 +674,7 @@ def parse_and_get_basic_info(row_result):
         row_result = row_result.replace("```json", "").replace("", "")
         row_result = row_result.replace("```", "")
         data = json.loads(row_result)  # Parse the JSON string
+        # st.write(data)
         extracted_values = {
             "gemini_title": data.get("gemini_title"),
             "gemini_subtitle": data.get("gemini_subtitle"),
@@ -712,7 +686,7 @@ def parse_and_get_basic_info(row_result):
             "gemini_authors_str": data.get("gemini_authors"),
             "gemini_authors_no_latex_str": data.get("gemini_authors")
         }
-        logger.debug(f"Extracted values: {extracted_values}")
+        st.write(extracted_values)
         return extracted_values
     except json.JSONDecodeError:
         print("Error: Invalid JSON string.")

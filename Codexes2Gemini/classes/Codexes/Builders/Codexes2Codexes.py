@@ -1,12 +1,16 @@
 import argparse
 import json
 from typing import List
+import streamlit as st
 
 from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
 
-from classes.Codexes.Builders import Codexes2Parts, PromptGroups
-from classes.Codexes.Builders.Codexes2PartsOfTheBook import parse_arguments
+from Codexes2Gemini.classes.Codexes.Builders import Codexes2Parts, PromptGroups
+from Codexes2Gemini.classes.Codexes.Builders.Codexes2PartsOfTheBook import parse_arguments
 
+from Codexes2Gemini.classes.Utilities.classes_utilities import configure_logger
+
+configure_logger("DEBUG")
 
 class Codex2Plan2Codex(Codexes2Parts):
 
@@ -68,6 +72,38 @@ class Codex2Plan2Codex(Codexes2Parts):
         )
         return condenserPlan
 
+    def run_condenser_prompts(self, condenser_prompts):
+        # extract Plan vaues from condenser_prompts
+        print(type(condenser_prompts))
+        condenser_prompts_string = condenser_prompts[0]
+        condenser_prompts_string = condenser_prompts_string.replace("```json", "").replace("```", "")
+        condenser_prompts_dict = json.loads(condenser_prompts_string)
+        complete_system_instruction = condenser_prompts_dict["complete_system_instructions"]
+        selected_user_prompts_dict = condenser_prompts_dict["selected_user_prompts_dict"]
+        name = condenser_prompts_dict["name"]
+        c2c = Codex2Plan2Codex()
+        condenser_results = []
+        idx = 0
+        original_context = st.session_state.current_plan["context"]
+        self.logger.info(f"original_context: {len(original_context)}")
+
+        for this_prompt in condenser_prompts:
+            self.logger.info(f"running prompt index {idx} of {len(condenser_prompts)}")
+            this_plan = PromptsPlan(name=f"condenserPlan_{idx}", selected_user_prompts_dict=selected_user_prompts_dict,
+                                    complete_system_instruction=complete_system_instruction, context=original_context)
+            self.logger.info(f"Processing plan: {this_plan}")
+            c2p = Codexes2Parts()
+            this_result = c2p.process_codex_to_book_part(this_plan)
+            idx += 1
+            self.logger.info(f"this_result: {this_result}")
+            condenser_results.append(this_result)
+        self.logger.info(type(condenser_results))
+        self.logger.info(len(condenser_results))
+        return condenser_results
+
+
+def main():
+    pass
 
 if __name__ == "__main__":
     c2c = Codex2Plan2Codex()

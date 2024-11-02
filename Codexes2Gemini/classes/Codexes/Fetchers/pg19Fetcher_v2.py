@@ -7,6 +7,8 @@ import random
 from importlib import resources
 from textwrap import shorten
 
+from Codexes2Gemini.ui.ui_utilities import flatten_and_stringify
+
 from Codexes2Gemini.classes.Codexes.Metadata.metadatas2distributor_reqts import process_acrobat_toc, \
     calculate_min_max_age_grade, get_LSI_ACS_keywords, create_draft_book_description, calculate_pub_date
 
@@ -133,12 +135,9 @@ _Humans and models making books richer, more diverse, and more surprising._
             results.insert(1, publishing_info_block)
             # create CondenserPlan
             c2c = Codex2Plan2Codex()
-            condenserPlan = c2c.create_condenserPlan(textfilename, context)
-            st.write(condenserPlan)
-            condenser_results = self.process_single_context(context, row, plan=condenserPlan)
-            st.write(condenser_results)
-
-
+            condenser_results_string = self.create_condensed_matter_string(c2c, context, row, textfilename)
+            # results.append(condenser_results_string)
+            results.insert(-2, condenser_results_string)
 
             # Save results to JSON
             self.save_results_to_json(textfilename, results)
@@ -189,6 +188,24 @@ _Humans and models making books richer, more diverse, and more surprising._
         self.save_processed_metadata_to_cumulative_csv()
 
         return all_results
+
+    def create_condensed_matter_string(self, c2c, context, row, textfilename):
+        condenserPlan = c2c.create_condenserPlan(textfilename, context)
+        condenserPlan_df = pd.DataFrame.from_dict(condenserPlan.to_dict(), orient='index')
+        condenserPlan_df.to_json(f"processed_data/{textfilename}_condenserPlan.json")
+        st.json(condenserPlan.to_dict, expanded=False)
+        condenser_prompts = self.process_single_context(context, row, plan=condenserPlan)
+        st.write(condenser_prompts)
+        condenser_results = c2c.run_condenser_prompts(condenser_prompts)
+        with open(f"processed_data/{textfilename}" + "_condensed.json", "w") as f:
+            data = json.dumps(condenser_results)
+            f.write(data)
+        st.write(condenser_results)
+        condenser_results_string = flatten_and_stringify(condenser_results)
+        with open(textfilename + "_condensed.md", "w") as f:
+            f.write(condenser_results_string)
+        condenser_results_string = f"# Condensed Matter\n\n{condenser_results_string}"
+        return condenser_results_string
 
     def fetch_pg19_metadata(self, number_of_context_files_to_process, selection_strategy):
         """Fetches metadata for N random PG19 entries.

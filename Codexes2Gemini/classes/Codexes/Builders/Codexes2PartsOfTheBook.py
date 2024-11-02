@@ -235,6 +235,30 @@ class Codexes2Parts:
             print(traceback.format_exc())
             return Exception(f"response is not json serializable: {e}")
 
+    def process_single_context(self, context, row, plan=None):
+        """Processes a single context and returns the results.
+
+        Args:
+            context (str): The text content of the context.
+            row (list): The metadata row corresponding to the context.
+            plan (PromptsPlan, optional): The PromptsPlan object to use.
+                                          If None, it will use the current plan
+                                          from the session state.
+
+        Returns:
+            list: A list of results from processing the context.
+        """
+        # Update the current plan in the session state with context and row
+        st.session_state.current_plan.update({"context": context, "row": row})
+
+        # Use the provided plan or create one from the session state
+        if plan is None:
+            plan = PromptsPlan(**st.session_state.current_plan)
+
+        # Call process_codex_to_book_part from Codexes2Parts
+        satisfactory_results = self.CODEXES2PARTS.process_codex_to_book_part(plan)
+        return satisfactory_results
+
     def process_chunking_prompts(self, plan, context, model):
         total_tokens = self.count_tokens(context)
         desired_output_length = int(total_tokens * (plan.chunking_output_percentage / 100))
