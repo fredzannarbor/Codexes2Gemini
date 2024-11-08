@@ -15,8 +15,8 @@ grandparent_dir = os.path.dirname(parent_dir)
 
 # Append both directories to the Python path
 sys.path.append(parent_dir)
-from Codexes2Gemini.classes.Codexes.Builders import PromptGroups
-from Codexes2Gemini.classes.Codexes.Builders.MultiContextBuilder import MultiContextProcessor
+from Codexes2Gemini.classes.Codexes.Builders import PromptsPlan
+# from Codexes2Gemini.classes.Codexes.Builders.MultiContextBuilder import MultiContextProcessor
 from Codexes2Gemini.ui.ui_utilities import filter_dict, load_json_file
 import os
 
@@ -112,9 +112,9 @@ class MultiContextUI:
         # --- Form for Instructions and Prompts ---
         with st.form("multi_context_instructions_prompts"):
             if st.form_submit_button("Save Instructions and Prompts"):
-                # Create a PromptGroup object (assuming your PromptGroups class constructor
+                # Create a PromptGroup object (assuming your PromptsPlan class constructor
                 # takes the selected keys/values as arguments)
-                st.session_state.selected_prompt_group = PromptGroups(
+                st.session_state.selected_prompt_group = PromptsPlan(
                     selected_system_instruction_keys=selected_system_instruction_keys,
                     selected_user_prompt_keys=selected_user_prompt_keys,
                     complete_user_prompt=complete_user_prompt
@@ -149,7 +149,7 @@ class MultiContextUI:
                 plan_name = st.text_input("Plan Name", value=st.session_state.current_plan.get('name', ''))
 
             if st.form_submit_button("Save Output Settings"):
-                st.session_state.selected_prompt_group = PromptGroups(
+                st.session_state.selected_prompt_group = PromptsPlan(
                     selected_system_instruction_keys=selected_system_instruction_keys,
                     selected_user_prompt_keys=selected_user_prompt_keys,
                     complete_user_prompt=complete_user_prompt,

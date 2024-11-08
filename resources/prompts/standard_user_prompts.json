@@ -147,7 +147,7 @@
     ]
   },
   "conversation_starters": {
-    "prompt": "Backstory:\n\nCollapsar Classics was launched to bring 19th and early 20th century books to modern audiences in a fresh and convenient way. Each book is approximately 15,000 words and is presented in a phone-sized 4 x 6\" paperback format. Each Collapsar Classic includes a section called \"Condensed Matter\" (a play on front matter). Much like the Reader's Digest Condensed Books that were popular many decades ago, the Condensed Matters is meant to give you the best parts of the original in a much smaller space.\n\nYour Task:\n\nWrite the Condensed Matter section for the document in the context. The document in the context is permissioned public domain so you have complete freedom to quote from it.\nWork only on the Condensed Matter section. Do not refer to the backstory.\nYour goal is to write a highly readable condensed version of the original. \nYou must cover the entire scope of the original within your output window. Thus, your condensed prose should begin at or near the beginning of the original and end at or near the end of it.\nYou should use the exact words of the context frequently.\nYou may use transitional devices such as ellipses, dingbats, or bracketed comments.\nUse emoji to add flavor and emphasize emotion.\nYou may make sparing use of framing devices in your own words.\nRemember, your overriding goal is to give modern readers the benefit of reading this document in as original a form as possible, but as much condensed as possible.\nOutput must begin '# Condensed Matter' followed immediately by two new-line characters.\n",
+    "prompt": "Create three conversation starters that you could say to a boss, mention at a party, forward to a friend, or include in an email. Should be quick, informal, accessible.",
     "tags": [
       "publishing",
       "bibliographic",
@@ -166,7 +166,7 @@
       "readers"
     ]
   },
-  "Create list of abbreviations": {
+  "create_list_of_abbreviations": {
     "prompt": "Create a list of abbreviations for the book. Follow the Chicago Manual of Style practices described here. You do not need to mention the CMS as you create the list.\n\n1.44 Not every work that includes abbreviations needs a separate list of abbreviations with the terms or names they stand for. If many are used, or if a few are used frequently, a list is useful (see fig. 1.8); its location should always be given in the table of contents. If abbreviations are used in the text or footnotes, the list may appear in the front matter. If they are used only in the back matter, the list should appear before the first element in which abbreviations are used, whether the appendixes, the endnotes, or the bibliography. A list of abbreviations is generally not a substitute for using the full form of a term at its first occurrence in the text (see 10.3). In the list, alphabetize terms by the abbreviation, not by the spelled-out form. See also 14.60.\n14.60: Where many abbreviations of titles, manuscript collections, personal names, or other entities are used in a work—say, ten or more—they are best listed alphabetically in a separate section. In a book, the list may appear in the front matter (if footnotes are used) or in the end matter preceding the endnotes (if these are used). It is usually headed “Abbreviations” and should be included in the table of contents (see 1.4, 1.44). Where only a few abbreviations are used, these are occasionally listed as the first section of the endnotes (see fig. 14.7) or at the head of the bibliography. Titles that are italicized in the notes or bibliography should be italicized in their abbreviated form in the list of abbreviations and elsewhere.\n\nOutput begins: # Abbreviations\n\n",
     "tags": [
       "table of contents",
@@ -264,7 +264,7 @@
     ]
   },
   "glossary_browsable": {
-    "prompt": "Your task is to review the document in its entirety, and, selecting from throughout it, create a browsable glossary of forty old-fashioned, foreign-language, or technical terms that may require explanation for modern or lay readers. Unlike a normal (boring) glossary, your discussion should sometimes go beyond definitions and may include insightful, witty, pointed, or illuminating comments. \n\nOutput begins with heading level 1: '# Browsable Glossary'.  \n\nEach glossary entry is body text, flush left, and is NOT a heading.  \n\nEach glossary entry MUST be on its own line followed by two new-line characters.\n\nDo not repeat any entries.\n\nSTOP when you get to forty entries.",
+    "prompt": "Your task is to review the document in its entirety, and, selecting from throughout it, create a browsable glossary of exactly twenty-five old-fashioned, foreign-language, or technical terms that may require explanation for modern or lay readers. Unlike a normal (boring) glossary, your discussion should sometimes go beyond definitions and may include insightful, witty, pointed, or illuminating comments. \n\nOutput begins with heading level 1: '# Browsable Glossary'.  \n\nEach glossary entry is body text, flush left, and is NOT a heading.  \n\nEach glossary entry MUST be on its own line followed by a blank line.\n\nDo not repeat any entries.\n\nSTOP when you get to twenty-five entries.",
     "tags": [
       "back matter",
       "glossary",
@@ -443,6 +443,17 @@
       "recommendations"
     ]
   },
+  "introspection": {
+    "prompt": "Create an Introspection section. Output should begin with '# Introspection'.  Generate two sections of text. The first should be a careful analysis comparing the content of the original context with the content of the condensed edition (appended).  The second section is a \"struggle session\" with the model and the editorial staff acknowledging this work's failings and striving to improve.\nSection 1 should begin '## Self-Analysis'.  Section 2 should begin '## Struggle session.'",
+    "tags": [
+      "post-processing",
+      "back matter",
+      "book structure",
+      "front matter",
+      "parts of the book",
+      "recommendations"
+    ]
+  },
   "review_for_accuracy": {
     "prompt": "Please review this document for factual accuracy and report all errors that you find. In particular:\n\n-- make sure that all information provided about books or journal articles is correct. If any of the following are provided, verify them: title, subtitle, author(s), publication date, place of publication, and publisher.\n-- for real people in nonfiction, please verify that they are real people and that their name is spelled correctly.\n-- make sure that all dates given are accurate.\n\n\nPlease provide links to sources for corrections.",
     "tags": [
@@ -519,7 +530,7 @@
     ]
   },
   "timeline_major": {
-    "prompt": "Create a timeline of twenty to forty major events in the book in ascending chronological order. While respecting that some events are more major than others, try to draw the events from throughout the book and cover the timespan fairly. \n\nOutput begins with heading level 1: '# Timeline'. \n\nEach event entry MUST be on its own line followed by TWO new line characters. \n\nIf you begin to repeat yourself, STOP.",
+    "prompt": "Create a timeline of exactly twenty major events in the book in ascending chronological order. While respecting that some events are more major than others, try to draw the events from throughout the book and cover the timespan fairly. \n\nOutput begins with heading level 1: '# Timeline'. \n\nEach event entry MUST be on its own line followed by TWO and only two new line characters. \n\nIf you begin to repeat yourself, STOP.",
     "tags": [
       "back matter",
       "timeline",

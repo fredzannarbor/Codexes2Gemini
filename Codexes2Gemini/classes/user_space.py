@@ -12,9 +12,6 @@ import streamlit as st
 MAX_PICKLE_SIZE = 100 * 1024 * 1024  # 100 MB
 
 
-# TO DO Warning: Pickle file is empty. Returning a new UserSpace object.
-# TO DO seems to be running selected doc #1 multiple times
-
 class SavedContext:
     """
     Represents a saved context with its name, content, and optional tags.

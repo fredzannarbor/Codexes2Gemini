@@ -7,7 +7,7 @@ import pymupdf as fitz  # PyMuPDF
 
 from Codexes2Gemini.classes.Utilities.classes_utilities import configure_logger
 
-# TODO  replace PromptGroups with this everywhere
+# TODO  replace PromptsPlan with this everywhere
 from Codexes2Gemini.classes.Utilities.classes_utilities import configure_logger
 
 class PromptsPlan:
@@ -53,7 +53,8 @@ class PromptsPlan:
                  metadata_file_path: str = None,
                  minimum_required_output: bool = False,
                  minimum_required_output_tokens: int = 5,
-                 model_name: str = None, mode: str = "part",
+                 model_name: str = None,
+                 mode: str = "part",
                  name: str = "TK",
                  number_to_run: int = 1,
                  number_of_context_files_to_process: int = 3,
@@ -257,7 +258,7 @@ class PromptsPlan:
         return self.final_prompts
 
     def set_provider(self, provider: str, model: str) -> None:
-        """Set the provider and model for the PromptGroups."""
+        """Set the provider and model for the PromptsPlan."""
         self.provider = provider
         self.model = model
         if "gpt" in model:
@@ -266,7 +267,7 @@ class PromptsPlan:
             self.max_output_tokens = 8192
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert the PromptGroups object to a dictionary."""
+        """Convert the PromptsPlan object to a dictionary."""
         return {
             "context": self.context,
             "context_file_paths": self.context_file_paths,
@@ -327,8 +328,8 @@ class PromptsPlan:
         return f"PromptsPlan(name={self.name}, json_required={self.json_required}mode={self.mode}, model={self.model}, prompts={len(self.final_prompts)}, context={len(self.context)} characters"
 
     def __repr__(self) -> str:
-        """Detailed string representation of the PromptGroups object."""
-        return f"PromptGroups({self.to_dict()})"
+        """Detailed string representation of the PromptsPlan object."""
+        return f"PromptsPlan({self.to_dict()})"
 
     def get(self, attribute):
         return getattr(self, attribute, None)

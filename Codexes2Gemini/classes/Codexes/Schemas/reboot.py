@@ -1,5 +1,4 @@
 from Codexes2Gemini.classes.Codexes.Builders.Codexes2PartsOfTheBook import Codexes2Parts
-from Codexes2Gemini.classes.Codexes.Builders.PromptGroups import PromptGroups
 from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
 
 

@@ -7,8 +7,7 @@ import streamlit as st
 
 from Codexes2Gemini.ui.ui_utilities import create_latex_preamble, clean_up_markdown, flatten_and_stringify
 from ..Builders.Codexes2PartsOfTheBook import Codexes2Parts
-from ..Builders.PromptGroups import PromptGroups
-
+from ..Builders.PromptsPlan import PromptsPlan
 
 class CodexBuilder:
     """
@@ -21,7 +20,7 @@ class CodexBuilder:
 
     Methods:
     - build_codex_from_parts: Build a codex from multiple parts.
-    - build_codex_from_plan: Build a codex using a single PromptGroups.
+    - build_codex_from_plan: Build a codex using a single PromptsPlan.
     - build_codex_from_multiple_plans: Build a codex using multiple PromptPlans.
     - count_tokens: Count the number of tokens in a text.
     - truncate_to_token_limit: Truncate content to match the token limit.
@@ -32,8 +31,8 @@ class CodexBuilder:
         self.logger = logging.getLogger(__name__)
         self.model = genai.GenerativeModel('gemini-pro')
 
-    def build_parts_from_codex(self, plan: PromptGroups) -> str:
-        """Build parts of the book using a single PromptGroups."""
+    def build_parts_from_codex(self, plan: PromptsPlan) -> str:
+        """Build parts of the book using a single PromptsPlan"""
         return self.c2p.process_codex_to_book_part(plan)
 
 
@@ -53,11 +52,11 @@ class CodexBuilder:
         """
         return
 
-    def build_codex_from_plan(self, plan: PromptGroups) -> str:
-        """Build a codex using a single PromptGroups."""
+    def build_codex_from_plan(self, plan: PromptsPlan) -> str:
+        """Build a codex using a single PromptsPlan."""
         return self.c2p.process_plan_to_codex(plan)
 
-    # def build_codex_from_multiple_plans(self, plans: List[PromptGroups]) -> str:
+    # def build_codex_from_multiple_plans(self, plans: List[PromptsPlan]) -> str:
     #     """Build a codex using multiple PromptPlans."""
     #     results = self.c2p.generate_full_book(plans)
     #     return self.build_codex_from_parts(results)
@@ -76,7 +75,7 @@ class CodexBuilder:
             content = content[:int(len(content) * 0.9)]  # Reduce by 10% each time
         return content
 
-    def use_continuation_prompt(self, plan: PromptGroups, initial_content: str) -> str:
+    def use_continuation_prompt(self, plan: PromptsPlan, initial_content: str) -> str:
         """Use continuation prompts to extend content to desired token count."""
         full_content = initial_content
         while self.count_tokens(full_content) < plan.minimum_required_output_tokens:
@@ -135,6 +134,50 @@ def results2assembled_pandoc_markdown_with_latex(results):
 
     return assembled_documents
 
+
+# TODO refactor this function when time allows
+def results2assembled_pandoc_markdown_no_latex(results, assembled_pandoc_markdown_no_latex=None):
+    assembled_documents = []
+
+    for item in results:
+
+        item = flatten_and_stringify(item)
+
+        assembled_pandoc_markdown_with_latex = ""
+
+        cleaned_item = item.strip(' "')
+
+        try:
+            # Attempt to parse as JSON
+            json_data = json.loads(cleaned_item)
+
+            # Handle basic info result (check for keys anywhere in the object)
+            if any(key in json_data for key in ["gemini_title", "gemini_authors"]):
+                gemini_title = json_data.get("gemini_title", "TBD")
+                gemini_subtitle = json_data.get("gemini_subtitle", "TBD")
+                gemini_authors = json_data.get("gemini_authors", "TBD")
+                gemini_summary = json_data.get("gemini_summary", "TBD")
+                st.session_state.current_plan['gemini_title'] = gemini_title
+                st.session_state.current_plan['gemini_subtitle'] = gemini_subtitle
+                st.session_state.current_plan['gemini_authors'] = gemini_authors
+                st.session_state.current_plan['gemini_summary'] = gemini_summary
+                st.session_state.current_plan['gemini_authors_str'] = gemini_authors
+                st.session_state.current_plan['gemini_authors_no_latex_str'] = gemini_authors
+
+                assembled_pandoc_markdown_no_latex += cleaned_item + "\n\n"
+                st.session_state.current_plan['gemini_authors_str'] = ""
+                st.session_state.current_plan['gemini_authors_no_latex_str'] = ""
+        except json.JSONDecodeError:
+            # Handle non-JSON elements (e.g., append as plain text)
+            #  st.write('list item is string:')
+            # st.write(item)
+            assembled_pandoc_markdown_no_latex += item + "\n\n"
+        # add Publishing Information at position [1] in results
+
+        assembled_pandoc_markdown_no_latex = clean_up_markdown(assembled_pandoc_markdown_no_latex)
+        assembled_documents.append(assembled_pandoc_markdown_no_latex)
+
+    return assembled_documents
 
 def create_publishing_information_block(plan):
     # TODO insert isbn-fetchner

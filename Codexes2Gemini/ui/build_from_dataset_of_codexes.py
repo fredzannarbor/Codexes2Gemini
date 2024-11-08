@@ -29,7 +29,7 @@ from Codexes2Gemini.classes.Codexes.Builders import Codexes2Parts
 
 # from classes.Codexes.Builders.collapsar_classics import CODEXES2PARTS
 
-# TODO add bookjson
+
 # TODO add proofing prompt
 
 # print("Codexes2Gemini location:", Codexes2Gemini.__file__)
@@ -60,7 +60,7 @@ from Codexes2Gemini.ui.ui_utilities import flatten_and_stringify, \
 from classes.Codexes.Builders.CodexBuilder import results2assembled_pandoc_markdown_with_latex
 
 logger = configure_logger("DEBUG")
-logging.info("--- Began logging ---")
+logger.info("--- Began logging ---")
 user_space = UserSpace.load_user_space
 # logger.debug(f"user_space: {user_space}")
 
@@ -313,7 +313,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         ```
         """
 
-        logging.error(error_msg_pg19)
+        logger.error(error_msg_pg19)
         st.error(error_msg_pg19)
         st.stop()
 
@@ -494,7 +494,7 @@ def prompts_plan_builder_ui(user_space: UserSpace):
 
                 except Exception as e:
                     st.error(f"Error saving PromptPack: {e}")
-                    logging.error(traceback.format_exc())
+                    logger.error(traceback.format_exc())
 
     with st.form("save-instructions-continue"):
         instructions_submitted = st.form_submit_button(
@@ -582,9 +582,9 @@ def prompts_plan_builder_ui(user_space: UserSpace):
     st.subheader("Step 4: Begin Building from Data Set")
 
     #show all keys in st.session_state.current_plan
-    logging.info(f"session state keys are {st.session_state.current_plan.keys()}")
-    logging.info(f"skipping previously processed files: {st.session_state.current_plan['skip_processed']}")
-    logging.info(f"selected_rows: {st.session_state.current_plan['selected_rows']}")
+    logger.info(f"session state keys are {st.session_state.current_plan.keys()}")
+    logger.info(f"skipping previously processed files: {st.session_state.current_plan['skip_processed']}")
+    logger.info(f"selected_rows: {st.session_state.current_plan['selected_rows']}")
 
 
     if st.button(f"Build From Data Set {selection_strategy}"):  #
@@ -592,9 +592,9 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         FT.file_index = FT.create_file_index()
         results = FT.fetch_pg19_data(skip_processed=st.session_state.current_plan['skip_processed'])
         if isinstance(results, str):
-            logging.info("results is string")
+            logger.info("results is string")
         elif isinstance(results, list):
-            logging.info("results is list")
+            logger.info("results is list")
         # provide_ui_access_to_results(results)
 
         st.success(f"Successfully built {len(results)} documents and saved them in the output folder {thisdoc_dir}")
@@ -611,7 +611,7 @@ def gemini_get_basic_info(FT, row):
         return
     with open(filepath, "r") as f:
         context = f.read()
-        st.write(context[0:100], context[300:400])
+        st.write(context[0:40])
         st.session_state.current_plan.update({"original_context": context})
     basicInfoPlan = PromptsPlan(
         name="basicInfoPlan",
@@ -641,7 +641,8 @@ def gemini_get_basic_info(FT, row):
         complete_system_instruction="You are a careful, meticulous researcher. You are careful to state facts accurately.\nY\nYou are industrious, energetic, and proactive. You complete tasks without waiting for approval.",
         minimum_required_output_tokens=st.session_state.current_plan['minimum_required_output_tokens']
     )
-    logging.info(f"{basicInfoPlan.show_all_keys()}")
+
+    logger.info(f"{basicInfoPlan.show_all_keys()}")
 
     C2P = Codexes2Parts()
     basicInfoPlan.plan_type = "User"
@@ -651,7 +652,6 @@ def gemini_get_basic_info(FT, row):
     # st.write(row_result)
     extracted_values = parse_and_get_basic_info(row_result)
 
-    # st.write(extracted_values)
     st.session_state.current_plan.update(extracted_values)
     #st.write(st.session_state.current_plan.keys())
     return row_result
@@ -686,7 +686,7 @@ def parse_and_get_basic_info(row_result):
             "gemini_authors_str": data.get("gemini_authors"),
             "gemini_authors_no_latex_str": data.get("gemini_authors")
         }
-        st.write(extracted_values)
+        # st.write(extracted_values)
         return extracted_values
     except json.JSONDecodeError:
         print("Error: Invalid JSON string.")
@@ -721,7 +721,7 @@ def provide_ui_access_to_results(results):
 
             except Exception as e:
                 st.error(f"Error generating or downloading PDF: {e}")
-                logging.error(traceback.format_exc())
+                logger.error(traceback.format_exc())
 
     return
 

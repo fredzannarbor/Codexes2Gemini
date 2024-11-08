@@ -38,15 +38,18 @@
         "bibliographic_key_phrases",
         "motivation",
         "truth_in_publishing",
+        "analytic_toc",
+        "most_important_passages_with_reasoning",
         "about_the_author_classic",
         "place_in_historical_context",
+        "create_list_of_abbreviations",
+        "glossary_browsable",
+        "timeline_major",
+        "introspection",
         "abstracts_x4",
         "ELI_idiot",
         "mnemonics_abstract",
-        "analytic_toc",
-        "most_important_passages_with_reasoning",
-        "glossary_browsable",
-        "timeline_major"
+        "conversation_starters"
       ],
       "custom_prompt": "",
       "override": false,
@@ -73,7 +76,9 @@
         "most_important_passages_with_reasoning",
         "context2condensedmatterprompts",
         "glossary_browsable",
-        "timeline_major"
+        "timeline_major",
+        "conversation_starters",
+        "introspection"
       ],
       "custom_prompt": "",
       "override": "Add at end of other user prompts",

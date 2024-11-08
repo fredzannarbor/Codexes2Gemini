@@ -26,7 +26,7 @@ def load_json_file(file_name):
         return {}
 
 
-# FIX force line wrap if author > 30 charaters
+# DONE force line wrap if author > 30 charaters
 def create_latex_preamble(gemini_title="TBD", gemini_subtitle="TBD", gemini_authors="TBD", paperwidth=4, paperheight=6,
                           top=0.25, bottom=0.25, right=0.25, left=0.5, includehead=True, includefoot=True,
                           documentclass="book", output="pdf_document", fontsize=9.5, mainfont=None):
@@ -49,7 +49,10 @@ Author of 'Saul', 'Jephthah's Daughter.'
 &c., &c., &c.}'
 subtitle: "A NOVEL"
     """
+    if gemini_authors_str is None:
+        gemini_authors_str = " "
     if "\"" or ":" in gemini_authors_str and len(gemini_authors_str > 0):
+        # FIX if str is None
         gemini_authors_str = gemini_authors_str.replace("\"", "'").replace(":", "")
     # Wrap author field if longer than 30 characters
     gemini_authors_no_latex_str = gemini_authors_str.replace("\\", "")
@@ -82,7 +85,7 @@ output: pdf_document
 
 
 # TODO make condensed matter longer
-# TODO include more random text or full body
+
 # FIX do not include exceprts from the Context
 
 

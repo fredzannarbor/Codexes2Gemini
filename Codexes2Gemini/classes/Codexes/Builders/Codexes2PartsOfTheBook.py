@@ -18,8 +18,7 @@ from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
 from Codexes2Gemini.ui.ui_utilities import load_json_file
 from Codexes2Gemini.classes.Codexes.Builders.Responses2PromptsPlan import Response2Prompts
 
-
-from ..Builders.PromptGroups import PromptGroups
+from ..Builders.PromptsPlan import PromptsPlan
 
 GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
 
@@ -132,7 +131,7 @@ class Codexes2Parts:
         context = self.read_and_prepare_context(plan)
         self.logger.debug(f"Context prepared, length: {self.count_tokens(context)} tokens")
 
-        # TODO: make sure this is available for all builder functions
+
         cache = self.create_cache_from_context(context)
 
         model = self.create_model(self.model_name, self.safety_settings, plan.generation_config, cache)
@@ -163,7 +162,7 @@ class Codexes2Parts:
             self.results = self.process_chunking_prompts(plan, context, model)
 
         self.results = []  # Reset self.results for each new book
-        # FIX SOMETHING new is wrong with running basic_info_plan
+
         for user_prompt in user_prompts:
 
             self.logger.info(f"\nProcessing user prompt: {user_prompt}")
@@ -193,6 +192,47 @@ class Codexes2Parts:
                     self.logger.error(f"Error in gemini_get_response: {e}")
                     retry_count += 1
                     self.logger.info(f"Retrying due to error. Retry count: {retry_count}")
+
+                # FIX - blows up at 199
+
+                # An
+                # error
+                # occurred: Unknown
+                # field
+                # for Candidate: finish_message
+                #
+                # Traceback(most
+                # recent
+                # call
+                # last): File
+                # "/Users/fred/bin/nimble/Codexes2Gemini/Codexes2Gemini/ui/build_from_dataset_of_codexes.py", line
+                # 1098, in run_streamlit_app
+                # final_results = prompts_plan_builder_ui(
+                #     user_space) ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ File
+                # "/Users/fred/bin/nimble/Codexes2Gemini/Codexes2Gemini/ui/build_from_dataset_of_codexes.py", line
+                # 593, in prompts_plan_builder_ui
+                # results = FT.fetch_pg19_data(skip_processed=st.session_state.current_plan[
+                #     'skip_processed']) ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ File
+                # "/Users/fred/bin/nimble/Codexes2Gemini/Codexes2Gemini/classes/Codexes/Fetchers/pg19Fetcher_v2.py", line
+                # 124, in fetch_pg19_data
+                # results = self.process_single_context(context,
+                #                                       row) ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ File
+                # "/Users/fred/bin/nimble/Codexes2Gemini/Codexes2Gemini/classes/Codexes/Fetchers/pg19Fetcher_v2.py", line
+                # 261, in process_single_context
+                # satisfactory_results = self.CODEXES2PARTS.process_codex_to_book_part(
+                #     plan) ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ File
+                # "/Users/fred/bin/nimble/Codexes2Gemini/Codexes2Gemini/classes/Codexes/Builders/Codexes2PartsOfTheBook.py", line
+                # 197, in process_codex_to_book_part
+                # self.logger.info(
+                #     f"\nFinal output length for this response: {self.count_tokens(response.text)}") ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ File
+                # "/Users/fred/.virtualenvs/c2g3.11/lib/python3.11/site-packages/google/generativeai/types/generation_types.py", line
+                # 454, in text
+                # if candidate.finish_message: ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ File
+                # "/Users/fred/.virtualenvs/c2g3.11/lib/python3.11/site-packages/proto/message.py", line
+                # 906, in getattr
+                # raise AttributeError(AttributeError: Unknown
+                # field
+                # for Candidate: finish_messag
 
                 self.logger.info(f"\nFinal output length for this response: {self.count_tokens(response.text)}")
 
@@ -517,7 +557,7 @@ class Codexes2Parts:
 
         return system_prompt, catalog_user_prompts
 
-    def generate_full_book(self, plans: List[PromptGroups]):
+    def generate_full_book(self, plans: List[PromptsPlan]):
         return [self.process_codex_to_book_part(plan) for plan in plans]
 
     def gemini_get_response(self, plan, system_prompt, user_prompt, context, model):
@@ -527,8 +567,8 @@ class Codexes2Parts:
 
         prompt = [system_prompt, user_prompt, context]
 
-        prompt_stats = f"system prompt: {self.count_tokens(system_prompt)} tokens {system_prompt[:64]}\nuser_prompt: {len(user_prompt)} {user_prompt[:64]}\ncontext: {len(context)} {context[:52]}"
-        print(f"{prompt_stats}")
+        prompt_stats = f"system prompt: {len(system_prompt)} char, user_prompt: {len(user_prompt)}. context: {len(context)}"
+        self.logger.info(f"{prompt_stats}")
         prompt_df = pd.DataFrame(prompt)
         prompt_df.to_json(plan.thisdoc_dir + "/prompt.json", orient="records")
 
@@ -536,7 +576,8 @@ class Codexes2Parts:
             try:
                 response = model.generate_content(prompt, request_options={"timeout": 600})
                 # st.write(response.usage_metadata)
-                # print(response)
+                self.logger.debug(response)
+                # st.json(response, expanded=2)
 
                 logging.warning(response.usage_metadata)
                 return response
