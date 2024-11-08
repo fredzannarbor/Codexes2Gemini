@@ -16,8 +16,6 @@ from Codexes2Gemini.classes.Codexes.Distributors.LSI.create_LSI_ACS_spreadsheet 
 
 from Codexes2Gemini.classes.Utilities.classes_utilities import load_spreadsheet
 from Codexes2Gemini.classes.Codexes.Builders.Codexes2Codexes import Codex2Plan2Codex
-
-
 import fitz
 import pandas as pd
 from datetime import datetime
@@ -29,7 +27,7 @@ from Codexes2Gemini.classes.Codexes.Builders import Codexes2Parts
 from Codexes2Gemini.classes.Codexes.Builders.PromptsPlan import PromptsPlan
 from classes.Codexes.Metadata.Metadatas import Metadatas
 from classes.Codexes.Builders.CodexBuilder import results2assembled_pandoc_markdown_with_latex, \
-    create_publishing_information_block
+    create_publishing_information_block, results2assembled_pandoc_markdown_no_latex
 
 
 class PG19FetchAndTrack:
@@ -78,7 +76,7 @@ class PG19FetchAndTrack:
 
         return file_index
 
-    def fetch_pg19_data(self, skip_processed):
+    def fetch_pg19_data(self, skip_processed, markdown_results_no_latex=None):
         """Fetches PG19 data based on the provided metadata and processing options.
 
         Args:
@@ -117,6 +115,10 @@ class PG19FetchAndTrack:
             with open(filepath, "r") as f:
                 context = f.read()
             st.session_state.current_plan.update({"plan_type": "User"})
+
+            # FIX - Browsable GLossary must be shorter
+            # FIX - Timeline must be enforced to have double-new-lines
+
             results = self.process_single_context(context, row)
 
             publishing_info_block = f"""
@@ -141,23 +143,27 @@ _Humans and models making books richer, more diverse, and more surprising._
 
             # Save results to JSON
             self.save_results_to_json(textfilename, results)
+            try:
+                markdown_results_with_latex = results2assembled_pandoc_markdown_with_latex(results)
+                markdown_results = markdown_results_with_latex
+            except Exception as e:
+                st.error(f"error saving markdown results with latex preamble: {e}")
+                markdown_results_no_latex = results2assembled_pandoc_markdown_no_latex((results))
+                markdown_results = markdown_results_no_latex
 
-            markdown_results_with_latex = results2assembled_pandoc_markdown_with_latex(results)
-
-            st.json(markdown_results_with_latex, expanded=False)
-            self.save_results_to_markdown(textfilename, markdown_results_with_latex)
+            st.json(markdown_results, expanded=False)
+            self.save_results_to_markdown(textfilename, markdown_results)
 
 
             pdf_creation_on = True
             # FIX graceful failure of latex textwidth]
             if pdf_creation_on:
                 try:
-                    result_pdf_file_name = self.save_markdown_results_with_latex_to_pdf(markdown_results_with_latex,
-                                                                                        textfilename)
+                    result_pdf_file_name = self.save_markdown_results_with_latex_to_pdf(markdown_results, textfilename)
                 except Exception as e:
                     logging.error(f"{e}: \n{traceback.format_exc()}")
-                    st.error(f"error saving to PDF: {e}\n{traceback.format_exc()}")
-                    result_pdf_file_name = "unknown.pdf"
+                    st.error(f"error saving to PDF: {e}")
+                    result_pdf_file_name = "processed_data/failed.pdf"
 
                 if "collapsar" in st.session_state.current_plan["imprint"].lower():
                     ImprintText = "Collapsar Classic"
@@ -169,17 +175,23 @@ _Humans and models making books richer, more diverse, and more surprising._
 
                 bookjson_this_book = self.create_simple_bookjson(textfilename, results, result_pdf_file_name,
                                                                  ImprintText=ImprintText, sheetname=sheetname)
+                try:
+                    self.save_bookjson_this_book(textfilename, bookjson_this_book)
+                    st.session_state.current_plan.update({"plan_type": "Catalog"})
+                except Exception as e:
+                    self.logger.error(traceback.format_exc())
 
-                self.save_bookjson_this_book(textfilename, bookjson_this_book)
-                st.session_state.current_plan.update({"plan_type": "Catalog"})
-                # catalog_results = self.generate_catalog_metadata(context, row)
+                catalog_results = self.generate_catalog_metadata(context, row)
 
-                # catalog_file_name = textfilename + "_catalog.json"
-            # catalog_results_df = pd.DataFrame(catalog_results)
-            # catalog_results_df.to_csv(f"{self.output_dir}/{textfilename}_catalog.csv")
+                catalog_file_name = textfilename + "_catalog.json"
+                catalog_results_df = pd.DataFrame(catalog_results)
+                catalog_results_df.to_csv(f"{self.output_dir}/{textfilename}_catalog.csv")
 
             else:
                 st.info(f"temporarily disabled PDF and bookjson file creation")
+
+            # run headless lsicoverbuilder
+
 
             self.update_processed_metadata(textfilename)
 
@@ -191,11 +203,18 @@ _Humans and models making books richer, more diverse, and more surprising._
 
     def create_condensed_matter_string(self, c2c, context, row, textfilename):
         condenserPlan = c2c.create_condenserPlan(textfilename, context)
-        condenserPlan_df = pd.DataFrame.from_dict(condenserPlan.to_dict(), orient='index')
-        condenserPlan_df.to_json(f"processed_data/{textfilename}_condenserPlan.json")
-        st.json(condenserPlan.to_dict, expanded=False)
+        # st.json(condenserPlan.to_dict, expanded=False)
+        print("condenserPlan:")
+        print(condenserPlan)
         condenser_prompts = self.process_single_context(context, row, plan=condenserPlan)
-        st.write(condenser_prompts)
+        print(condenser_prompts)
+
+        # write condenser_promts list to file for checking
+        with open(f"processed_data/{textfilename}" + "_condenser_prompts.json", "w") as f:
+            data = json.dumps(condenser_prompts)
+            f.write(data)
+
+
         condenser_results = c2c.run_condenser_prompts(condenser_prompts)
         with open(f"processed_data/{textfilename}" + "_condensed.json", "w") as f:
             data = json.dumps(condenser_results)
@@ -223,7 +242,7 @@ _Humans and models making books richer, more diverse, and more surprising._
                 rows = list(reader)
                 return random.sample(rows, number_of_context_files_to_process)
         elif selection_strategy == "Sequential":
-            rows = st.session_state()
+            #rows = st.session_state()
             return random.sample(rows, number_of_context_files_to_process)  # first random
 
     def process_single_context(self, context, row, plan=None):
@@ -313,7 +332,8 @@ _Humans and models making books richer, more diverse, and more surprising._
         output_pdf_path = os.path.join(self.output_dir, output_pdf_filename)
         os.makedirs(self.output_dir, exist_ok=True)
         if extra_args is None:
-            extra_args = ['--toc', '--toc-depth=2', '--pdf-engine=lualatex', '-V', 'mainfont=Miller Text']
+            extra_args = ['--toc', '--toc-depth=2', '--pdf-engine=lualatex', '-V', 'mainfont=Miller Text',
+                          '--lua-filter=/Users/fred/bin/nimble/Codexes2Gemini/resources/lua/reduce_heading.lua']
         try:
             # If md_result is a list, join the elements into a string
             if isinstance(md_result, list):
@@ -327,7 +347,7 @@ _Humans and models making books richer, more diverse, and more surprising._
         except Exception as e:  # Catch any exception here
             logging.error(f"Error saving to PDF: {e}\n{traceback.format_exc()}")
             st.error(f"Error saving to PDF: {e}\n{traceback.format_exc()}")
-
+            return
             # TODO (optional):
             # 1. Attempt to sanitize the Markdown (e.g., remove problematic LaTeX)
             # 2. Retry the conversion with pypandoc
@@ -366,7 +386,7 @@ _Humans and models making books richer, more diverse, and more surprising._
 
     def calculate_spinewidth(self, sheetname, finalpagecount):
 
-        # TO DO - add resources link
+        # TO DO - add importlib resources link
         file_name = os.path.join("resources/data_tables/LSI", "SpineWidthLookup.xlsx")
 
         dict_of_sheets = pd.read_excel(file_name, sheet_name=None)
