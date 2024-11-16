@@ -193,47 +193,6 @@ class Codexes2Parts:
                     retry_count += 1
                     self.logger.info(f"Retrying due to error. Retry count: {retry_count}")
 
-                # FIX - blows up at 199
-
-                # An
-                # error
-                # occurred: Unknown
-                # field
-                # for Candidate: finish_message
-                #
-                # Traceback(most
-                # recent
-                # call
-                # last): File
-                # "/Users/fred/bin/nimble/Codexes2Gemini/Codexes2Gemini/ui/build_from_dataset_of_codexes.py", line
-                # 1098, in run_streamlit_app
-                # final_results = prompts_plan_builder_ui(
-                #     user_space) ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ File
-                # "/Users/fred/bin/nimble/Codexes2Gemini/Codexes2Gemini/ui/build_from_dataset_of_codexes.py", line
-                # 593, in prompts_plan_builder_ui
-                # results = FT.fetch_pg19_data(skip_processed=st.session_state.current_plan[
-                #     'skip_processed']) ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ File
-                # "/Users/fred/bin/nimble/Codexes2Gemini/Codexes2Gemini/classes/Codexes/Fetchers/pg19Fetcher_v2.py", line
-                # 124, in fetch_pg19_data
-                # results = self.process_single_context(context,
-                #                                       row) ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ File
-                # "/Users/fred/bin/nimble/Codexes2Gemini/Codexes2Gemini/classes/Codexes/Fetchers/pg19Fetcher_v2.py", line
-                # 261, in process_single_context
-                # satisfactory_results = self.CODEXES2PARTS.process_codex_to_book_part(
-                #     plan) ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ File
-                # "/Users/fred/bin/nimble/Codexes2Gemini/Codexes2Gemini/classes/Codexes/Builders/Codexes2PartsOfTheBook.py", line
-                # 197, in process_codex_to_book_part
-                # self.logger.info(
-                #     f"\nFinal output length for this response: {self.count_tokens(response.text)}") ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ File
-                # "/Users/fred/.virtualenvs/c2g3.11/lib/python3.11/site-packages/google/generativeai/types/generation_types.py", line
-                # 454, in text
-                # if candidate.finish_message: ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ File
-                # "/Users/fred/.virtualenvs/c2g3.11/lib/python3.11/site-packages/proto/message.py", line
-                # 906, in getattr
-                # raise AttributeError(AttributeError: Unknown
-                # field
-                # for Candidate: finish_messag
-
                 self.logger.info(f"\nFinal output length for this response: {self.count_tokens(response.text)}")
 
                 # now decide whether we should spawn new Plan from this final response
