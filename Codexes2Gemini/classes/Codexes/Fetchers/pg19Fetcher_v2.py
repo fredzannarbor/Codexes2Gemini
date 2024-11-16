@@ -66,7 +66,6 @@ class PG19FetchAndTrack:
                     textfilename = row[0]
                     for data_dir in _self.data_dirs:
                         filepath = os.path.join(data_dir, f"{textfilename}.txt")
-
                         if os.path.exists(filepath):
                             file_index[textfilename] = filepath
                             break
@@ -182,10 +181,32 @@ _Humans and models making books richer, more diverse, and more surprising._
                     self.logger.error(traceback.format_exc())
 
                 catalog_results = self.generate_catalog_metadata(context, row)
+                st.write('catalog results', catalog_results)
+                catalog_filepath = os.path.join(self.output_dir, textfilename + "_catalog.json")
+                try:
 
-                catalog_file_name = textfilename + "_catalog.json"
-                catalog_results_df = pd.DataFrame(catalog_results)
-                catalog_results_df.to_csv(f"{self.output_dir}/{textfilename}_catalog.csv")
+                    with open(catalog_filepath, 'w') as f:
+                        json.dump(catalog_results, f, indent=4)
+                except Exception as e:
+                    self.logger.error(traceback.format_exc())
+
+                columns = [
+                    "BISACs",
+                    "bibliographic_key_phrases",
+                    "audience_and_age_classification",
+                    "short_description",
+                    "truth_in_publishing",
+                    "illustrations_analysis",
+                    "illustrations_notes"
+                ]
+                try:
+                    csv_filepath = os.path.join(self.output_dir, textfilename + "_catalog.csv")
+                    with open(csv_filepath, 'w', newline='') as csvfile:
+                        writer = csv.writer(csvfile)
+                        writer.writerow(columns)  # Write the header row
+                        writer.writerow(catalog_results)  # Write the data row
+                except Exception as e:
+                    self.logger.error(traceback.format_exc())
 
             else:
                 st.info(f"temporarily disabled PDF and bookjson file creation")
@@ -333,7 +354,7 @@ _Humans and models making books richer, more diverse, and more surprising._
         os.makedirs(self.output_dir, exist_ok=True)
         if extra_args is None:
             extra_args = ['--toc', '--toc-depth=2', '--pdf-engine=lualatex', '-V', 'mainfont=Miller Text',
-                          '--lua-filter=/Users/fred/bin/nimble/Codexes2Gemini/resources/lua/reduce_heading.lua']
+                          '--lua-filter=/Users/fred/bin/nimble/Codexes2Gemini/resources/lua/reduce-heading.lua']
         try:
             # If md_result is a list, join the elements into a string
             if isinstance(md_result, list):
