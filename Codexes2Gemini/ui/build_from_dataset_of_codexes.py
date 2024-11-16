@@ -299,8 +299,10 @@ def prompts_plan_builder_ui(user_space: UserSpace):
         "data/pg19/test/test",
         "data/pg19/train/train",
         "data/pg19/validation/validation",
-        "data/pg19/ADEPT"
-    ]
+        "data/pg19/ADEPT",
+        "data/pg19/user_data"]
+    USER_METADATA_FILE = "data/pg19/user_data/user_upload_metadata.csv"
+
 
     # check if PG19 is available
 
@@ -371,6 +373,65 @@ def prompts_plan_builder_ui(user_space: UserSpace):
                 st.session_state.current_plan.update({"selected_rows": edited_df.to_dict('records')})
 
                 st.session_state.selected_rows_df = edited_df
+
+    with st.form("Upload New Context Files For Index"):
+        uploaded_files = st.file_uploader("Upload new context files", accept_multiple_files=True,
+                                          help="'.txt', '.pdf', '.docx', '.doc', '.json' are supported")
+        new_context_name = st.text_input("New context name", "User Data")
+        new_context_tags = st.text_input("Context tags (comma-separated, optional)")
+        new_context_submitted = st.form_submit_button("Save New Context")
+
+        if new_context_submitted and uploaded_files:
+            # Process and save new context
+            upload_metadata = []
+            for file in uploaded_files:
+                context_text = read_file_content(file)
+                # get file name from file
+
+                file_name = os.path.basename(file.name)
+                # remove suffix
+                file_name = os.path.splitext(file_name)[0]
+                # make it safe by removing special characters and spaces
+                safe_file_name = file_name  # "".join(c for c in file_name if c.isalnum() or c == '_')
+                context_path = os.path.join("data/pg19/user_data", f"{safe_file_name}.txt")
+                with open(context_path, "w", encoding="utf-8") as f:
+                    f.write(context_text)
+                # Add to file index
+                FT.file_index[safe_file_name] = context_path
+                st.success(f"Uploaded file '{file.name}' saved as '{safe_file_name}'")
+                row_metadata = [file_name, "", "", ""]
+                upload_metadata.append(row_metadata)
+            # write upload_metadata to csv in safe version of user_data/new_context_name
+            upload_metadata_df = pd.DataFrame(upload_metadata,
+                                              columns=["textfilename", "title", "year_of_publication", "URI"])
+            append2metadata = True
+            if append2metadata:
+                # append to existing metadata.csv
+                try:
+                    existing_metadata = pd.read_csv(USER_METADATA_FILE)
+                    combined_metadata = pd.concat([existing_metadata, upload_metadata_df], ignore_index=True)
+                    combined_metadata.to_csv(USER_METADATA_FILE, index=False)
+                    st.success("Metadata updated successfully!")
+                except FileNotFoundError:
+                    st.error("Metadata file not found. I will create it.")
+                    upload_metadata_df.to_csv(USER_METADATA_FILE, index=False)
+                    st.success("Metadata file created successfully!")
+                except Exception as e:
+                    st.error(f"An error occurred while updating metadata: {e}")
+            else:
+                # save uploaded
+
+                FT.file_index = FT.create_file_index()
+                st.success(f"Updated file index with {len(FT.file_index)} files")
+
+
+
+
+
+
+
+
+
 
     st.subheader("Step 2: Instructions and Prompts")
 
