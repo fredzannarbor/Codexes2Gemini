@@ -17,7 +17,7 @@ from Codexes2Gemini.ui.build_from_dataset_of_codexes import parse_and_get_basic_
 
 # read selected_plans_dict
 
-class CodexesDirectory2LSI_ACS_Metadata():
+class CodexesDirectory2CatalogMetadata():
 
     def copy_json_files(self, source_dir, dest_dir, keyword="gemini_title"):
         """Copies JSON files containing a specific keyword to a destination directory.
@@ -125,7 +125,7 @@ class CodexesDirectory2LSI_ACS_Metadata():
                     except json.JSONDecodeError:
                         print(f"Error: Invalid JSON in file: {filepath}, skipping ....")
                         # st.error(f"Error: Invalid JSON in file: {filepath}, skipping ....")
-
+                        # continue
                 # Extract the basename without extension for Publisher Reference ID
                 publisher_ref_id = os.path.splitext(filename)[0]
                 non_empty_count = len(alldata['results'])
@@ -185,25 +185,34 @@ class CodexesDirectory2LSI_ACS_Metadata():
         gemini_summary = data.get("gemini_summary", "")
         return data, gemini_authors_str, gemini_subtitle, gemini_summary, gemini_title, gemini_year_of_publication, textfilename
 
-    def main(self):
-        instance = CodexesDirectory2LSI_ACS_Metadata()
-        lsi_acs_df = instance.gemini_create_lsi_acs_csv('/Users/fred/bin/nimble/Codexes2Gemini/trancheOct31')
-        missing_column_results = instance.gemini_get_column_values_all_at_once_relying_on_existing_summaries(
-            lsi_acs_df, "BISAC")
+    def main(self, source_directory=None):
+        instance = CodexesDirectory2CatalogMetadata()
+        lsi_acs_df = instance.gemini_create_lsi_acs_csv(source_directory)
+    #   missing_column_results = instance.gemini_get_column_values_all_at_once_relying_on_existing_summaries(
+    #    lsi_acs_df, "BISAC")
         # save missing_column_results as JSON
 
-        with open('missing_column_results.json', 'w') as f:
-            f.write(json.dumps(missing_column_results))
+    # with open('missing_column_results.json', 'w') as f:
+    #    f.write(json.dumps(missing_column_results))
 
-        mcr_df = pd.DataFrame(missing_column_results)
-        mcr_df.to_csv('missing_column_results.csv', index=False)
+    #   mcr_df = pd.DataFrame(missing_column_results)
+    #  mcr_df.to_csv('missing_column_results.csv', index=False)
 
 
 if __name__ == "__main__":
+
+    # argparse for parameters
+    import argparse
+
+    parser = argparse.ArgumentParser(description='process codexes for metadata')
+    parser.add_argument('source_directory', type=str, help='source directory', default="processed_data/itranche2")
+    args = parser.parse_args()
+    source_directory = args.source_directory
+
     copy = False
-    DIR2LSI = CodexesDirectory2LSI_ACS_Metadata()
+    DIR2LSI = CodexesDirectory2CatalogMetadata()
     if copy:
         DIR2LSI.copy_json_files('processed_data', 'trancheOct31', "gemini_title")
         DIR2LSI.main()
     else:
-        DIR2LSI.main()
+        DIR2LSI.main(source_directory)
