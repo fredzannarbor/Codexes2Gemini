@@ -1,18 +1,33 @@
-#  Copyright (c) 2023. Fred Zimmerman.  Personal or educational use only.  All commercial and enterprise use must be licensed, contact wfz@nimblebooks.com
+"""
+GrokStack: a substack helper powered by Grok
+- Compose a daily letter to yourself
+- Compose daily newsletters on themes of your choice
+- Create paywallable special features
+- Streamlit UI
+- use openai api library
+"""
+import os
+from openai import OpenAI
 
-import argparser
-from classes.M
+XAI_API_KEY = os.getenv("XAI_API_KEY")
+client = OpenAI(
+    api_key="xai-IIlClv1eVXjg8lFMSyiI6hgzL9tiywcfnqGb7RUdopZ7Esq8ZH8LGT8FnjQjWcRQJ07bP7SP3Tpk8giC",
+    base_url="https://api.x.ai/v1",
+)
 
-from app.utilities.utilities import statcounter
-from classes.Masthead.ManagingEditor.ManagingEditorUtilities import create_substack_content
+completion = client.chat.completions.create(
+    model="grok-beta",
+    messages=[
+        {"role": "system", "content": "You are Grok, a chatbot inspired by the Hitchhikers Guide to the Galaxy."},
+        {"role": "user", "content": question},
+    ],
+)
+
+
+def compose_item(prompt):
+
 
 if __name__ == "__main__":
-    argparser = argparser.Parser
-    args = argparser.parse_args()
-    args.add_argument("--queries", "-Q", type=list,
-                      default=['all:Dyson AND all:spheres', 'LK-99', 'all:mass AND all:extinction AND all:events'])
-    args.add_argument("--spin", "-S", type=str, default="Inject some humor.")
+    question = "Please list the five recently published books that have received the most interest in the last 24 hours."
 
-    substack_result = create_substack_content(queries=args.queries)
-
-statcounter(0, 0
+    compose_item(question)

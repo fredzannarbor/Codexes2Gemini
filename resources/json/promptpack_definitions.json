@@ -1,30 +1,5 @@
 {
   "prompt_packs": {
-    "test_keys_only": {
-      "name": "test_keys_only",
-      "system_instructions": [
-        "markdown"
-      ],
-      "user_prompts": [
-        "gemini_get_basic_info",
-        "about_the_author_classic"
-      ],
-      "custom_prompt": "",
-      "override": false,
-      "chunking_prompts": []
-    },
-    "test_context2prompts": {
-      "name": "test_context2prompts",
-      "system_instructions": [
-        "contains_prompts"
-      ],
-      "user_prompts": [
-        "context2condensedmatterprompts"
-      ],
-      "custom_prompt": "",
-      "override": false,
-      "chunking_prompts": []
-    },
     "ADEPT_front_matter": {
       "name": "ADEPT front matter",
       "system_instructions": [
@@ -55,6 +30,68 @@
       "override": false,
       "chunking_prompts": []
     },
+    "evaluate_full_ms": {
+      "name": "ADEPT front matter",
+      "system_instructions": [
+        "markdown",
+        "focus",
+        "nimble_editor",
+        "proactive"
+      ],
+      "user_prompts": [
+        "gemini_get_basic_info",
+        "bibliographic_key_phrases",
+        "motivation",
+        "truth_in_publishing",
+        "analytic_toc",
+        "most_important_passages_with_reasoning",
+        "about_the_author_classic",
+        "place_in_historical_context",
+        "create_list_of_abbreviations",
+        "glossary_browsable",
+        "timeline_major",
+        "introspection",
+        "abstracts_x4",
+        "ELI_idiot",
+        "mnemonics_abstract",
+        "conversation_starters"
+      ],
+      "custom_prompt": "",
+      "override": false,
+      "chunking_prompts": [
+      ]
+    },
+    "evaluate_condensed_matter": {
+      "name": "ADEPT front matter",
+      "system_instructions": [
+        "markdown",
+        "focus",
+        "nimble_editor",
+        "proactive"
+      ],
+      "user_prompts": [
+        "gemini_get_basic_info",
+        "bibliographic_key_phrases",
+        "motivation",
+        "truth_in_publishing",
+        "analytic_toc",
+        "most_important_passages_with_reasoning",
+        "about_the_author_classic",
+        "place_in_historical_context",
+        "create_list_of_abbreviations",
+        "glossary_browsable",
+        "timeline_major",
+        "introspection",
+        "abstracts_x4",
+        "ELI_idiot",
+        "mnemonics_abstract",
+        "conversation_starters"
+      ],
+      "custom_prompt": "",
+      "override": false,
+      "chunking_prompts": [
+      ]
+    },
     "collapsar_core_style_enhanced": {
       "name": "collapsar_core_style_enhanced",
       "system_instructions": [
@@ -68,32 +105,40 @@
         "bibliographic_key_phrases",
         "motivation",
         "truth_in_publishing",
-        "about_the_author_classic",
-        "place_in_historical_context",
         "abstracts_x4",
         "ELI_idiot",
-        "mnemonics_abstract",
         "most_important_passages_with_reasoning",
         "context2condensedmatterprompts",
+        "about_the_author_classic",
+        "place_in_historical_context",
         "glossary_browsable",
         "timeline_major",
-        "conversation_starters",
-        "introspection"
+        "introspection",
+        "mnemonics_abstract",
+        "conversation_starters"
       ],
       "custom_prompt": "",
       "override": "Add at end of other user prompts",
       "chunking_prompts": []
     },
-    "rebooter": {
-      "name": "rebooter",
+    "Ingram_catalog_manual_entry": {
+      "name": "Ingram_catalog_manual_entry",
       "system_instructions": [
         "proactive",
         "focus",
         "creative"
       ],
       "user_prompts": [
-        "gemini_get_basic_info",
-        "create_reboot_prompts"
+        "BISACs",
+        "audience_and_age_classification_nimble",
+        "regional_subject",
+        "thema_subjects",
+        "truth_in_publishing",
+        "Annotation",
+        "bibliographic_key_phrases",
+        "short_description",
+        "illustrations_analysis",
+        "illustrations_notes"
       ],
       "custom_prompt": "",
       "override": false,
@@ -122,24 +167,16 @@
       "override": false,
       "chunking_prompts": []
     },
-    "Ingram_catalog_manual_entry": {
-      "name": "Ingram_catalog_manual_entry",
+    "rebooter": {
+      "name": "rebooter",
       "system_instructions": [
         "proactive",
         "focus",
         "creative"
       ],
       "user_prompts": [
-        "BISACs",
-        "audience_and_age_classification_nimble",
-        "regional_subject",
-        "thema_subjects",
-        "truth_in_publishing",
-        "Annotation",
-        "bibliographic_key_phrases",
-        "short_description",
-        "illustrations_analysis",
-        "illustrations_notes"
+        "gemini_get_basic_info",
+        "create_reboot_prompts"
       ],
       "custom_prompt": "",
       "override": false,
@@ -153,14 +190,33 @@
         "creative"
       ],
       "user_prompts": [
-        "BISACs",
-        "audience_and_age_classification_nimble",
-        "regional_subject",
-        "thema_subjects",
-        "truth_in_publishing",
-        "Annotation",
-        "bibliographic_key_phrases",
-        "short_description"
+        "short_description",
+        "abstracts_x4"
+      ],
+      "custom_prompt": "",
+      "override": false,
+      "chunking_prompts": []
+    },
+    "test_context2prompts": {
+      "name": "test_context2prompts",
+      "system_instructions": [
+        "contains_prompts"
+      ],
+      "user_prompts": [
+        "context2condensedmatterprompts"
+      ],
+      "custom_prompt": "",
+      "override": false,
+      "chunking_prompts": []
+    },
+    "_test_keys_only": {
+      "name": "test_keys_only",
+      "system_instructions": [
+        "markdown"
+      ],
+      "user_prompts": [
+        "gemini_get_basic_info",
+        "about_the_author_classic"
       ],
       "custom_prompt": "",
       "override": false,

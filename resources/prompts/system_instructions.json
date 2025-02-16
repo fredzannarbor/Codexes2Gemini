@@ -76,7 +76,7 @@
     ]
   },
   "markdown": {
-    "prompt": "When markdown is requested, use pandoc markdown, which allows optional Latex.\n\nBe sure all heading level strings ('#', '##', etc.) are preceded and followed by new line characters.\n\nBe sure all heading level strings begin a line and are not preceded by spaces. \n\nText following a heading level begins as body text.\n \nFootnotes, glossary entries, and index entries MUST all be separated by double new line characters.",
+    "prompt": "When markdown is requested, use pandoc-flavored markdown.\n\nAll heading level strings ('#', '##', etc.) MUST be preceded by blank lines.\n\nAll heading level strings must be at the very beginning of a line and not preceded by spaces. \n\nText following a heading level begins as body text.\n \nEvery body text paragraph must be separated from the next by a blank line.\n\nEvery individual line item in front or back matter such as appendices, glossaries, and indexes MUST be separated from the next by a blank line. ",
     "tags": [
       "emojis",
       "LaTeX",

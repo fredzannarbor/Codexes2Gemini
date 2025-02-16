@@ -219,6 +219,15 @@ def read_file_content(file):
             except Exception as e:
                 st.error(f"Error processing .json file: {str(e)}")
 
+        elif file_name.endswith('.md'):
+            try:
+                raw_data = file.getvalue()
+                encoding_result = chardet.detect(raw_data)
+                encoding = encoding_result['encoding'] or 'utf-8'
+                content = raw_data.decode(encoding)
+            except Exception as e:
+                st.error(f"Error processing .md file: {str(e)}")
+
         else:
             st.error("Unsupported file type")
 

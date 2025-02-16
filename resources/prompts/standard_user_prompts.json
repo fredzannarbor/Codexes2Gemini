@@ -167,7 +167,7 @@
     ]
   },
   "create_list_of_abbreviations": {
-    "prompt": "Create a list of abbreviations for the book. Follow the Chicago Manual of Style practices described here. You do not need to mention the CMS as you create the list.\n\n1.44 Not every work that includes abbreviations needs a separate list of abbreviations with the terms or names they stand for. If many are used, or if a few are used frequently, a list is useful (see fig. 1.8); its location should always be given in the table of contents. If abbreviations are used in the text or footnotes, the list may appear in the front matter. If they are used only in the back matter, the list should appear before the first element in which abbreviations are used, whether the appendixes, the endnotes, or the bibliography. A list of abbreviations is generally not a substitute for using the full form of a term at its first occurrence in the text (see 10.3). In the list, alphabetize terms by the abbreviation, not by the spelled-out form. See also 14.60.\n14.60: Where many abbreviations of titles, manuscript collections, personal names, or other entities are used in a work—say, ten or more—they are best listed alphabetically in a separate section. In a book, the list may appear in the front matter (if footnotes are used) or in the end matter preceding the endnotes (if these are used). It is usually headed “Abbreviations” and should be included in the table of contents (see 1.4, 1.44). Where only a few abbreviations are used, these are occasionally listed as the first section of the endnotes (see fig. 14.7) or at the head of the bibliography. Titles that are italicized in the notes or bibliography should be italicized in their abbreviated form in the list of abbreviations and elsewhere.\n\nOutput begins: # Abbreviations\n\n",
+    "prompt": "Create a list of abbreviations found in the document. Provide the output as a markdown section beginning with # Abbreviations and followed by a markdown table with acronym in the first column and its expansion in the second column.",
     "tags": [
       "table of contents",
       "initialisms",
@@ -416,6 +416,17 @@
   },
   "proofread (errors only)": {
     "prompt": "Proofread this book draft and prepare a list identifying any clear errors. Follow the Chicago Manual of Style 18th edition.  Do not present revision ideas for \"consideration\", I am only interested in finding and correcting outright, embarrassing errors.",
+    "tags": [
+      "ADEPT",
+      "edit",
+      "CMOS",
+      "proofing",
+      "proofreading",
+      "Collapsar"
+    ]
+  },
+  "proofread_markdown_structure_and_syntax": {
+    "prompt": "Your task is to review the markdown syntax and semnantic structure of this document and prepare a punch list of fixes for me to make.  Organize the punch list in the same order as the document. For each item in the list provide a short search phrase sufficient to uniquely locate the item in the document. For repeated identical errors, if it is possible to provide me with an instruction such as a search and replace, that will safely fix them all at once, do so.\n\nSome common errors in this corpus:\n\n- Incomplete or incorrect markdown expressions producing unrendered text. An example: a heading line that is inadvertently preceded by a space, such as \" # Chapter 1\".\n- Orphan headings, such as a new line with a blank heading: \"## \".\n- Unresolved URI links.\n- Unmatched or unclosed italics, bold, and so on\n- Front or back matter such as indexes and tables with line items incorrectly run on into a single paragraph rather than separated by blank lines.\n- Headings for parts of the book inadvertently classifed at the wrong level (an H2 that should be an H1).\n- Text that mistakenly includes model prompts or json format output.\n- Runaway model outputs where the model repeats the same phrase forever.\n- Unrequested boilerplate and pleasantries.",
     "tags": [
       "ADEPT",
       "edit",
